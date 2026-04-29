@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>DocSnap Dashboard</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f6fb;
+      margin: 0;
+      color: #111827;
+    }
+
+    .app {
+      max-width: 1100px;
+      margin: auto;
+      padding: 30px;
+    }
+
+    .logo {
+      font-size: 28px;
+      font-weight: bold;
+    }
+
+    .subtitle {
+      color: #6b7280;
+      margin-bottom: 30px;
+    }
+
+    .box, .card {
+      background: white;
+      border-radius: 18px;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.06);
+    }
+
+    .box {
+      padding: 28px;
+      margin-bottom: 24px;
+    }
+
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 18px;
+      margin-bottom: 24px;
+    }
+
+    .card {
+      padding: 22px;
+    }
+
+    .card h3 {
+      margin: 0;
+      color: #6b7280;
+      font-size: 14px;
+    }
+
+    .card p {
+      font-size: 28px;
+      font-weight: bold;
+      margin: 10px 0 0;
+    }
+
+    button {
+      background: #111827;
+      color: white;
+      border: none;
+      padding: 12px 18px;
+      border-radius: 10px;
+      cursor: pointer;
+      margin-top: 15px;
+      font-size: 14px;
+    }
+
+    .danger {
+      background: #dc2626;
+      margin-left: 10px;
+    }
+
+    .chart-wrapper {
+      height: 320px;
+      max-width: 600px;
+      margin: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 15px;
+    }
+
+    th, td {
+      padding: 12px;
+      border-bottom: 1px solid #e5e7eb;
+      text-align: left;
+    }
+
+    th {
+      color: #6b7280;
+      font-size: 13px;
+    }
+
+    .loading {
+      margin-top: 15px;
+      color: #2563eb;
+      font-weight: bold;
+    }
+
+    .empty {
+      color: #6b7280;
+    }
+
+    @media (max-width: 800px) {
+      .cards {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="app">
+    <div class="logo">📄 DocSnap</div>
+    <div class="subtitle">AI invoice extraction and expense dashboard</div>
+
+    <div class="box">
+      <h2>Upload invoice</h2>
+      <p>Upload a screenshot, JPG, or PNG invoice. DocSnap will extract the business data automatically.</p>
+
+      <input type="file" id="fileInput" accept="image/*" />
+      <br />
+
+      <button onclick="uploadFile()">Extract Invoice Data</button>
+      <button class="danger" onclick="clearDashboard()">Clear Dashboard</button>
+
+      <div id="loading" class="loading"></div>
+    </div>
+
+    <div class="cards">
+      <div class="card">
+        <h3>Total Expenses</h3>
+        <p id="totalExpenses">$0.00</p>
+      </div>
+
+      <div class="card">
+        <h3>Invoices Uploaded</h3>
+        <p id="invoiceCount">0</p>
+      </div>
+
+      <div class="card">
+        <h3>Average Invoice</h3>
+        <p id="averageInvoice">$0.00</p>
+      </div>
+    </div>
+
+    <div class="box">
+      <h2>Latest Invoice</h2>
+      <div id="latestInvoice" class="empty">No invoice uploaded yet.</div>
+    </div>
+
+    <div class="box">
+      <h2>Invoice History</h2>
+      <div id="history" class="empty">Your uploaded invoices will appear here.</div>
+    </div>
+
+    <div class="box">
+      <h2>Spending by Category</h2>
+      <div class="chart-wrapper">
+        <canvas id="categoryChart"></canvas>
+      </div>
+    </div>
+
+    <div class="box">
+      <h2>Monthly Spending</h2>
+      <div class="chart-wrapper">
+        <canvas id="monthlyChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const API_BASE = "https://docsnap-api-production-0100.up.railway.app";
+
+    let invoices = [];
+    let categoryChartInstance = null;
+    let monthlyChartInstance = null;
+
+    function formatMoney(value) {
+      const number = Number(value) || 0;
+      return "$" + number.toFixed(2);
+    }
+
+    async function loadDashboard() {
+      try {
+        const response = await fetch(API_BASE + "/invoices");
+        invoices = await response.json();
+
+        updateDashboard();
+        buildCategoryChart(invoices);
+        buildMonthlyChart(invoices);
+      } catch (error) {
+        console.error(error);
+      }
+    }
+
+    function updateDashboard() {
+      const total = invoices.reduce((sum, invoice) => {
+        return sum + (Number(invoice.total_amount) || 0);
+      }, 0);
+
+      const count = invoices.length;
+      const average = count > 0 ? total / count : 0;
+
+      document.getElementById("totalExpenses").textContent = formatMoney(total);
+      document.getElementById("invoiceCount").textContent = count;
+      document.getElementById("averageInvoice").textContent = formatMoney(average);
+
+      renderLatestInvoice();
+      renderHistory();
+    }
+
+    function renderLatestInvoice() {
+      const box = document.getElementById("latestInvoice");
+
+      if (invoices.length === 0) {
+        box.innerHTML = "No invoice uploaded yet.";
+        box.className = "empty";
+        return;
+      }
+
+      const invoice = invoices[0];
+
+      box.className = "";
+      box.innerHTML = `
+        <p><strong>Client:</strong> ${invoice.client_name || "Unknown"}</p>
+        <p><strong>Date:</strong> ${invoice.invoice_date || "Unknown"}</p>
+        <p><strong>Category:</strong> ${invoice.category || "Other"}</p>
+        <p><strong>Total:</strong> ${formatMoney(invoice.total_amount)}</p>
+
+        <h4>Services</h4>
+        <table>
+          <tr>
+            <th>Description</th>
+            <th>Qty</th>
+            <th>Unit Price</th>
+            <th>Total</th>
+          </tr>
+          ${(invoice.services || []).map(service => `
+            <tr>
+              <td>${service.description || ""}</td>
+              <td>${service.quantity || ""}</td>
+              <td>${formatMoney(service.unit_price)}</td>
+              <td>${formatMoney(service.total)}</td>
+            </tr>
+          `).join("")}
+        </table>
+      `;
+    }
+
+    function renderHistory() {
+      const box = document.getElementById("history");
+
+      if (invoices.length === 0) {
+        box.innerHTML = "Your uploaded invoices will appear here.";
+        box.className = "empty";
+        return;
+      }
+
+      box.className = "";
+      box.innerHTML = `
+        <table>
+          <tr>
+            <th>Client</th>
+            <th>Date</th>
+            <th>Category</th>
+            <th>Total</th>
+            <th>Uploaded</th>
+          </tr>
+          ${invoices.map(invoice => `
+            <tr>
+              <td>${invoice.client_name || "Unknown"}</td>
+              <td>${invoice.invoice_date || "Unknown"}</td>
+              <td>${invoice.category || "Other"}</td>
+              <td>${formatMoney(invoice.total_amount)}</td>
+              <td>${invoice.created_at ? new Date(invoice.created_at).toLocaleString() : ""}</td>
+            </tr>
+          `).join("")}
+        </table>
+      `;
+    }
+
+    function buildCategoryChart(invoices) {
+      const totals = {};
+
+      invoices.forEach(invoice => {
+        const category = invoice.category || "Other";
+
+        if (!totals[category]) {
+          totals[category] = 0;
+        }
+
+        totals[category] += Number(invoice.total_amount) || 0;
+      });
+
+      const labels = Object.keys(totals);
+      const data = Object.values(totals);
+
+      const ctx = document.getElementById("categoryChart").getContext("2d");
+
+      if (categoryChartInstance) {
+        categoryChartInstance.destroy();
+      }
+
+      categoryChartInstance = new Chart(ctx, {
+        type: "doughnut",
+        data: {
+          labels: labels,
+          datasets: [{
+            label: "Spending",
+            data: data
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: "bottom"
+            }
+          }
+        }
+      });
+    }
+
+    function buildMonthlyChart(invoices) {
+      const monthlyTotals = {};
+
+      invoices.forEach(invoice => {
+        if (!invoice.invoice_date) return;
+
+        const date = new Date(invoice.invoice_date);
+        const month = date.toLocaleString("default", {
+          month: "short",
+          year: "numeric"
+        });
+
+        if (!monthlyTotals[month]) {
+          monthlyTotals[month] = 0;
+        }
+
+        monthlyTotals[month] += Number(invoice.total_amount) || 0;
+      });
+
+      const labels = Object.keys(monthlyTotals);
+      const data = Object.values(monthlyTotals);
+
+      const ctx = document.getElementById("monthlyChart").getContext("2d");
+
+      if (monthlyChartInstance) {
+        monthlyChartInstance.destroy();
+      }
+
+      monthlyChartInstance = new Chart(ctx, {
+        type: "line",
+        data: {
+          labels: labels,
+          datasets: [{
+            label: "Monthly Spending",
+            data: data,
+            fill: true,
+            tension: 0.3
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: "bottom"
+            }
+          }
+        }
+      });
+    }
+
+    async function uploadFile() {
+      const fileInput = document.getElementById("fileInput");
+      const file = fileInput.files[0];
+      const loading = document.getElementById("loading");
+
+      if (!file) {
+        alert("Please choose an invoice image first.");
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append("file", file);
+
+      loading.textContent = "Processing invoice...";
+
+      try {
+        const response = await fetch(API_BASE + "/upload", {
+          method: "POST",
+          body: formData
+        });
+
+        const data = await response.json();
+
+        if (data.error) {
+          loading.textContent = "Error: " + data.error;
+          return;
+        }
+
+        loading.textContent = "Invoice processed successfully!";
+        fileInput.value = "";
+
+        await loadDashboard();
+      } catch (error) {
+        loading.textContent = "Error: " + error.message;
+      }
+    }
+
+    function clearDashboard() {
+      alert("This button only clears the local view for now. Database delete will be added later.");
+    }
+
+    loadDashboard();
+  </script>
+</body>
+</html>
