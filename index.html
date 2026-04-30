@@ -484,10 +484,6 @@
 const API_BASE = "https://docsnap-api-production-0100.up.railway.app";
 const INCOME_KEY = "flowcast_income_entries";
 const INVOICE_KEY = "flowcast_invoices";
-let invoices = [], incomeEntries = [], categoryChartInstance = null, monthlyChartInstance = null, openActionMenu = null;
-let openMenuDirections = {};
-function showDashboard(){document.getElementById('landingPage').classList.add('hidden');document.getElementById('dashboardPage').classList.remove('hidden');}
-function showLanding(){document.getElementById('dashboardPage').classList.add('hidden');document.getElementById('landingPage').classList.remove('hidden');}
 const BUG_REPORTS_KEY = "revnio_bug_reports";
 const QUICK_HELP_ITEMS = ["How do I upload an invoice?","Why is invoice deletion not working?","How do I track income?","Report a bug"];
 const localAssistantHandlers = {
@@ -496,14 +492,24 @@ const localAssistantHandlers = {
   "how do i track income?": "Use the Income Tracker form in Overview. Add source, date, amount, and optional notes, then click Add Income. Entries update totals and profit cards instantly.",
   "report a bug": "Please describe what happened and what you clicked. You can submit the bug form below and it will be saved locally."
 };
-let invoices = [], incomeEntries = [], categoryChartInstance = null, monthlyChartInstance = null, openActionMenu = null, assistantPanelOpen = false, sidebarOpen = false;
+let invoices = [], incomeEntries = [], categoryChartInstance = null, monthlyChartInstance = null, openActionMenu = null;
+let openMenuDirections = {};
+let assistantPanelOpen = false;
+let sidebarOpen = false;
 function isMobileView(){return window.innerWidth<=768;}
 function toggleSidebar(){if(!isMobileView()) return; sidebarOpen=!sidebarOpen; syncSidebarState();}
 function closeSidebar(){sidebarOpen=false; syncSidebarState();}
 function syncSidebarState(){const sidebar=document.getElementById("dashboardSidebar"),overlay=document.getElementById("sidebarOverlay");if(!sidebar||!overlay)return;sidebar.classList.toggle("mobile-open",sidebarOpen&&isMobileView());overlay.classList.toggle("active",sidebarOpen&&isMobileView());document.body.style.overflow=(sidebarOpen&&isMobileView())?"hidden":"";}
 window.addEventListener("resize",()=>{if(!isMobileView()) sidebarOpen=false; syncSidebarState();});
-function showDashboard(){document.getElementById('landingPage').classList.add('hidden');document.getElementById('dashboardPage').classList.remove('hidden');document.getElementById('helpFab').classList.remove('hidden');syncSidebarState();}
-function showLanding(){document.getElementById('dashboardPage').classList.add('hidden');document.getElementById('landingPage').classList.remove('hidden');document.getElementById('helpFab').classList.add('hidden');closeAssistantPanel();closeSidebar();}
+function showDashboard() {
+  document.getElementById('landingPage').classList.add('hidden');
+  document.getElementById('dashboardPage').classList.remove('hidden');
+}
+
+function showLanding() {
+  document.getElementById('dashboardPage').classList.add('hidden');
+  document.getElementById('landingPage').classList.remove('hidden');
+}
 function formatMoney(value){return "$" + (Number(value) || 0).toFixed(2);} function toCSVCell(value){return `"${String(value ?? "").replace(/"/g,'""')}"`;} function setLoadingState(m){document.getElementById("loading").textContent=m||"";}
 function activateTab(tabId){document.querySelectorAll(".tab-content").forEach(el=>el.classList.remove("active"));document.querySelectorAll(".tab-btn").forEach(el=>el.classList.remove("active"));document.getElementById(tabId).classList.add("active");document.getElementById(`tab-${tabId}`).classList.add("active");}
 function showTab(tabId,btn){activateTab(tabId);document.querySelectorAll(".nav-item").forEach(el=>el.classList.remove("active"));btn.classList.add("active");if(isMobileView())closeSidebar();}
