@@ -5,136 +5,174 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
   <style>
+    :root {
+      --bg: #f4f6fb;
+      --card: #ffffff;
+      --text: #111827;
+      --muted: #6b7280;
+      --primary: #111827;
+      --soft-border: #e5e7eb;
+      --success: #0f766e;
+      --danger: #dc2626;
+      --info: #2563eb;
+    }
+
+    * { box-sizing: border-box; }
+
     body {
       font-family: Arial, sans-serif;
-      background: #f4f6fb;
+      background: var(--bg);
       margin: 0;
-      color: #111827;
+      color: var(--text);
     }
 
     .app {
-      max-width: 1100px;
+      max-width: 1200px;
       margin: auto;
-      padding: 30px;
+      padding: 28px;
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: end;
+      gap: 12px;
+      margin-bottom: 20px;
     }
 
     .logo {
       font-size: 28px;
-      font-weight: bold;
+      font-weight: 700;
     }
 
     .subtitle {
-      color: #6b7280;
-      margin-bottom: 30px;
+      color: var(--muted);
+      margin-top: 4px;
     }
 
     .box, .card {
-      background: white;
-      border-radius: 18px;
+      background: var(--card);
+      border-radius: 16px;
       box-shadow: 0 8px 25px rgba(0,0,0,0.06);
     }
 
-    .box {
-      padding: 28px;
-      margin-bottom: 24px;
+    .box { padding: 24px; }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 1.35fr 1fr;
+      gap: 20px;
+      margin-bottom: 20px;
+    }
+
+    .section-stack {
+      display: grid;
+      gap: 20px;
     }
 
     .cards {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
-      gap: 18px;
-      margin-bottom: 24px;
+      gap: 16px;
+      margin-bottom: 20px;
     }
 
-    .card {
-      padding: 22px;
-    }
+    .card { padding: 20px; }
+    .card h3 { margin: 0; color: var(--muted); font-size: 13px; }
+    .card p { font-size: 28px; font-weight: 700; margin: 10px 0 0; }
 
-    .card h3 {
-      margin: 0;
-      color: #6b7280;
-      font-size: 14px;
-    }
-
-    .card p {
-      font-size: 28px;
-      font-weight: bold;
-      margin: 10px 0 0;
-    }
+    .actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
 
     button {
-      background: #111827;
-      color: white;
+      background: var(--primary);
+      color: #fff;
       border: none;
-      padding: 12px 18px;
+      padding: 11px 16px;
       border-radius: 10px;
       cursor: pointer;
-      margin-top: 15px;
       font-size: 14px;
     }
 
-    .danger {
-      background: #dc2626;
-      margin-left: 10px;
+    .danger { background: var(--danger); }
+    .secondary { background: #374151; }
+    .row-delete {
+      background: var(--danger);
+      padding: 7px 11px;
+      border-radius: 8px;
+      font-size: 12px;
+      transition: transform 0.12s ease, opacity 0.12s ease;
+    }
+    .row-delete:hover {
+      opacity: 0.92;
+      transform: translateY(-1px);
     }
 
-    .chart-wrapper {
-      height: 320px;
-      max-width: 600px;
-      margin: auto;
-    }
+    .chart-wrapper { height: 320px; }
 
     table {
       width: 100%;
       border-collapse: collapse;
-      margin-top: 15px;
+      margin-top: 12px;
+      font-size: 14px;
     }
 
     th, td {
-      padding: 12px;
-      border-bottom: 1px solid #e5e7eb;
+      padding: 10px;
+      border-bottom: 1px solid var(--soft-border);
       text-align: left;
+      vertical-align: top;
     }
 
-    th {
-      color: #6b7280;
-      font-size: 13px;
-    }
+    th { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: 0.02em; }
 
     .loading {
-      margin-top: 15px;
-      color: #2563eb;
-      font-weight: bold;
+      margin-top: 14px;
+      color: var(--info);
+      font-weight: 700;
     }
 
-    .empty {
-      color: #6b7280;
+    .state {
+      margin-top: 10px;
+      border: 1px dashed var(--soft-border);
+      border-radius: 12px;
+      padding: 16px;
+      color: var(--muted);
+      background: #fafbff;
+    }
+
+    .insights-list { margin: 8px 0 0; padding-left: 18px; color: #1f2937; }
+    .insights-list li { margin: 7px 0; }
+
+    .badge {
+      display: inline-block;
+      font-size: 12px;
+      background: #ecfeff;
+      color: var(--success);
+      border: 1px solid #99f6e4;
+      border-radius: 999px;
+      padding: 4px 10px;
+      margin-bottom: 8px;
+    }
+
+    @media (max-width: 980px) {
+      .layout { grid-template-columns: 1fr; }
     }
 
     @media (max-width: 800px) {
-      .cards {
-        grid-template-columns: 1fr;
-      }
+      .cards { grid-template-columns: 1fr; }
+      .topbar { flex-direction: column; align-items: flex-start; }
     }
   </style>
 </head>
 
 <body>
   <div class="app">
-    <div class="logo">📄 DocSnap</div>
-    <div class="subtitle">AI invoice extraction and expense dashboard</div>
-
-    <div class="box">
-      <h2>Upload invoice</h2>
-      <p>Upload a screenshot, JPG, or PNG invoice. DocSnap will extract the business data automatically.</p>
-
-      <input type="file" id="fileInput" accept="image/*" />
-      <br />
-
-      <button onclick="uploadFile()">Extract Invoice Data</button>
-      <button class="danger" onclick="clearDashboard()">Clear Dashboard</button>
-
-      <div id="loading" class="loading"></div>
+    <div class="topbar">
+      <div>
+        <div class="logo">📄 DocSnap</div>
+        <div class="subtitle">AI invoice extraction and expense dashboard</div>
+      </div>
+      <button class="secondary" onclick="exportCSV()">Export CSV</button>
     </div>
 
     <div class="cards">
@@ -142,39 +180,55 @@
         <h3>Total Expenses</h3>
         <p id="totalExpenses">$0.00</p>
       </div>
-
       <div class="card">
         <h3>Invoices Uploaded</h3>
         <p id="invoiceCount">0</p>
       </div>
-
       <div class="card">
         <h3>Average Invoice</h3>
         <p id="averageInvoice">$0.00</p>
       </div>
     </div>
 
-    <div class="box">
-      <h2>Latest Invoice</h2>
-      <div id="latestInvoice" class="empty">No invoice uploaded yet.</div>
-    </div>
+    <div class="layout">
+      <div class="section-stack">
+        <div class="box">
+          <h2>Upload invoice</h2>
+          <p>Upload a screenshot, JPG, or PNG invoice. DocSnap will extract the business data automatically.</p>
+          <input type="file" id="fileInput" accept="image/*" />
+          <div class="actions">
+            <button onclick="uploadFile()">Extract Invoice Data</button>
+            <button class="danger" onclick="clearDashboard()">Clear Dashboard</button>
+          </div>
+          <div id="loading" class="loading"></div>
+        </div>
 
-    <div class="box">
-      <h2>Invoice History</h2>
-      <div id="history" class="empty">Your uploaded invoices will appear here.</div>
-    </div>
+        <div class="box">
+          <h2>Latest Invoice</h2>
+          <div id="latestInvoice" class="state">No invoice uploaded yet. Upload your first invoice to see extracted details.</div>
+        </div>
 
-    <div class="box">
-      <h2>Spending by Category</h2>
-      <div class="chart-wrapper">
-        <canvas id="categoryChart"></canvas>
+        <div class="box">
+          <h2>Invoice History</h2>
+          <div id="history" class="state">Your uploaded invoices will appear here.</div>
+        </div>
       </div>
-    </div>
 
-    <div class="box">
-      <h2>Monthly Spending</h2>
-      <div class="chart-wrapper">
-        <canvas id="monthlyChart"></canvas>
+      <div class="section-stack">
+        <div class="box">
+          <h2>AI Insights</h2>
+          <div id="insights" class="state">No data yet. Insights appear once at least 2 invoices are uploaded.</div>
+        </div>
+
+        <div class="box">
+          <h2>Spending by Category</h2>
+          <div class="chart-wrapper"><canvas id="categoryChart"></canvas></div>
+        </div>
+
+        <div class="box">
+          <h2>Monthly Spending Trend</h2>
+          <div class="chart-wrapper"><canvas id="monthlyChart"></canvas></div>
+        </div>
       </div>
     </div>
   </div>
@@ -191,24 +245,33 @@
       return "$" + number.toFixed(2);
     }
 
+    function toCSVCell(value) {
+      const plain = String(value ?? "").replace(/"/g, '""');
+      return `"${plain}"`;
+    }
+
+    function setLoadingState(message) {
+      document.getElementById("loading").textContent = message || "";
+    }
+
     async function loadDashboard() {
+      setLoadingState("Loading dashboard data...");
       try {
         const response = await fetch(API_BASE + "/invoices");
         invoices = await response.json();
-
         updateDashboard();
         buildCategoryChart(invoices);
         buildMonthlyChart(invoices);
+        buildInsights(invoices);
+        setLoadingState("");
       } catch (error) {
         console.error(error);
+        setLoadingState("Could not load dashboard data. Please retry.");
       }
     }
 
     function updateDashboard() {
-      const total = invoices.reduce((sum, invoice) => {
-        return sum + (Number(invoice.total_amount) || 0);
-      }, 0);
-
+      const total = invoices.reduce((sum, invoice) => sum + (Number(invoice.total_amount) || 0), 0);
       const count = invoices.length;
       const average = count > 0 ? total / count : 0;
 
@@ -222,30 +285,22 @@
 
     function renderLatestInvoice() {
       const box = document.getElementById("latestInvoice");
-
       if (invoices.length === 0) {
-        box.innerHTML = "No invoice uploaded yet.";
-        box.className = "empty";
+        box.className = "state";
+        box.innerHTML = "No invoice uploaded yet. Upload your first invoice to see extracted details.";
         return;
       }
 
       const invoice = invoices[0];
-
       box.className = "";
       box.innerHTML = `
         <p><strong>Client:</strong> ${invoice.client_name || "Unknown"}</p>
         <p><strong>Date:</strong> ${invoice.invoice_date || "Unknown"}</p>
         <p><strong>Category:</strong> ${invoice.category || "Other"}</p>
         <p><strong>Total:</strong> ${formatMoney(invoice.total_amount)}</p>
-
         <h4>Services</h4>
         <table>
-          <tr>
-            <th>Description</th>
-            <th>Qty</th>
-            <th>Unit Price</th>
-            <th>Total</th>
-          </tr>
+          <tr><th>Description</th><th>Qty</th><th>Unit Price</th><th>Total</th></tr>
           ${(invoice.services || []).map(service => `
             <tr>
               <td>${service.description || ""}</td>
@@ -253,30 +308,23 @@
               <td>${formatMoney(service.unit_price)}</td>
               <td>${formatMoney(service.total)}</td>
             </tr>
-          `).join("")}
+          `).join("") || "<tr><td colspan='4'>No service line items extracted.</td></tr>"}
         </table>
       `;
     }
 
     function renderHistory() {
       const box = document.getElementById("history");
-
       if (invoices.length === 0) {
+        box.className = "state";
         box.innerHTML = "Your uploaded invoices will appear here.";
-        box.className = "empty";
         return;
       }
 
       box.className = "";
       box.innerHTML = `
         <table>
-          <tr>
-            <th>Client</th>
-            <th>Date</th>
-            <th>Category</th>
-            <th>Total</th>
-            <th>Uploaded</th>
-          </tr>
+          <tr><th>Client</th><th>Date</th><th>Category</th><th>Total</th><th>Uploaded</th><th>Actions</th></tr>
           ${invoices.map(invoice => `
             <tr>
               <td>${invoice.client_name || "Unknown"}</td>
@@ -284,111 +332,146 @@
               <td>${invoice.category || "Other"}</td>
               <td>${formatMoney(invoice.total_amount)}</td>
               <td>${invoice.created_at ? new Date(invoice.created_at).toLocaleString() : ""}</td>
+              <td><button class="row-delete" onclick="deleteInvoice('${invoice.id}')">Delete</button></td>
             </tr>
           `).join("")}
         </table>
       `;
     }
 
-    function buildCategoryChart(invoices) {
+    function buildCategoryChart(invoiceList) {
       const totals = {};
-
-      invoices.forEach(invoice => {
+      invoiceList.forEach(invoice => {
         const category = invoice.category || "Other";
-
-        if (!totals[category]) {
-          totals[category] = 0;
-        }
-
-        totals[category] += Number(invoice.total_amount) || 0;
+        totals[category] = (totals[category] || 0) + (Number(invoice.total_amount) || 0);
       });
 
       const labels = Object.keys(totals);
       const data = Object.values(totals);
 
-      const ctx = document.getElementById("categoryChart").getContext("2d");
-
-      if (categoryChartInstance) {
-        categoryChartInstance.destroy();
-      }
-
-      categoryChartInstance = new Chart(ctx, {
+      if (categoryChartInstance) categoryChartInstance.destroy();
+      categoryChartInstance = new Chart(document.getElementById("categoryChart"), {
         type: "doughnut",
         data: {
-          labels: labels,
+          labels,
           datasets: [{
             label: "Spending",
-            data: data
+            data,
+            backgroundColor: ["#2563eb", "#0891b2", "#6366f1", "#16a34a", "#d97706", "#db2777"]
           }]
         },
         options: {
           responsive: true,
           maintainAspectRatio: false,
-          plugins: {
-            legend: {
-              position: "bottom"
+          plugins: { legend: { position: "bottom" } }
+        }
+      });
+    }
+
+    function buildMonthlyChart(invoiceList) {
+      const monthlyTotals = {};
+      invoiceList.forEach(invoice => {
+        if (!invoice.invoice_date) return;
+        const date = new Date(invoice.invoice_date);
+        const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
+        monthlyTotals[monthKey] = (monthlyTotals[monthKey] || 0) + (Number(invoice.total_amount) || 0);
+      });
+
+      const sortedMonths = Object.keys(monthlyTotals).sort();
+      const labels = sortedMonths.map(month => {
+        const [year, m] = month.split("-");
+        return new Date(Number(year), Number(m) - 1, 1).toLocaleDateString(undefined, { month: "short", year: "numeric" });
+      });
+      const data = sortedMonths.map(month => monthlyTotals[month]);
+
+      if (monthlyChartInstance) monthlyChartInstance.destroy();
+      monthlyChartInstance = new Chart(document.getElementById("monthlyChart"), {
+        type: "bar",
+        data: {
+          labels,
+          datasets: [{
+            label: "Monthly Spending",
+            data,
+            borderWidth: 1,
+            borderRadius: 8,
+            backgroundColor: "rgba(37,99,235,0.7)",
+            borderColor: "#1d4ed8"
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: {
+                callback: value => "$" + value
+              }
             }
+          },
+          plugins: {
+            legend: { position: "bottom" },
+            tooltip: { callbacks: { label: context => ` ${formatMoney(context.parsed.y)}` } }
           }
         }
       });
     }
 
-    function buildMonthlyChart(invoices) {
-      const monthlyTotals = {};
-
-      invoices.forEach(invoice => {
-        if (!invoice.invoice_date) return;
-
-        const date = new Date(invoice.invoice_date);
-        const month = date.toLocaleString("default", {
-          month: "short",
-          year: "numeric"
-        });
-
-        if (!monthlyTotals[month]) {
-          monthlyTotals[month] = 0;
-        }
-
-        monthlyTotals[month] += Number(invoice.total_amount) || 0;
-      });
-
-      const labels = Object.keys(monthlyTotals);
-      const data = Object.values(monthlyTotals);
-
-      const ctx = document.getElementById("monthlyChart").getContext("2d");
-
-      if (monthlyChartInstance) {
-        monthlyChartInstance.destroy();
+    function buildInsights(invoiceList) {
+      const target = document.getElementById("insights");
+      if (invoiceList.length < 2) {
+        target.className = "state";
+        target.innerHTML = "No data yet. Insights appear once at least 2 invoices are uploaded.";
+        return;
       }
 
-      monthlyChartInstance = new Chart(ctx, {
-        type: "line",
-        data: {
-          labels: labels,
-          datasets: [{
-            label: "Monthly Spending",
-            data: data,
-            fill: true,
-            tension: 0.3
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: {
-              position: "bottom"
-            }
-          }
-        }
+      const total = invoiceList.reduce((sum, inv) => sum + (Number(inv.total_amount) || 0), 0);
+      const average = total / invoiceList.length;
+      const topInvoice = [...invoiceList].sort((a, b) => (Number(b.total_amount) || 0) - (Number(a.total_amount) || 0))[0];
+
+      const categories = {};
+      invoiceList.forEach(inv => {
+        const key = inv.category || "Other";
+        categories[key] = (categories[key] || 0) + (Number(inv.total_amount) || 0);
       });
+
+      const topCategory = Object.entries(categories).sort((a, b) => b[1] - a[1])[0];
+
+      target.className = "";
+      target.innerHTML = `
+        <span class="badge">Auto-generated</span>
+        <ul class="insights-list">
+          <li>Your average invoice is <strong>${formatMoney(average)}</strong>.</li>
+          <li>Highest invoice: <strong>${formatMoney(topInvoice.total_amount)}</strong> from <strong>${topInvoice.client_name || "Unknown"}</strong>.</li>
+          <li>Top spending category is <strong>${topCategory ? topCategory[0] : "Other"}</strong> at <strong>${formatMoney(topCategory ? topCategory[1] : 0)}</strong>.</li>
+        </ul>
+      `;
+    }
+
+    function exportCSV() {
+      if (!invoices.length) {
+        alert("No invoice data to export yet.");
+        return;
+      }
+
+      const headers = ["client_name", "invoice_date", "category", "total_amount", "created_at"];
+      const rows = invoices.map(inv => headers.map(key => toCSVCell(inv[key])));
+      const csv = [headers.join(","), ...rows.map(row => row.join(","))].join("\n");
+
+      const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "docsnap-invoices.csv";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
     }
 
     async function uploadFile() {
       const fileInput = document.getElementById("fileInput");
       const file = fileInput.files[0];
-      const loading = document.getElementById("loading");
-
       if (!file) {
         alert("Please choose an invoice image first.");
         return;
@@ -396,33 +479,55 @@
 
       const formData = new FormData();
       formData.append("file", file);
-
-      loading.textContent = "Processing invoice...";
+      setLoadingState("Processing invoice...");
 
       try {
-        const response = await fetch(API_BASE + "/upload", {
-          method: "POST",
-          body: formData
-        });
-
+        const response = await fetch(API_BASE + "/upload", { method: "POST", body: formData });
         const data = await response.json();
 
         if (data.error) {
-          loading.textContent = "Error: " + data.error;
+          setLoadingState("Error: " + data.error);
           return;
         }
 
-        loading.textContent = "Invoice processed successfully!";
+        setLoadingState("Invoice processed successfully.");
         fileInput.value = "";
-
         await loadDashboard();
       } catch (error) {
-        loading.textContent = "Error: " + error.message;
+        setLoadingState("Error: " + error.message);
       }
     }
 
     function clearDashboard() {
       alert("This button only clears the local view for now. Database delete will be added later.");
+    }
+
+    async function deleteInvoice(id) {
+      if (!id) {
+        alert("Could not delete this invoice because its id is missing.");
+        return;
+      }
+
+      const confirmed = window.confirm("Are you sure you want to delete this invoice?");
+      if (!confirmed) return;
+
+      setLoadingState("Deleting invoice...");
+      try {
+        const response = await fetch(API_BASE + `/invoice/${id}`, {
+          method: "DELETE"
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) {
+          const message = data.error || data.detail || "Delete failed.";
+          setLoadingState("Error: " + message);
+          return;
+        }
+
+        setLoadingState("Invoice deleted successfully.");
+        await loadDashboard();
+      } catch (error) {
+        setLoadingState("Error: " + error.message);
+      }
     }
 
     loadDashboard();
