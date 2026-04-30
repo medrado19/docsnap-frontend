@@ -296,22 +296,63 @@
     .bug-form label { font-size: 11px; }
     .bug-form select, .bug-form textarea, .bug-form input { margin-top: 5px; }
 
-    @media (max-width: 1180px) { .cards { grid-template-columns: repeat(2, minmax(0, 1fr)); } .layout { grid-template-columns: 1fr; } .features { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-    @media (max-width: 860px) { .hero-grid{grid-template-columns:1fr;} .topbar { flex-direction: column; align-items: flex-start; } .row { grid-template-columns: 1fr; } .cards, .features { grid-template-columns: 1fr; } .main, #landingPage { padding: 18px; } .hero { padding: 30px 22px; } .assistant-panel { left: 12px; right: 12px; bottom: 82px; width: auto; } .help-fab { right: 12px; bottom: 12px; } }
+    .mobile-table-cards { display: none; }
+    .mobile-row-card { border: 1px solid #334155; border-radius: 12px; background: rgba(15, 23, 42, 0.72); padding: 12px; margin-top: 10px; }
+    .mobile-row-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 12px; margin-top: 8px; }
+    .mobile-row-item label { display:block; font-size: 10px; color:#94a3b8; letter-spacing:.07em; text-transform:uppercase; margin-bottom: 4px; }
+    .mobile-row-item div { font-size: 14px; color: #e2e8f0; word-break: break-word; }
+    .mobile-row-head { display:flex; justify-content: space-between; align-items: center; gap: 10px; }
+    .mobile-row-title { font-weight: 700; font-size: 15px; margin:0; }
+    .mobile-row-menu { flex-shrink:0; }
+
+
+    @media (max-width: 1024px) {
+      #landingPage, .main { padding: 20px; }
+      .landing-nav { padding: 14px 16px; }
+      .shell { grid-template-columns: 220px 1fr; }
+      .cards { grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); }
+      .features { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .layout { grid-template-columns: 1fr; }
+      .chart-wrapper { height: 280px; }
+    }
     @media (max-width: 768px) {
+      body { overflow-x: hidden; }
       .shell { grid-template-columns: 1fr; }
-      .mobile-menu-btn { display: inline-flex; }
-      .sidebar {
-        position: fixed;
-        left: -100%;
-        top: 0;
-        width: 250px;
-        height: 100%;
-      }
+      .sidebar { position: fixed; left: -280px; top: 0; width: min(280px, 84vw); height: 100vh; z-index: 90; }
       .sidebar.mobile-open { left: 0; }
-      .topbar { flex-direction: row; align-items: center; }
-      .topbar h1 { font-size: 24px; }
-      .tabs { flex-wrap: wrap; }
+      .mobile-menu-btn { display: inline-flex; min-height: 44px; min-width: 44px; }
+      .main { padding: 14px; }
+      .topbar { padding: 16px; margin-bottom: 14px; align-items: center; }
+      .topbar h1 { font-size: 22px; }
+      .topbar p { font-size: 13px; }
+      .hero { padding: 26px 16px; }
+      .hero-grid { grid-template-columns: 1fr; gap: 16px; }
+      .hero-actions { display:grid; grid-template-columns: 1fr; }
+      .features { grid-template-columns: 1fr; }
+      .preview, .feature-card, .box, .card { padding: 14px; }
+      .cards { grid-template-columns: repeat(2, minmax(0,1fr)); gap: 10px; margin-bottom: 14px; }
+      .card p { font-size: 25px; }
+      .tabs { flex-wrap: wrap; gap: 8px; }
+      .row { grid-template-columns: 1fr; }
+      .actions .btn, .btn, .tab-btn, .assistant-send, .assistant-close, .nav-item, .menu-item { min-height: 44px; }
+      .footer { padding: 14px; }
+      .assistant-panel { left: 8px; right: 8px; width: auto; max-height: calc(100vh - 90px); bottom: 72px; }
+      .edit-modal { max-height: calc(100vh - 30px); padding: 14px; }
+    }
+    @media (max-width: 640px) {
+      #landingPage { padding: 12px; }
+      .landing-shell { gap: 12px; }
+      .landing-nav { position: static; }
+      .brand { font-size: 20px; max-width: 100%; }
+      .cards { grid-template-columns: 1fr; }
+      .topbar { flex-wrap: wrap; }
+      .topbar > div { width: 100%; }
+      .table-scroll { display: none; }
+      .mobile-table-cards { display: grid; gap: 10px; }
+      .assistant-panel { inset: 8px; max-height: none; }
+      .chat-msg.user, .chat-msg.assistant { margin-left: 0; margin-right: 0; }
+      .assistant-input-row { grid-template-columns: 1fr; }
+      .help-fab { right: 10px; bottom: 10px; }
     }
   </style>
 </head>
@@ -513,11 +554,13 @@ window.addEventListener("resize",()=>{if(!isMobileView()) sidebarOpen=false; syn
 function showDashboard() {
   document.getElementById('landingPage').classList.add('hidden');
   document.getElementById('dashboardPage').classList.remove('hidden');
+  closeSidebar();
 }
 
 function showLanding() {
   document.getElementById('dashboardPage').classList.add('hidden');
   document.getElementById('landingPage').classList.remove('hidden');
+  closeSidebar();
 }
 function normalizeVendorName(vendorName){return String(vendorName||"").toLowerCase().replace(/[^a-z0-9\s]/g," ").replace(/\b(inc|ltd|llc|corp|corporation)\b/g," ").replace(/\s+/g," ").trim();}
 function loadVendorCategoryMemory(){return JSON.parse(localStorage.getItem(VENDOR_CATEGORY_KEY)||"{}");}
@@ -533,13 +576,13 @@ function loadIncomeEntries(){incomeEntries=JSON.parse(localStorage.getItem(INCOM
 function persistIncomeEntries(){localStorage.setItem(INCOME_KEY,JSON.stringify(incomeEntries));}
 function saveIncome(event){event.preventDefault();const source=document.getElementById("incomeSource").value.trim(),date=document.getElementById("incomeDate").value,amount=Number(document.getElementById("incomeAmount").value||0),notes=document.getElementById("incomeNotes").value.trim();incomeEntries.unshift({id:Date.now(),source,date,amount,notes});persistIncomeEntries();refreshAllViews();document.getElementById("incomeForm").reset();}
 function deleteIncome(id){incomeEntries=incomeEntries.filter(item=>item.id!==id);persistIncomeEntries();refreshAllViews();}
-function renderIncomeHistory(){const box=document.getElementById("incomeHistory");if(!incomeEntries.length){box.className="state";box.innerHTML="No income entries yet.";return;}box.className="";box.innerHTML=`<div class="table-scroll"><table><tr><th>Source</th><th>Date</th><th>Amount</th><th>Notes</th><th>Actions</th></tr>${incomeEntries.map(item=>`<tr><td>${item.source}</td><td>${item.date||"-"}</td><td>${formatMoney(item.amount)}</td><td>${item.notes||"-"}</td><td>${renderActionMenu("income",item.id)}</td></tr>`).join("")}</table></div>`;}
+function renderIncomeHistory(){const box=document.getElementById("incomeHistory");if(!incomeEntries.length){box.className="state";box.innerHTML="No income entries yet.";return;}box.className="";const rows=incomeEntries.map(item=>`<tr><td>${item.source}</td><td>${item.date||"-"}</td><td>${formatMoney(item.amount)}</td><td>${item.notes||"-"}</td><td>${renderActionMenu("income",item.id)}</td></tr>`).join("");const cards=incomeEntries.map(item=>`<article class="mobile-row-card"><div class="mobile-row-head"><h4 class="mobile-row-title">${item.source}</h4><div class="mobile-row-menu">${renderActionMenu("income",item.id)}</div></div><div class="mobile-row-grid"><div class="mobile-row-item"><label>Amount</label><div>${formatMoney(item.amount)}</div></div><div class="mobile-row-item"><label>Date</label><div>${item.date||"-"}</div></div><div class="mobile-row-item"><label>Category/Type</label><div>${item.category||item.type||"-"}</div></div><div class="mobile-row-item"><label>Notes</label><div>${item.notes||"-"}</div></div></div></article>`).join("");box.innerHTML=`<div class="table-scroll"><table><tr><th>Source</th><th>Date</th><th>Amount</th><th>Notes</th><th>Actions</th></tr>${rows}</table></div><div class="mobile-table-cards">${cards}</div>`;}
 function getInvoiceIdentifier(invoice,index){return String(invoice?.id??invoice?._id??invoice?.invoiceId??invoice?.invoice_id??invoice?.uuid??index);}
 function persistInvoices(){localStorage.setItem(INVOICE_KEY,JSON.stringify(invoices));}
 async function loadDashboard(){setLoadingState("Loading dashboard data...");try{const response=await fetch(API_BASE+"/invoices");invoices=await response.json();applyCategoryNormalizationAndMemory();persistInvoices();refreshAllViews();setLoadingState("");}catch(error){console.error(error);invoices=JSON.parse(localStorage.getItem(INVOICE_KEY)||"[]");applyCategoryNormalizationAndMemory();persistInvoices();refreshAllViews();setLoadingState("Loaded local invoice data.");}}
 function updateDashboard(){const totalExpenses=invoices.reduce((sum,invoice)=>sum+(Number(invoice.total_amount)||0),0),invoiceCount=invoices.length,averageInvoice=invoiceCount>0?totalExpenses/invoiceCount:0,totalIncome=incomeEntries.reduce((sum,item)=>sum+(Number(item.amount)||0),0),profit=totalIncome-totalExpenses;document.getElementById("totalIncome").textContent=formatMoney(totalIncome);document.getElementById("totalExpenses").textContent=formatMoney(totalExpenses);document.getElementById("profit").textContent=formatMoney(profit);document.getElementById("invoiceCount").textContent=invoiceCount;document.getElementById("averageInvoice").textContent=formatMoney(averageInvoice);}
 function renderLatestInvoice(){const box=document.getElementById("latestInvoice");if(!invoices.length){box.className="state";box.innerHTML="No invoice uploaded yet.";return;}const invoice=invoices[0];box.className="";box.innerHTML=`<p><strong>Client:</strong> ${invoice.client_name||"Unknown"}</p><p><strong>Date:</strong> ${invoice.invoice_date||"Unknown"}</p><p><strong>Category:</strong> ${invoice.category||"Other"}</p><p><strong>Total:</strong> ${formatMoney(invoice.total_amount)}</p>`;}
-function renderHistory(){const box=document.getElementById("history");if(!invoices.length){box.className="state";box.innerHTML="Your uploaded invoices will appear here.";return;}box.className="";box.innerHTML=`<div class="table-scroll"><table><tr><th>Client</th><th>Date</th><th>Category</th><th>Total</th><th>Uploaded</th><th>Actions</th></tr>${invoices.map((invoice,index)=>{const invoiceId=getInvoiceIdentifier(invoice,index),selected=matchAllowedCategory(invoice.category),options=ALLOWED_CATEGORIES.map(cat=>`<option value="${cat}" ${selected===cat?"selected":""}>${cat}</option>`).join("");return `<tr><td>${invoice.client_name||"Unknown"}</td><td>${invoice.invoice_date||"Unknown"}</td><td><select onchange="updateInvoiceCategory('${invoiceId}',this.value)">${options}</select></td><td>${formatMoney(invoice.total_amount)}</td><td>${invoice.created_at?new Date(invoice.created_at).toLocaleString():""}</td><td>${renderActionMenu("invoice",invoiceId)}</td></tr>`;}).join("")}</table></div>`;}
+function renderHistory(){const box=document.getElementById("history");if(!invoices.length){box.className="state";box.innerHTML="Your uploaded invoices will appear here.";return;}box.className="";const rows=invoices.map((invoice,index)=>{const invoiceId=getInvoiceIdentifier(invoice,index),selected=matchAllowedCategory(invoice.category),options=ALLOWED_CATEGORIES.map(cat=>`<option value="${cat}" ${selected===cat?"selected":""}>${cat}</option>`).join("");return `<tr><td>${invoice.client_name||"Unknown"}</td><td>${invoice.invoice_date||"Unknown"}</td><td><select onchange="updateInvoiceCategory('${invoiceId}',this.value)">${options}</select></td><td>${formatMoney(invoice.total_amount)}</td><td>${invoice.created_at?new Date(invoice.created_at).toLocaleDateString():""}</td><td>${renderActionMenu("invoice",invoiceId)}</td></tr>`;}).join("");const cards=invoices.map((invoice,index)=>{const invoiceId=getInvoiceIdentifier(invoice,index);return `<article class="mobile-row-card"><div class="mobile-row-head"><h4 class="mobile-row-title">${invoice.client_name||"Unknown"}</h4><div class="mobile-row-menu">${renderActionMenu("invoice",invoiceId)}</div></div><div class="mobile-row-grid"><div class="mobile-row-item"><label>Amount</label><div>${formatMoney(invoice.total_amount)}</div></div><div class="mobile-row-item"><label>Category</label><div>${matchAllowedCategory(invoice.category)}</div></div><div class="mobile-row-item"><label>Date</label><div>${invoice.invoice_date||"Unknown"}</div></div><div class="mobile-row-item"><label>Status</label><div>${invoice.status||"-"}</div></div></div></article>`;}).join("");box.innerHTML=`<div class="table-scroll"><table><tr><th>Client</th><th>Date</th><th>Category</th><th>Total</th><th>Uploaded</th><th>Actions</th></tr>${rows}</table></div><div class="mobile-table-cards">${cards}</div>`;}
 async function deleteInvoice(id){if(!confirm("Are you sure you want to delete this invoice?"))return;setLoadingState("Deleting invoice...");const targetId=String(id);const invoiceToDelete=invoices.find((inv,index)=>getInvoiceIdentifier(inv,index)===targetId);if(!invoiceToDelete){setLoadingState("Invoice not found.");return;}invoices=invoices.filter((inv,index)=>getInvoiceIdentifier(inv,index)!==targetId);persistInvoices();refreshAllViews();const apiIds=[invoiceToDelete?.id,invoiceToDelete?._id,invoiceToDelete?.invoiceId,invoiceToDelete?.invoice_id].filter(Boolean);let deletedRemotely=false;for(const apiId of apiIds){try{let response=await fetch(API_BASE+"/invoices/"+apiId,{method:"DELETE"});if(!response.ok){response=await fetch(API_BASE+"/invoice/"+apiId,{method:"DELETE"});}if(response.ok){deletedRemotely=true;break;}}catch(error){console.error(error);}}if(deletedRemotely){setLoadingState("Invoice deleted successfully.");}else{setLoadingState("Invoice removed locally. Remote delete unavailable.");}}
 function buildCategoryChart(invoiceList){const totals={};invoiceList.forEach(inv=>{const c=inv.category||"Other";totals[c]=(totals[c]||0)+(Number(inv.total_amount)||0);});if(categoryChartInstance)categoryChartInstance.destroy();categoryChartInstance=new Chart(document.getElementById("categoryChart"),{type:"doughnut",data:{labels:Object.keys(totals),datasets:[{data:Object.values(totals),backgroundColor:["#2563eb","#16a34a","#9333ea","#f59e0b","#ef4444","#0ea5e9"]}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:"bottom"}}}});} 
 function buildMonthlyChart(invoiceList){const monthlyTotals={};invoiceList.forEach(inv=>{if(!inv.invoice_date)return;const d=new Date(inv.invoice_date);const k=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`;monthlyTotals[k]=(monthlyTotals[k]||0)+(Number(inv.total_amount)||0);});const sorted=Object.keys(monthlyTotals).sort();if(monthlyChartInstance)monthlyChartInstance.destroy();monthlyChartInstance=new Chart(document.getElementById("monthlyChart"),{type:"bar",data:{labels:sorted.map(month=>{const [year,m]=month.split("-");return new Date(Number(year),Number(m)-1,1).toLocaleDateString(undefined,{month:"short",year:"numeric"});}),datasets:[{label:"Monthly Spending",data:sorted.map(k=>monthlyTotals[k]),borderRadius:8,backgroundColor:"rgba(37,99,235,0.7)",borderColor:"#1d4ed8",borderWidth:1}]},options:{responsive:true,maintainAspectRatio:false,scales:{y:{beginAtZero:true,ticks:{callback:value=>"$"+value}}},plugins:{legend:{position:"bottom"},tooltip:{callbacks:{label:ctx=>` ${formatMoney(ctx.parsed.y)}`}}}}});}
@@ -552,6 +595,7 @@ function renderFloatingActionMenu(){const existing=document.getElementById("floa
 function toggleActionMenu(event,type,id){event.stopPropagation();const key=`${type}-${id}`;if(openActionMenu&&openActionMenu.key===key){closeActionMenus();return;}const triggerRect=event.currentTarget.getBoundingClientRect();const estimatedMenuHeight=52;const estimatedMenuWidth=132;const gap=8;const spaceBelow=window.innerHeight-triggerRect.bottom;const opensUp=spaceBelow<estimatedMenuHeight+gap;const top=opensUp?Math.max(gap,triggerRect.top-estimatedMenuHeight-gap):Math.min(window.innerHeight-estimatedMenuHeight-gap,triggerRect.bottom+gap);const preferredLeft=triggerRect.right-estimatedMenuWidth;const left=Math.max(gap,Math.min(preferredLeft,window.innerWidth-estimatedMenuWidth-gap));openActionMenu={key,type,id,top,left};renderFloatingActionMenu();}
 function closeActionMenus(){if(openActionMenu!==null){openActionMenu=null;const existing=document.getElementById("floatingActionMenu");if(existing)existing.remove();}}
 document.addEventListener("click",closeActionMenus);
+document.addEventListener("click",event=>{if(event.target.classList && event.target.classList.contains("nav-item") && isMobileView()){closeSidebar();}});
 window.addEventListener("resize",closeActionMenus);
 window.addEventListener("scroll",closeActionMenus,true);
 function handleDeleteAction(type,id){closeActionMenus();if(type==="invoice"){deleteInvoice(id);}else{deleteIncome(id);refreshAllViews();} }
