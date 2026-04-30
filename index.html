@@ -392,7 +392,7 @@ function renderActionMenu(type,id){const safeId=String(id).replace(/\\/g,'\\\\')
 function toggleActionMenu(event,type,id){event.stopPropagation();const key=`${type}-${id}`;if(openActionMenu===key){openActionMenu=null;delete openMenuDirections[key];renderHistory();renderIncomeHistory();return;}const triggerRect=event.currentTarget.getBoundingClientRect();const estimatedMenuHeight=52;const gap=8;const spaceBelow=window.innerHeight-triggerRect.bottom;openMenuDirections[key]=spaceBelow<estimatedMenuHeight+gap?"up":"down";openActionMenu=key;renderHistory();renderIncomeHistory();}
 function closeActionMenus(){if(openActionMenu!==null){openActionMenu=null;openMenuDirections={};renderHistory();renderIncomeHistory();}}
 document.addEventListener("click",closeActionMenus);
-function handleDeleteAction(type,id){openActionMenu=null;if(type==="invoice"){deleteInvoice(id);}else{deleteIncome(id);} }
+function handleDeleteAction(type,id){openActionMenu=null;openMenuDirections={};if(type==="invoice"){deleteInvoice(id);}else{deleteIncome(id);} }
 function refreshAllViews(){updateDashboard();renderLatestInvoice();renderHistory();renderIncomeHistory();buildCategoryChart(invoices);buildMonthlyChart(invoices);buildInsights(invoices);}
 function clearDashboard(){if(!confirm("Clear all locally saved income entries?"))return;incomeEntries=[];persistIncomeEntries();refreshAllViews();}
 loadIncomeEntries(); loadDashboard();
