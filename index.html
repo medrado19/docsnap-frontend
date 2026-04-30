@@ -149,17 +149,42 @@
 
     .footer { padding: 20px; color: var(--muted); font-size: 14px; display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
 
-    .shell { min-height: 100vh; display: grid; grid-template-columns: 248px 1fr; }
-    .sidebar { background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(12px); border-right: 1px solid var(--border); padding: 28px 18px; position: sticky; top: 0; height: 100vh; }
+    .shell { min-height: 100vh; display: grid; grid-template-columns: 248px 1fr; overflow-x: hidden; position: relative; }
+    .sidebar { background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(12px); border-right: 1px solid var(--border); padding: 28px 18px; position: sticky; top: 0; height: 100vh; transition: left 0.3s ease; z-index: 80; }
 
     .nav-item { width: 100%; border: 1px solid transparent; background: transparent; color: #c6d2e4; text-align: left; padding: 12px 14px; border-radius: 12px; margin-bottom: 8px; cursor: pointer; font-size: 14px; font-weight: 500; transition: 0.25s ease; }
     .nav-item.active { background: rgba(99, 102, 241, 0.16); border-color: rgba(139, 92, 246, 0.42); box-shadow: inset 0 0 0 1px rgba(59, 130, 246, 0.24), 0 0 30px rgba(99, 102, 241, 0.2); color: #eef2ff; }
     .nav-item:hover { background: rgba(148, 163, 184, 0.12); color: #e2e8f0; }
 
-    .main { padding: 28px; }
+    .main { padding: 28px; min-width: 0; overflow-x: hidden; }
     .topbar { padding: 22px 24px; display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 22px; }
     .topbar h1 { margin: 0; font-size: 28px; font-weight: 700; letter-spacing: -0.02em; }
     .topbar p { margin: 5px 0 0; color: var(--muted); font-size: 14px; }
+    .mobile-menu-btn {
+      display: none;
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      border: 1px solid #334155;
+      background: rgba(15, 23, 42, 0.75);
+      color: #e2e8f0;
+      font-size: 20px;
+      cursor: pointer;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .sidebar-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(2, 6, 23, 0.65);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+      z-index: 70;
+    }
+    .sidebar-overlay.active { opacity: 1; pointer-events: auto; }
+
 
     .cards { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 16px; margin-bottom: 22px; }
     .card { padding: 18px; }
@@ -200,14 +225,87 @@
 
     table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 14px; background: rgba(15, 23, 42, 0.38); border-radius: 10px; overflow: visible; }
     .state, .box { overflow: visible; }
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 14px; background: rgba(15, 23, 42, 0.38); border-radius: 10px; overflow: hidden; min-width: 640px; }
+    .table-scroll { overflow-x: auto; width: 100%; -webkit-overflow-scrolling: touch; }
     th, td { padding: 11px 10px; border-bottom: 1px solid #2c3a4f; text-align: left; }
     th { color: #9fb1ca; font-size: 11px; text-transform: uppercase; letter-spacing: .06em; }
     .delete-btn { border-radius: 8px; padding: 7px 11px; cursor: pointer; }
 
     .chart-wrapper { height: 320px; }
 
+    .help-fab {
+      position: fixed;
+      right: 22px;
+      bottom: 22px;
+      z-index: 50;
+      border: 0;
+      border-radius: 999px;
+      padding: 12px 16px;
+      background: var(--gradient);
+      color: #fff;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 18px 35px rgba(76, 81, 191, 0.38);
+      cursor: pointer;
+    }
+    .help-fab:hover { filter: brightness(1.08); transform: translateY(-1px); }
+    .help-fab-icon { font-size: 16px; }
+
+    .assistant-panel {
+      position: fixed;
+      right: 22px;
+      bottom: 82px;
+      width: min(390px, calc(100vw - 24px));
+      max-height: min(72vh, 620px);
+      z-index: 60;
+      border: 1px solid #334155;
+      border-radius: 16px;
+      background: linear-gradient(180deg, rgba(17, 24, 39, 0.98) 0%, rgba(15, 23, 42, 0.98) 100%);
+      box-shadow: 0 30px 70px rgba(2, 6, 23, 0.6);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .assistant-head { padding: 14px 16px; border-bottom: 1px solid #334155; display: flex; justify-content: space-between; align-items: flex-start; }
+    .assistant-head h3 { margin: 0; font-size: 16px; }
+    .assistant-head p { margin: 5px 0 0; color: var(--muted); font-size: 12px; }
+    .assistant-close { border: 1px solid #374151; background: #111827; color: #cbd5e1; border-radius: 10px; padding: 6px 10px; cursor: pointer; }
+    .assistant-close:hover { border-color: #6366f1; color: #e2e8f0; }
+    .assistant-body { padding: 14px 16px; overflow-y: auto; flex: 1; }
+    .quick-help { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+    .quick-help-btn { border: 1px solid #334155; background: rgba(59, 130, 246, 0.08); color: #dbeafe; border-radius: 999px; padding: 6px 10px; font-size: 12px; cursor: pointer; }
+    .quick-help-btn:hover { border-color: #6366f1; background: rgba(99, 102, 241, 0.16); }
+    .chat-log { display: grid; gap: 10px; }
+    .chat-msg { padding: 10px 12px; border-radius: 12px; font-size: 13px; line-height: 1.5; }
+    .chat-msg.user { background: rgba(59, 130, 246, 0.2); margin-left: 32px; }
+    .chat-msg.assistant { background: rgba(30, 41, 59, 0.8); border: 1px solid #334155; margin-right: 32px; }
+    .assistant-foot { border-top: 1px solid #334155; padding: 12px 16px; display: grid; gap: 8px; }
+    .assistant-input-row { display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: center; }
+    .assistant-send { border: 0; background: var(--gradient); color: white; border-radius: 10px; padding: 10px 14px; font-weight: 600; cursor: pointer; }
+    .assistant-send:hover { filter: brightness(1.08); }
+    .bug-form { margin-top: 12px; border: 1px solid #334155; border-radius: 12px; padding: 12px; background: rgba(15, 23, 42, 0.7); display: grid; gap: 10px; }
+    .bug-form label { font-size: 11px; }
+    .bug-form select, .bug-form textarea, .bug-form input { margin-top: 5px; }
+
     @media (max-width: 1180px) { .cards { grid-template-columns: repeat(2, minmax(0, 1fr)); } .layout { grid-template-columns: 1fr; } .features { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-    @media (max-width: 860px) { .hero-grid{grid-template-columns:1fr;} { .shell { grid-template-columns: 1fr; } .sidebar { position: static; height: auto; } .topbar { flex-direction: column; align-items: flex-start; } .row { grid-template-columns: 1fr; } .cards, .features { grid-template-columns: 1fr; } .main, #landingPage { padding: 18px; } .hero { padding: 30px 22px; } }
+    @media (max-width: 860px) { .hero-grid{grid-template-columns:1fr;} .topbar { flex-direction: column; align-items: flex-start; } .row { grid-template-columns: 1fr; } .cards, .features { grid-template-columns: 1fr; } .main, #landingPage { padding: 18px; } .hero { padding: 30px 22px; } .assistant-panel { left: 12px; right: 12px; bottom: 82px; width: auto; } .help-fab { right: 12px; bottom: 12px; } }
+    @media (max-width: 768px) {
+      .shell { grid-template-columns: 1fr; }
+      .mobile-menu-btn { display: inline-flex; }
+      .sidebar {
+        position: fixed;
+        left: -100%;
+        top: 0;
+        width: 250px;
+        height: 100%;
+      }
+      .sidebar.mobile-open { left: 0; }
+      .topbar { flex-direction: row; align-items: center; }
+      .topbar h1 { font-size: 24px; }
+      .tabs { flex-wrap: wrap; }
+    }
   </style>
 </head>
 <body>
@@ -266,7 +364,8 @@
   </section>
 
   <div class="shell hidden" id="dashboardPage">
-    <aside class="sidebar">
+    <div id="sidebarOverlay" class="sidebar-overlay" onclick="closeSidebar()"></div>
+    <aside id="dashboardSidebar" class="sidebar">
       <div class="brand"><svg class="brand-logo" viewBox="0 0 32 32" aria-hidden="true"><defs><linearGradient id="logo-grad-sidebar" x1="6" y1="4" x2="26" y2="28" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#3B82F6" /><stop offset="0.52" stop-color="#6366F1" /><stop offset="1" stop-color="#8B5CF6" /></linearGradient></defs><path fill="url(#logo-grad-sidebar)" d="M4 4h11.5c6.4 0 11.6 4.9 11.6 11.1 0 3.5-1.7 6.6-4.5 8.6L28 31h-7l-4.3-5.9H12V31H4V4Zm8 13.8h3.8c2.4 0 4-1.6 4-3.8s-1.6-3.8-4-3.8H12v7.6Z"/></svg><span class="brand-wordmark">Revnio</span></div>
       <div class="brand-subtitle">Financial Operations</div>
       <button class="nav-item" onclick="showLanding()">← Back to Landing</button>
@@ -277,6 +376,7 @@
 
     <main class="main">
       <header class="topbar">
+        <button id="mobileMenuBtn" class="mobile-menu-btn" type="button" aria-label="Open sidebar" onclick="toggleSidebar()">☰</button>
         <div>
           <h1>Revenue Hub</h1>
           <p>Track invoices, cash flow, and profitability from one premium operations workspace.</p>
@@ -358,6 +458,27 @@
       <section id="analytics" class="tab-content"><div class="layout"><div class="box"><h2>Spending by Category</h2><div class="chart-wrapper"><canvas id="categoryChart"></canvas></div></div><div class="box"><h2>Monthly Spending Trend</h2><div class="chart-wrapper"><canvas id="monthlyChart"></canvas></div></div></div></section>
     </main>
   </div>
+  <button id="helpFab" class="help-fab hidden" type="button" onclick="toggleAssistantPanel()"><span class="help-fab-icon">✨</span>Help</button>
+  <aside id="assistantPanel" class="assistant-panel hidden" aria-label="Revnio Assistant">
+    <div class="assistant-head">
+      <div>
+        <h3>Revnio Assistant</h3>
+        <p>Ask about invoices, uploads, income tracking, or bugs.</p>
+      </div>
+      <button type="button" class="assistant-close" onclick="closeAssistantPanel()">Close</button>
+    </div>
+    <div class="assistant-body">
+      <div class="quick-help" id="quickHelpButtons"></div>
+      <div id="assistantChatLog" class="chat-log"></div>
+    </div>
+    <div class="assistant-foot">
+      <div class="assistant-input-row">
+        <input id="assistantInput" type="text" placeholder="Type your question..." />
+        <button class="assistant-send" type="button" onclick="sendAssistantMessage()">Send</button>
+      </div>
+      <div id="assistantBugFormHost"></div>
+    </div>
+  </aside>
 
 <script>
 const API_BASE = "https://docsnap-api-production-0100.up.railway.app";
@@ -367,20 +488,36 @@ let invoices = [], incomeEntries = [], categoryChartInstance = null, monthlyChar
 let openMenuDirections = {};
 function showDashboard(){document.getElementById('landingPage').classList.add('hidden');document.getElementById('dashboardPage').classList.remove('hidden');}
 function showLanding(){document.getElementById('dashboardPage').classList.add('hidden');document.getElementById('landingPage').classList.remove('hidden');}
+const BUG_REPORTS_KEY = "revnio_bug_reports";
+const QUICK_HELP_ITEMS = ["How do I upload an invoice?","Why is invoice deletion not working?","How do I track income?","Report a bug"];
+const localAssistantHandlers = {
+  "how do i upload an invoice?": "Go to the Overview tab, use Upload Invoice, choose an image file, then click Extract Invoice Data. Revnio processes it and adds it to Invoice History.",
+  "why is invoice deletion not working?": "Open the 3-dot menu in Invoice History and choose Delete. If it doesn't disappear right away, refresh the dashboard. If the API is unavailable, Revnio still removes it locally.",
+  "how do i track income?": "Use the Income Tracker form in Overview. Add source, date, amount, and optional notes, then click Add Income. Entries update totals and profit cards instantly.",
+  "report a bug": "Please describe what happened and what you clicked. You can submit the bug form below and it will be saved locally."
+};
+let invoices = [], incomeEntries = [], categoryChartInstance = null, monthlyChartInstance = null, openActionMenu = null, assistantPanelOpen = false, sidebarOpen = false;
+function isMobileView(){return window.innerWidth<=768;}
+function toggleSidebar(){if(!isMobileView()) return; sidebarOpen=!sidebarOpen; syncSidebarState();}
+function closeSidebar(){sidebarOpen=false; syncSidebarState();}
+function syncSidebarState(){const sidebar=document.getElementById("dashboardSidebar"),overlay=document.getElementById("sidebarOverlay");if(!sidebar||!overlay)return;sidebar.classList.toggle("mobile-open",sidebarOpen&&isMobileView());overlay.classList.toggle("active",sidebarOpen&&isMobileView());document.body.style.overflow=(sidebarOpen&&isMobileView())?"hidden":"";}
+window.addEventListener("resize",()=>{if(!isMobileView()) sidebarOpen=false; syncSidebarState();});
+function showDashboard(){document.getElementById('landingPage').classList.add('hidden');document.getElementById('dashboardPage').classList.remove('hidden');document.getElementById('helpFab').classList.remove('hidden');syncSidebarState();}
+function showLanding(){document.getElementById('dashboardPage').classList.add('hidden');document.getElementById('landingPage').classList.remove('hidden');document.getElementById('helpFab').classList.add('hidden');closeAssistantPanel();closeSidebar();}
 function formatMoney(value){return "$" + (Number(value) || 0).toFixed(2);} function toCSVCell(value){return `"${String(value ?? "").replace(/"/g,'""')}"`;} function setLoadingState(m){document.getElementById("loading").textContent=m||"";}
 function activateTab(tabId){document.querySelectorAll(".tab-content").forEach(el=>el.classList.remove("active"));document.querySelectorAll(".tab-btn").forEach(el=>el.classList.remove("active"));document.getElementById(tabId).classList.add("active");document.getElementById(`tab-${tabId}`).classList.add("active");}
-function showTab(tabId,btn){activateTab(tabId);document.querySelectorAll(".nav-item").forEach(el=>el.classList.remove("active"));btn.classList.add("active");}
+function showTab(tabId,btn){activateTab(tabId);document.querySelectorAll(".nav-item").forEach(el=>el.classList.remove("active"));btn.classList.add("active");if(isMobileView())closeSidebar();}
 function loadIncomeEntries(){incomeEntries=JSON.parse(localStorage.getItem(INCOME_KEY)||"[]");renderIncomeHistory();}
 function persistIncomeEntries(){localStorage.setItem(INCOME_KEY,JSON.stringify(incomeEntries));}
 function saveIncome(event){event.preventDefault();const source=document.getElementById("incomeSource").value.trim(),date=document.getElementById("incomeDate").value,amount=Number(document.getElementById("incomeAmount").value||0),notes=document.getElementById("incomeNotes").value.trim();incomeEntries.unshift({id:Date.now(),source,date,amount,notes});persistIncomeEntries();refreshAllViews();document.getElementById("incomeForm").reset();}
 function deleteIncome(id){incomeEntries=incomeEntries.filter(item=>item.id!==id);persistIncomeEntries();refreshAllViews();}
-function renderIncomeHistory(){const box=document.getElementById("incomeHistory");if(!incomeEntries.length){box.className="state";box.innerHTML="No income entries yet.";return;}box.className="";box.innerHTML=`<table><tr><th>Source</th><th>Date</th><th>Amount</th><th>Notes</th><th>Actions</th></tr>${incomeEntries.map(item=>`<tr><td>${item.source}</td><td>${item.date||"-"}</td><td>${formatMoney(item.amount)}</td><td>${item.notes||"-"}</td><td>${renderActionMenu("income",item.id)}</td></tr>`).join("")}</table>`;}
+function renderIncomeHistory(){const box=document.getElementById("incomeHistory");if(!incomeEntries.length){box.className="state";box.innerHTML="No income entries yet.";return;}box.className="";box.innerHTML=`<div class="table-scroll"><table><tr><th>Source</th><th>Date</th><th>Amount</th><th>Notes</th><th>Actions</th></tr>${incomeEntries.map(item=>`<tr><td>${item.source}</td><td>${item.date||"-"}</td><td>${formatMoney(item.amount)}</td><td>${item.notes||"-"}</td><td>${renderActionMenu("income",item.id)}</td></tr>`).join("")}</table></div>`;}
 function getInvoiceIdentifier(invoice,index){return String(invoice?.id??invoice?._id??invoice?.invoiceId??invoice?.invoice_id??invoice?.uuid??index);}
 function persistInvoices(){localStorage.setItem(INVOICE_KEY,JSON.stringify(invoices));}
 async function loadDashboard(){setLoadingState("Loading dashboard data...");try{const response=await fetch(API_BASE+"/invoices");invoices=await response.json();persistInvoices();refreshAllViews();setLoadingState("");}catch(error){console.error(error);invoices=JSON.parse(localStorage.getItem(INVOICE_KEY)||"[]");refreshAllViews();setLoadingState("Loaded local invoice data.");}}
 function updateDashboard(){const totalExpenses=invoices.reduce((sum,invoice)=>sum+(Number(invoice.total_amount)||0),0),invoiceCount=invoices.length,averageInvoice=invoiceCount>0?totalExpenses/invoiceCount:0,totalIncome=incomeEntries.reduce((sum,item)=>sum+(Number(item.amount)||0),0),profit=totalIncome-totalExpenses;document.getElementById("totalIncome").textContent=formatMoney(totalIncome);document.getElementById("totalExpenses").textContent=formatMoney(totalExpenses);document.getElementById("profit").textContent=formatMoney(profit);document.getElementById("invoiceCount").textContent=invoiceCount;document.getElementById("averageInvoice").textContent=formatMoney(averageInvoice);}
 function renderLatestInvoice(){const box=document.getElementById("latestInvoice");if(!invoices.length){box.className="state";box.innerHTML="No invoice uploaded yet.";return;}const invoice=invoices[0];box.className="";box.innerHTML=`<p><strong>Client:</strong> ${invoice.client_name||"Unknown"}</p><p><strong>Date:</strong> ${invoice.invoice_date||"Unknown"}</p><p><strong>Category:</strong> ${invoice.category||"Other"}</p><p><strong>Total:</strong> ${formatMoney(invoice.total_amount)}</p>`;}
-function renderHistory(){const box=document.getElementById("history");if(!invoices.length){box.className="state";box.innerHTML="Your uploaded invoices will appear here.";return;}box.className="";box.innerHTML=`<table><tr><th>Client</th><th>Date</th><th>Category</th><th>Total</th><th>Uploaded</th><th>Actions</th></tr>${invoices.map((invoice,index)=>{const invoiceId=getInvoiceIdentifier(invoice,index);return `<tr><td>${invoice.client_name||"Unknown"}</td><td>${invoice.invoice_date||"Unknown"}</td><td>${invoice.category||"Other"}</td><td>${formatMoney(invoice.total_amount)}</td><td>${invoice.created_at?new Date(invoice.created_at).toLocaleString():""}</td><td>${renderActionMenu("invoice",invoiceId)}</td></tr>`;}).join("")}</table>`;}
+function renderHistory(){const box=document.getElementById("history");if(!invoices.length){box.className="state";box.innerHTML="Your uploaded invoices will appear here.";return;}box.className="";box.innerHTML=`<div class="table-scroll"><table><tr><th>Client</th><th>Date</th><th>Category</th><th>Total</th><th>Uploaded</th><th>Actions</th></tr>${invoices.map((invoice,index)=>{const invoiceId=getInvoiceIdentifier(invoice,index);return `<tr><td>${invoice.client_name||"Unknown"}</td><td>${invoice.invoice_date||"Unknown"}</td><td>${invoice.category||"Other"}</td><td>${formatMoney(invoice.total_amount)}</td><td>${invoice.created_at?new Date(invoice.created_at).toLocaleString():""}</td><td>${renderActionMenu("invoice",invoiceId)}</td></tr>`;}).join("")}</table></div>`;}
 async function deleteInvoice(id){if(!confirm("Are you sure you want to delete this invoice?"))return;setLoadingState("Deleting invoice...");const targetId=String(id);const invoiceToDelete=invoices.find((inv,index)=>getInvoiceIdentifier(inv,index)===targetId);if(!invoiceToDelete){setLoadingState("Invoice not found.");return;}invoices=invoices.filter((inv,index)=>getInvoiceIdentifier(inv,index)!==targetId);persistInvoices();refreshAllViews();const apiIds=[invoiceToDelete?.id,invoiceToDelete?._id,invoiceToDelete?.invoiceId,invoiceToDelete?.invoice_id].filter(Boolean);let deletedRemotely=false;for(const apiId of apiIds){try{let response=await fetch(API_BASE+"/invoices/"+apiId,{method:"DELETE"});if(!response.ok){response=await fetch(API_BASE+"/invoice/"+apiId,{method:"DELETE"});}if(response.ok){deletedRemotely=true;break;}}catch(error){console.error(error);}}if(deletedRemotely){setLoadingState("Invoice deleted successfully.");}else{setLoadingState("Invoice removed locally. Remote delete unavailable.");}}
 function buildCategoryChart(invoiceList){const totals={};invoiceList.forEach(inv=>{const c=inv.category||"Other";totals[c]=(totals[c]||0)+(Number(inv.total_amount)||0);});if(categoryChartInstance)categoryChartInstance.destroy();categoryChartInstance=new Chart(document.getElementById("categoryChart"),{type:"doughnut",data:{labels:Object.keys(totals),datasets:[{data:Object.values(totals),backgroundColor:["#2563eb","#16a34a","#9333ea","#f59e0b","#ef4444","#0ea5e9"]}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:"bottom"}}}});} 
 function buildMonthlyChart(invoiceList){const monthlyTotals={};invoiceList.forEach(inv=>{if(!inv.invoice_date)return;const d=new Date(inv.invoice_date);const k=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`;monthlyTotals[k]=(monthlyTotals[k]||0)+(Number(inv.total_amount)||0);});const sorted=Object.keys(monthlyTotals).sort();if(monthlyChartInstance)monthlyChartInstance.destroy();monthlyChartInstance=new Chart(document.getElementById("monthlyChart"),{type:"bar",data:{labels:sorted.map(month=>{const [year,m]=month.split("-");return new Date(Number(year),Number(m)-1,1).toLocaleDateString(undefined,{month:"short",year:"numeric"});}),datasets:[{label:"Monthly Spending",data:sorted.map(k=>monthlyTotals[k]),borderRadius:8,backgroundColor:"rgba(37,99,235,0.7)",borderColor:"#1d4ed8",borderWidth:1}]},options:{responsive:true,maintainAspectRatio:false,scales:{y:{beginAtZero:true,ticks:{callback:value=>"$"+value}}},plugins:{legend:{position:"bottom"},tooltip:{callbacks:{label:ctx=>` ${formatMoney(ctx.parsed.y)}`}}}}});}
@@ -395,6 +532,17 @@ document.addEventListener("click",closeActionMenus);
 function handleDeleteAction(type,id){openActionMenu=null;openMenuDirections={};if(type==="invoice"){deleteInvoice(id);}else{deleteIncome(id);} }
 function refreshAllViews(){updateDashboard();renderLatestInvoice();renderHistory();renderIncomeHistory();buildCategoryChart(invoices);buildMonthlyChart(invoices);buildInsights(invoices);}
 function clearDashboard(){if(!confirm("Clear all locally saved income entries?"))return;incomeEntries=[];persistIncomeEntries();refreshAllViews();}
+function renderQuickHelpButtons(){const host=document.getElementById("quickHelpButtons");host.innerHTML=QUICK_HELP_ITEMS.map(item=>`<button type="button" class="quick-help-btn" onclick="askQuickHelp('${item.replace(/'/g,"\\'")}')">${item}</button>`).join("");}
+function addAssistantMessage(role, text){const row=document.createElement("div");row.className=`chat-msg ${role}`;row.textContent=text;const chat=document.getElementById("assistantChatLog");chat.appendChild(row);chat.scrollTop=chat.scrollHeight;}
+function getAssistantReply(message){const key=message.trim().toLowerCase();return localAssistantHandlers[key]||"I can help with uploads, invoice deletion, income tracking, and bug reporting. Try a quick help button above.";}
+function askQuickHelp(question){document.getElementById("assistantInput").value=question;sendAssistantMessage();}
+function sendAssistantMessage(){const input=document.getElementById("assistantInput");const message=input.value.trim();if(!message)return;addAssistantMessage("user",message);const reply=getAssistantReply(message);addAssistantMessage("assistant",reply);if(message.trim().toLowerCase()==="report a bug"){renderBugReportForm();}input.value="";}
+function toggleAssistantPanel(){assistantPanelOpen=!assistantPanelOpen;document.getElementById("assistantPanel").classList.toggle("hidden",!assistantPanelOpen);}
+function closeAssistantPanel(){assistantPanelOpen=false;document.getElementById("assistantPanel").classList.add("hidden");}
+function saveBugReport(event){event.preventDefault();const issueType=document.getElementById("bugIssueType").value,description=document.getElementById("bugDescription").value.trim(),email=document.getElementById("bugEmail").value.trim();if(!description)return;const existing=JSON.parse(localStorage.getItem(BUG_REPORTS_KEY)||"[]");existing.unshift({id:Date.now(),createdAt:new Date().toISOString(),issueType,description,email});localStorage.setItem(BUG_REPORTS_KEY,JSON.stringify(existing));addAssistantMessage("assistant","Thanks, your report was saved locally.");document.getElementById("assistantBugFormHost").innerHTML="";}
+function renderBugReportForm(){const host=document.getElementById("assistantBugFormHost");host.innerHTML=`<form class="bug-form" onsubmit="saveBugReport(event)"><label>Issue Type<select id="bugIssueType"><option value="Invoice Upload">Invoice Upload</option><option value="Invoice Deletion">Invoice Deletion</option><option value="Income Tracker">Income Tracker</option><option value="UI / Layout">UI / Layout</option><option value="Other">Other</option></select></label><label>Description<textarea id="bugDescription" rows="3" placeholder="What happened and what did you click?" required></textarea></label><label>Optional Email<input id="bugEmail" type="email" placeholder="you@company.com" /></label><button class="assistant-send" type="submit">Submit</button></form>`;}
+document.getElementById("assistantInput").addEventListener("keydown",event=>{if(event.key==="Enter"){event.preventDefault();sendAssistantMessage();}});
+renderQuickHelpButtons();addAssistantMessage("assistant","Hi! I’m your Revnio Assistant. Ask a question or tap a quick help option.");
 loadIncomeEntries(); loadDashboard();
 </script>
 </body>
