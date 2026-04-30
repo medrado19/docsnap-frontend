@@ -116,7 +116,8 @@
     .menu-trigger { width: 34px; height: 34px; border-radius: 10px; border: 1px solid #334155; background: rgba(15, 23, 42, 0.75); color: #cbd5e1; cursor: pointer; display:flex; align-items:center; justify-content:center; }
     .menu-trigger:hover { border-color: #4f46e5; color: #e2e8f0; }
     .menu-dots { font-size: 18px; line-height: 1; transform: translateY(-1px); }
-    .menu-dropdown { position: absolute; right: 0; top: calc(100% + 8px); min-width: 132px; background: #111827; border: 1px solid #374151; border-radius: 10px; padding: 6px; box-shadow: 0 20px 36px rgba(2,6,23,.55); z-index: 20; }
+    .menu-dropdown { position: absolute; right: 0; top: calc(100% + 8px); min-width: 132px; background: #111827; border: 1px solid #374151; border-radius: 10px; padding: 6px; box-shadow: 0 20px 36px rgba(2,6,23,.55); z-index: 999; }
+    .menu-dropdown.open-upwards { top: auto; bottom: calc(100% + 8px); }
     .menu-item { width: 100%; border: 0; background: transparent; border-radius: 8px; padding: 8px 10px; text-align: left; color: #cbd5e1; cursor: pointer; display:flex; gap:8px; align-items:center; }
     .menu-item:hover { background: rgba(239, 68, 68, 0.12); color: #fca5a5; }
     .trash-ico { width: 14px; height: 14px; opacity: .75; }
@@ -197,7 +198,8 @@
     .loading { margin-top: 12px; color: #93c5fd; font-weight: 600; }
     .insights-list { margin: 8px 0 0; padding-left: 18px; }
 
-    table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 14px; background: rgba(15, 23, 42, 0.38); border-radius: 10px; overflow: hidden; }
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 14px; background: rgba(15, 23, 42, 0.38); border-radius: 10px; overflow: visible; }
+    .state, .box { overflow: visible; }
     th, td { padding: 11px 10px; border-bottom: 1px solid #2c3a4f; text-align: left; }
     th { color: #9fb1ca; font-size: 11px; text-transform: uppercase; letter-spacing: .06em; }
     .delete-btn { border-radius: 8px; padding: 7px 11px; cursor: pointer; }
@@ -362,6 +364,7 @@ const API_BASE = "https://docsnap-api-production-0100.up.railway.app";
 const INCOME_KEY = "flowcast_income_entries";
 const INVOICE_KEY = "flowcast_invoices";
 let invoices = [], incomeEntries = [], categoryChartInstance = null, monthlyChartInstance = null, openActionMenu = null;
+let openMenuDirections = {};
 function showDashboard(){document.getElementById('landingPage').classList.add('hidden');document.getElementById('dashboardPage').classList.remove('hidden');}
 function showLanding(){document.getElementById('dashboardPage').classList.add('hidden');document.getElementById('landingPage').classList.remove('hidden');}
 function formatMoney(value){return "$" + (Number(value) || 0).toFixed(2);} function toCSVCell(value){return `"${String(value ?? "").replace(/"/g,'""')}"`;} function setLoadingState(m){document.getElementById("loading").textContent=m||"";}
@@ -385,9 +388,9 @@ function buildInsights(invoiceList){const target=document.getElementById("insigh
 function exportCSV(){if(!invoices.length)return alert("No invoice data to export yet.");const headers=["client_name","invoice_date","category","total_amount","created_at"],rows=invoices.map(inv=>headers.map(key=>toCSVCell(inv[key]))),csv=[headers.join(","),...rows.map(row=>row.join(","))].join("\n"),blob=new Blob([csv],{type:"text/csv;charset=utf-8;"}),url=URL.createObjectURL(blob),link=document.createElement("a");link.href=url;link.download="revnio-invoices.csv";document.body.appendChild(link);link.click();document.body.removeChild(link);URL.revokeObjectURL(url);} 
 async function uploadFile(){const fileInput=document.getElementById("fileInput"),file=fileInput.files[0];if(!file)return alert("Please choose an invoice image first.");const formData=new FormData();formData.append("file",file);setLoadingState("Processing invoice...");try{const response=await fetch(API_BASE+"/upload",{method:"POST",body:formData});const data=await response.json();if(data.error)return setLoadingState("Error: "+data.error);setLoadingState("Invoice processed successfully.");fileInput.value="";await loadDashboard();}catch(error){setLoadingState("Error: "+error.message);}}
 
-function renderActionMenu(type,id){const safeId=String(id).replace(/\\/g,'\\\\').replace(/'/g,"\\'");const key=`${type}-${safeId}`;return `<div class="action-menu-wrap"><button class="menu-trigger" aria-label="More actions" onclick="toggleActionMenu(event,'${type}','${safeId}')"><span class="menu-dots">⋯</span></button>${openActionMenu===key?`<div class="menu-dropdown"><button class="menu-item" onclick="handleDeleteAction('${type}','${safeId}')"><svg class="trash-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/></svg>Delete</button></div>`:""}</div>`;}
-function toggleActionMenu(event,type,id){event.stopPropagation();const key=`${type}-${id}`;openActionMenu=openActionMenu===key?null:key;renderHistory();renderIncomeHistory();}
-function closeActionMenus(){if(openActionMenu!==null){openActionMenu=null;renderHistory();renderIncomeHistory();}}
+function renderActionMenu(type,id){const safeId=String(id).replace(/\\/g,'\\\\').replace(/'/g,"\\'");const key=`${type}-${safeId}`;const directionClass=openMenuDirections[key]==='up'?' open-upwards':'';return `<div class="action-menu-wrap"><button class="menu-trigger" aria-label="More actions" onclick="toggleActionMenu(event,'${type}','${safeId}')"><span class="menu-dots">⋯</span></button>${openActionMenu===key?`<div class="menu-dropdown${directionClass}"><button class="menu-item" onclick="handleDeleteAction('${type}','${safeId}')"><svg class="trash-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/></svg>Delete</button></div>`:""}</div>`;}
+function toggleActionMenu(event,type,id){event.stopPropagation();const key=`${type}-${id}`;if(openActionMenu===key){openActionMenu=null;delete openMenuDirections[key];renderHistory();renderIncomeHistory();return;}const triggerRect=event.currentTarget.getBoundingClientRect();const estimatedMenuHeight=52;const gap=8;const spaceBelow=window.innerHeight-triggerRect.bottom;openMenuDirections[key]=spaceBelow<estimatedMenuHeight+gap?"up":"down";openActionMenu=key;renderHistory();renderIncomeHistory();}
+function closeActionMenus(){if(openActionMenu!==null){openActionMenu=null;openMenuDirections={};renderHistory();renderIncomeHistory();}}
 document.addEventListener("click",closeActionMenus);
 function handleDeleteAction(type,id){openActionMenu=null;if(type==="invoice"){deleteInvoice(id);}else{deleteIncome(id);} }
 function refreshAllViews(){updateDashboard();renderLatestInvoice();renderHistory();renderIncomeHistory();buildCategoryChart(invoices);buildMonthlyChart(invoices);buildInsights(invoices);}
