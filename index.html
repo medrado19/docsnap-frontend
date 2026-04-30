@@ -101,25 +101,15 @@
       backdrop-filter: blur(14px);
     }
 
-    .brand { display: flex; align-items: center; gap: 10px; font-size: 22px; font-weight: 700; margin-bottom: 6px; }
+    .brand { display: inline-flex; align-items: center; gap: 10px; font-size: 22px; font-weight: 700; margin-bottom: 6px; color: var(--text); }
     .brand-logo {
       width: 30px;
       height: 30px;
-      border-radius: 10px;
-      background: var(--gradient);
-      box-shadow: 0 8px 20px rgba(99, 102, 241, 0.38);
-      position: relative;
-      overflow: hidden;
+      display: block;
+      flex-shrink: 0;
+      filter: drop-shadow(0 8px 20px rgba(99, 102, 241, 0.36));
     }
-    .brand-logo::before {
-      content: "";
-      position: absolute;
-      inset: 5px 7px;
-      border-radius: 8px;
-      border: 1.5px solid rgba(255, 255, 255, 0.78);
-      border-left-width: 3px;
-      clip-path: polygon(0 0, 88% 0, 88% 28%, 42% 28%, 88% 100%, 52% 100%, 0 52%);
-    }
+    .brand-wordmark { line-height: 1; letter-spacing: -0.02em; }
     .brand-subtitle { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .09em; margin-bottom: 22px; }
 
     .hero { padding: 56px 40px; }
@@ -203,7 +193,7 @@
   <section id="landingPage">
     <div class="landing-shell">
       <header class="landing-nav">
-        <div class="brand"><span class="brand-logo" aria-hidden="true"></span>Revnio</div>
+        <div class="brand"><svg class="brand-logo" viewBox="0 0 32 32" aria-hidden="true"><defs><linearGradient id="logo-grad-landing" x1="6" y1="4" x2="26" y2="28" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#3B82F6" /><stop offset="0.52" stop-color="#6366F1" /><stop offset="1" stop-color="#8B5CF6" /></linearGradient></defs><path fill="url(#logo-grad-landing)" d="M7 4h9.2c4.8 0 8.8 3.7 8.8 8.3 0 2.9-1.5 5.5-4 7.1l4.4 8.6h-6.1l-3.6-7.2h-3.2V28H7V4Zm5.5 11.8h3.4c2.1 0 3.6-1.4 3.6-3.3s-1.5-3.3-3.6-3.3h-3.4v6.6Z"/></svg><span class="brand-wordmark">Revnio</span></div>
         <button class="btn secondary" onclick="showDashboard()">View Dashboard</button>
       </header>
 
@@ -232,7 +222,7 @@
       </section>
 
       <footer class="footer">
-        <span class="brand" style="font-size:16px; margin:0;"><span class="brand-logo" aria-hidden="true"></span>Revnio</span>
+        <span class="brand" style="font-size:16px; margin:0;"><svg class="brand-logo" viewBox="0 0 32 32" aria-hidden="true"><defs><linearGradient id="logo-grad-topbar" x1="6" y1="4" x2="26" y2="28" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#3B82F6" /><stop offset="0.52" stop-color="#6366F1" /><stop offset="1" stop-color="#8B5CF6" /></linearGradient></defs><path fill="url(#logo-grad-topbar)" d="M7 4h9.2c4.8 0 8.8 3.7 8.8 8.3 0 2.9-1.5 5.5-4 7.1l4.4 8.6h-6.1l-3.6-7.2h-3.2V28H7V4Zm5.5 11.8h3.4c2.1 0 3.6-1.4 3.6-3.3s-1.5-3.3-3.6-3.3h-3.4v6.6Z"/></svg><span class="brand-wordmark">Revnio</span></span>
         <span>AI-powered financial operations platform for modern small businesses.</span>
       </footer>
     </div>
@@ -240,7 +230,7 @@
 
   <div class="shell hidden" id="dashboardPage">
     <aside class="sidebar">
-      <div class="brand"><span class="brand-logo" aria-hidden="true"></span>Revnio</div>
+      <div class="brand"><svg class="brand-logo" viewBox="0 0 32 32" aria-hidden="true"><defs><linearGradient id="logo-grad-sidebar" x1="6" y1="4" x2="26" y2="28" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#3B82F6" /><stop offset="0.52" stop-color="#6366F1" /><stop offset="1" stop-color="#8B5CF6" /></linearGradient></defs><path fill="url(#logo-grad-sidebar)" d="M7 4h9.2c4.8 0 8.8 3.7 8.8 8.3 0 2.9-1.5 5.5-4 7.1l4.4 8.6h-6.1l-3.6-7.2h-3.2V28H7V4Zm5.5 11.8h3.4c2.1 0 3.6-1.4 3.6-3.3s-1.5-3.3-3.6-3.3h-3.4v6.6Z"/></svg><span class="brand-wordmark">Revnio</span></div>
       <div class="brand-subtitle">Financial Operations</div>
       <button class="nav-item" onclick="showLanding()">← Back to Landing</button>
       <button class="nav-item active" onclick="showTab('overview', this)">Overview</button>
