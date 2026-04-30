@@ -3,22 +3,24 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>DocSnap | Financial Operations Dashboard</title>
+  <title>Flowcast | Financial Operations Dashboard</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
+    @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap");
+
     :root {
-      --bg: #f3f6fb;
-      --surface: #ffffff;
-      --surface-2: #f8fafc;
-      --text: #0f172a;
-      --muted: #64748b;
-      --border: #e2e8f0;
-      --primary: #2563eb;
-      --primary-soft: #dbeafe;
-      --success: #0f766e;
-      --danger: #dc2626;
-      --shadow: 0 14px 28px rgba(15, 23, 42, 0.08);
-      --radius: 16px;
+      --bg: #0B1220;
+      --surface: #111827;
+      --surface-soft: #182235;
+      --text: #f8fafc;
+      --muted: #94a3b8;
+      --border: #273244;
+      --primary: #3B82F6;
+      --primary-2: #6366F1;
+      --primary-3: #8B5CF6;
+      --gradient: linear-gradient(135deg, var(--primary) 0%, var(--primary-2) 52%, var(--primary-3) 100%);
+      --radius: 14px;
+      --shadow: 0 18px 45px rgba(5, 10, 24, 0.45);
     }
 
     * { box-sizing: border-box; }
@@ -26,186 +28,75 @@
     body {
       margin: 0;
       font-family: "Inter", "Segoe UI", Arial, sans-serif;
-      background: var(--bg);
+      background: radial-gradient(circle at top right, rgba(99, 102, 241, 0.16) 0%, rgba(11, 18, 32, 0) 40%), var(--bg);
       color: var(--text);
+      letter-spacing: 0.01em;
     }
 
-    .shell {
-      min-height: 100vh;
-      display: grid;
-      grid-template-columns: 260px 1fr;
-    }
+    .shell { min-height: 100vh; display: grid; grid-template-columns: 248px 1fr; }
+    .sidebar { background: rgba(9, 15, 28, 0.82); backdrop-filter: blur(12px); border-right: 1px solid var(--border); padding: 28px 18px; position: sticky; top: 0; height: 100vh; }
+    .brand { display: flex; align-items: center; gap: 10px; font-size: 22px; font-weight: 700; margin-bottom: 6px; }
+    .brand-logo { width: 28px; height: 28px; border-radius: 9px; background: var(--gradient); box-shadow: 0 8px 20px rgba(99, 102, 241, 0.38); position: relative; }
+    .brand-logo::after { content: ""; position: absolute; inset: 6px; border-radius: 7px; border: 1.5px solid rgba(255, 255, 255, 0.75); }
+    .brand-subtitle { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .09em; margin-bottom: 28px; }
 
-    .sidebar {
-      background: #0f172a;
-      color: #dbe4f5;
-      padding: 24px 18px;
-      position: sticky;
-      top: 0;
-      height: 100vh;
-    }
+    .nav-item { width: 100%; border: 1px solid transparent; background: transparent; color: #c6d2e4; text-align: left; padding: 12px 14px; border-radius: 12px; margin-bottom: 8px; cursor: pointer; font-size: 14px; font-weight: 500; transition: 0.25s ease; }
+    .nav-item.active { background: rgba(99, 102, 241, 0.16); border-color: rgba(139, 92, 246, 0.42); box-shadow: inset 0 0 0 1px rgba(59, 130, 246, 0.24), 0 0 30px rgba(99, 102, 241, 0.2); color: #eef2ff; }
+    .nav-item:hover { background: rgba(148, 163, 184, 0.12); color: #e2e8f0; }
 
-    .brand { font-size: 22px; font-weight: 700; margin-bottom: 4px; }
-    .brand-subtitle { color: #94a3b8; font-size: 13px; margin-bottom: 26px; }
+    .main { padding: 28px; }
+    .topbar, .card, .box { background: linear-gradient(180deg, rgba(17, 24, 39, 0.96) 0%, rgba(17, 24, 39, 0.82) 100%); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); }
+    .topbar { padding: 22px 24px; display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 22px; }
+    .topbar h1 { margin: 0; font-size: 28px; font-weight: 700; letter-spacing: -0.02em; }
+    .topbar p { margin: 5px 0 0; color: var(--muted); font-size: 14px; }
 
-    .nav-item {
-      width: 100%;
-      border: 1px solid transparent;
-      background: transparent;
-      color: inherit;
-      text-align: left;
-      padding: 11px 12px;
-      border-radius: 10px;
-      margin-bottom: 8px;
-      cursor: pointer;
-      font-size: 14px;
-    }
+    .btn { border: 1px solid transparent; border-radius: 11px; padding: 10px 16px; color: #fff; background: var(--gradient); cursor: pointer; font-weight: 600; transition: transform 0.25s ease, box-shadow 0.25s ease, filter 0.25s ease; }
+    .btn:hover { transform: translateY(-1px); filter: brightness(1.08); box-shadow: 0 14px 24px rgba(99, 102, 241, 0.3); }
+    .btn.secondary { background: #1f2a3f; border-color: #303f57; }
+    .btn.danger, .delete-btn { background: linear-gradient(135deg, #ef4444, #dc2626); }
 
-    .nav-item.active { background: rgba(37, 99, 235, 0.25); border-color: rgba(147, 197, 253, 0.5); }
-    .nav-item:hover { background: rgba(148, 163, 184, 0.15); }
+    .cards { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 16px; margin-bottom: 22px; }
+    .card { padding: 18px; }
+    .card h3 { margin: 0; font-size: 11px; text-transform: uppercase; color: #9fb1ca; letter-spacing: .1em; font-weight: 600; }
+    .card p { margin: 10px 0 0; font-size: 31px; font-weight: 800; letter-spacing: -0.02em; }
 
-    .main { padding: 24px; }
-
-    .topbar {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 18px 20px;
-      box-shadow: var(--shadow);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 12px;
-      margin-bottom: 18px;
-    }
-
-    .topbar h1 { margin: 0; font-size: 24px; }
-    .topbar p { margin: 4px 0 0; color: var(--muted); }
-
-    .btn {
-      border: none;
-      border-radius: 10px;
-      padding: 10px 14px;
-      color: white;
-      background: var(--primary);
-      cursor: pointer;
-      font-weight: 600;
-    }
-
-    .btn.secondary { background: #334155; }
-    .btn.danger { background: var(--danger); }
-
-    .cards {
-      display: grid;
-      grid-template-columns: repeat(5, minmax(0, 1fr));
-      gap: 14px;
-      margin-bottom: 18px;
-    }
-
-    .card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 16px;
-      box-shadow: var(--shadow);
-    }
-
-    .card h3 { margin: 0; font-size: 12px; text-transform: uppercase; color: var(--muted); letter-spacing: .04em; }
-    .card p { margin: 8px 0 0; font-size: 28px; font-weight: 700; }
-
-    .tabs { display: flex; gap: 8px; margin-bottom: 14px; }
-    .tab-btn {
-      border: 1px solid var(--border);
-      border-radius: 999px;
-      padding: 8px 14px;
-      background: var(--surface);
-      color: var(--muted);
-      cursor: pointer;
-      font-weight: 600;
-    }
-    .tab-btn.active { background: var(--primary-soft); color: #1d4ed8; border-color: #bfdbfe; }
+    .tabs { display: flex; gap: 10px; margin-bottom: 16px; }
+    .tab-btn { border: 1px solid var(--border); border-radius: 999px; padding: 8px 14px; background: var(--surface); color: var(--muted); cursor: pointer; font-weight: 600; transition: 0.2s ease; }
+    .tab-btn.active { background: rgba(59, 130, 246, 0.18); color: #dbeafe; border-color: rgba(99, 102, 241, 0.4); }
 
     .tab-content { display: none; }
     .tab-content.active { display: block; }
-
-    .layout {
-      display: grid;
-      gap: 16px;
-      grid-template-columns: 1.2fr 1fr;
-    }
-
+    .layout { display: grid; gap: 16px; grid-template-columns: 1.2fr 1fr; }
     .stack { display: grid; gap: 16px; }
+    .box { padding: 20px; }
+    .box h2 { margin-top: 0; font-size: 18px; letter-spacing: -0.01em; }
+    .box p, .state { color: var(--muted); }
 
-    .box {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 18px;
-      box-shadow: var(--shadow);
-    }
-
-    .box h2 { margin-top: 0; font-size: 18px; }
-    .box p { color: var(--muted); }
-
-    .row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
-
-    input, textarea {
-      width: 100%;
-      border: 1px solid #cbd5e1;
-      border-radius: 10px;
-      padding: 10px;
-      font-size: 14px;
-      background: #fff;
-      margin-top: 6px;
-    }
-
-    label { font-size: 13px; color: #334155; font-weight: 600; }
+    .row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+    input, textarea { width: 100%; border: 1px solid #334155; border-radius: 10px; padding: 11px 12px; font-size: 14px; background: #0f172a; color: #e2e8f0; margin-top: 6px; }
+    input:focus, textarea:focus { outline: none; border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.18); }
+    label { font-size: 12px; color: #b7c4d8; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; }
 
     .actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
-
-    .state {
-      margin-top: 10px;
-      border: 1px dashed var(--border);
-      border-radius: 12px;
-      padding: 14px;
-      color: var(--muted);
-      background: var(--surface-2);
-    }
-
-    .loading { margin-top: 12px; color: #1d4ed8; font-weight: 600; }
+    .state { margin-top: 10px; border: 1px dashed #334155; border-radius: 12px; padding: 14px; background: var(--surface-soft); }
+    .loading { margin-top: 12px; color: #93c5fd; font-weight: 600; }
     .insights-list { margin: 8px 0 0; padding-left: 18px; }
 
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 10px;
-      font-size: 14px;
-    }
-    th, td { padding: 10px; border-bottom: 1px solid var(--border); text-align: left; }
-    th { color: var(--muted); font-size: 12px; text-transform: uppercase; }
-
-    .delete-btn { background: var(--danger); color: #fff; border: none; border-radius: 8px; padding: 7px 11px; cursor: pointer; }
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 14px; background: rgba(15, 23, 42, 0.38); border-radius: 10px; overflow: hidden; }
+    th, td { padding: 11px 10px; border-bottom: 1px solid #2c3a4f; text-align: left; }
+    th { color: #9fb1ca; font-size: 11px; text-transform: uppercase; letter-spacing: .06em; }
+    .delete-btn { color: #fff; border: none; border-radius: 8px; padding: 7px 11px; cursor: pointer; }
 
     .chart-wrapper { height: 320px; }
 
-    @media (max-width: 1180px) {
-      .cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-      .layout { grid-template-columns: 1fr; }
-    }
-
-    @media (max-width: 860px) {
-      .shell { grid-template-columns: 1fr; }
-      .sidebar { position: static; height: auto; }
-      .topbar { flex-direction: column; align-items: flex-start; }
-      .row { grid-template-columns: 1fr; }
-      .cards { grid-template-columns: 1fr; }
-    }
+    @media (max-width: 1180px) { .cards { grid-template-columns: repeat(2, minmax(0, 1fr)); } .layout { grid-template-columns: 1fr; } }
+    @media (max-width: 860px) { .shell { grid-template-columns: 1fr; } .sidebar { position: static; height: auto; } .topbar { flex-direction: column; align-items: flex-start; } .row { grid-template-columns: 1fr; } .cards { grid-template-columns: 1fr; } .main { padding: 18px; } }
   </style>
 </head>
 <body>
   <div class="shell">
     <aside class="sidebar">
-      <div class="brand">📄 DocSnap</div>
+      <div class="brand"><span class="brand-logo" aria-hidden="true"></span>Flowcast</div>
       <div class="brand-subtitle">Financial Operations</div>
       <button class="nav-item active" onclick="showTab('overview', this)">Overview</button>
       <button class="nav-item" onclick="showTab('operations', this)">Operations</button>
@@ -215,8 +106,8 @@
     <main class="main">
       <header class="topbar">
         <div>
-          <h1>Business Dashboard</h1>
-          <p>Track invoices, income, and profitability in one clean workspace.</p>
+          <h1>Flowcast Command Center</h1>
+          <p>Track invoices, cash flow, and profitability from one premium operations workspace.</p>
         </div>
         <button class="btn secondary" onclick="exportCSV()">Export CSV</button>
       </header>
@@ -240,7 +131,7 @@
           <div class="stack">
             <div class="box">
               <h2>Upload Invoice</h2>
-              <p>Upload JPG, PNG, or screenshot invoices. DocSnap will extract billing details automatically.</p>
+              <p>Upload JPG, PNG, or screenshot invoices. Flowcast will extract billing details automatically.</p>
               <input type="file" id="fileInput" accept="image/*" />
               <div class="actions">
                 <button class="btn" onclick="uploadFile()">Extract Invoice Data</button>
@@ -311,7 +202,7 @@
 
   <script>
     const API_BASE = "https://docsnap-api-production-0100.up.railway.app";
-    const INCOME_KEY = "docsnap_income_entries";
+    const INCOME_KEY = "flowcast_income_entries";
 
     let invoices = [];
     let incomeEntries = [];
@@ -573,7 +464,7 @@
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
-      link.download = "docsnap-invoices.csv";
+      link.download = "flowcast-invoices.csv";
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
