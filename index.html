@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Revnio | AI Financial Operations Platform</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='6' y1='4' x2='58' y2='58' gradientUnits='userSpaceOnUse'%3E%3Cstop offset='0' stop-color='%233B82F6'/%3E%3Cstop offset='0.5' stop-color='%236366F1'/%3E%3Cstop offset='1' stop-color='%238B5CF6'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cpath fill='url(%23g)' d='M12 8h19c12 0 21 8 21 19 0 8-4 14-10 18l10 19H40L32 48H24v16H12V8zm12 27h8c5 0 8-3 8-8s-3-8-8-8h-8v16z'/%3E%3C/svg%3E" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap");
@@ -55,15 +56,13 @@
     .btn:hover { transform: translateY(-1px); filter: brightness(1.08); box-shadow: 0 14px 24px rgba(99, 102, 241, 0.3); }
     .btn.secondary { background: #1f2a3f; border-color: #303f57; }
 
-    .btn.ghost-danger,
-    .delete-btn {
+    .btn.ghost-danger {
       background: rgba(239, 68, 68, 0.04);
       border: 1px solid rgba(248, 113, 113, 0.45);
       color: var(--danger-soft);
       box-shadow: none;
     }
-    .btn.ghost-danger:hover,
-    .delete-btn:hover {
+    .btn.ghost-danger:hover {
       background: rgba(239, 68, 68, 0.16);
       border-color: rgba(248, 113, 113, 0.72);
       color: #fecaca;
@@ -112,7 +111,27 @@
     .brand-wordmark { line-height: 1; letter-spacing: -0.02em; }
     .brand-subtitle { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .09em; margin-bottom: 22px; }
 
-    .hero { padding: 56px 40px; }
+    
+    .action-menu-wrap { position: relative; display: inline-flex; }
+    .menu-trigger { width: 34px; height: 34px; border-radius: 10px; border: 1px solid #334155; background: rgba(15, 23, 42, 0.75); color: #cbd5e1; cursor: pointer; display:flex; align-items:center; justify-content:center; }
+    .menu-trigger:hover { border-color: #4f46e5; color: #e2e8f0; }
+    .menu-dots { font-size: 18px; line-height: 1; transform: translateY(-1px); }
+    .menu-dropdown { position: absolute; right: 0; top: calc(100% + 8px); min-width: 132px; background: #111827; border: 1px solid #374151; border-radius: 10px; padding: 6px; box-shadow: 0 20px 36px rgba(2,6,23,.55); z-index: 20; }
+    .menu-item { width: 100%; border: 0; background: transparent; border-radius: 8px; padding: 8px 10px; text-align: left; color: #cbd5e1; cursor: pointer; display:flex; gap:8px; align-items:center; }
+    .menu-item:hover { background: rgba(239, 68, 68, 0.12); color: #fca5a5; }
+    .trash-ico { width: 14px; height: 14px; opacity: .75; }
+
+    .hero { padding: 56px 40px; position: relative; overflow: hidden; }
+    .hero::before, .hero::after { content:""; position:absolute; border-radius:999px; filter: blur(70px); z-index:0; }
+    .hero::before { width: 280px; height: 280px; right: -80px; top: -40px; background: rgba(99,102,241,.22);}
+    .hero::after { width: 220px; height: 220px; left: -60px; bottom: -80px; background: rgba(59,130,246,.18);}
+    .hero-grid { display:grid; grid-template-columns: 1.1fr .9fr; gap: 28px; align-items: center; position:relative; z-index:1;}
+    .hero-badge { display:inline-flex; align-items:center; gap:8px; padding:8px 12px; border-radius:999px; border:1px solid rgba(99,102,241,.42); background: rgba(59,130,246,.13); color:#dbeafe; font-weight:600; font-size: 12px; text-transform: uppercase; letter-spacing: .06em; }
+    .ai-gradient { background: linear-gradient(120deg,#60a5fa,#818cf8,#a78bfa); -webkit-background-clip:text; background-clip:text; color: transparent; }
+    .trust-points { margin-top: 18px; display:grid; gap:8px; color:#c7d2fe; font-size:14px; }
+    .trust-points span::before { content:"✓"; margin-right:8px; color:#93c5fd; }
+    .hero-preview { border:1px solid #334155; border-radius:16px; background: linear-gradient(180deg, rgba(30,41,59,.82), rgba(15,23,42,.86)); padding:18px; }
+
     .hero h1 { margin: 0; font-size: clamp(2rem, 6vw, 3.25rem); letter-spacing: -0.03em; }
     .hero p { color: var(--muted); font-size: 1.1rem; line-height: 1.7; margin: 16px 0 0; max-width: 760px; }
     .hero-actions { margin-top: 28px; display: flex; gap: 12px; flex-wrap: wrap; }
@@ -186,23 +205,39 @@
     .chart-wrapper { height: 320px; }
 
     @media (max-width: 1180px) { .cards { grid-template-columns: repeat(2, minmax(0, 1fr)); } .layout { grid-template-columns: 1fr; } .features { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-    @media (max-width: 860px) { .shell { grid-template-columns: 1fr; } .sidebar { position: static; height: auto; } .topbar { flex-direction: column; align-items: flex-start; } .row { grid-template-columns: 1fr; } .cards, .features { grid-template-columns: 1fr; } .main, #landingPage { padding: 18px; } .hero { padding: 30px 22px; } }
+    @media (max-width: 860px) { .hero-grid{grid-template-columns:1fr;} { .shell { grid-template-columns: 1fr; } .sidebar { position: static; height: auto; } .topbar { flex-direction: column; align-items: flex-start; } .row { grid-template-columns: 1fr; } .cards, .features { grid-template-columns: 1fr; } .main, #landingPage { padding: 18px; } .hero { padding: 30px 22px; } }
   </style>
 </head>
 <body>
   <section id="landingPage">
     <div class="landing-shell">
       <header class="landing-nav">
-        <div class="brand"><svg class="brand-logo" viewBox="0 0 32 32" aria-hidden="true"><defs><linearGradient id="logo-grad-landing" x1="6" y1="4" x2="26" y2="28" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#3B82F6" /><stop offset="0.52" stop-color="#6366F1" /><stop offset="1" stop-color="#8B5CF6" /></linearGradient></defs><path fill="url(#logo-grad-landing)" d="M7 4h9.2c4.8 0 8.8 3.7 8.8 8.3 0 2.9-1.5 5.5-4 7.1l4.4 8.6h-6.1l-3.6-7.2h-3.2V28H7V4Zm5.5 11.8h3.4c2.1 0 3.6-1.4 3.6-3.3s-1.5-3.3-3.6-3.3h-3.4v6.6Z"/></svg><span class="brand-wordmark">Revnio</span></div>
+        <div class="brand"><svg class="brand-logo" viewBox="0 0 32 32" aria-hidden="true"><defs><linearGradient id="logo-grad-landing" x1="6" y1="4" x2="26" y2="28" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#3B82F6" /><stop offset="0.52" stop-color="#6366F1" /><stop offset="1" stop-color="#8B5CF6" /></linearGradient></defs><path fill="url(#logo-grad-landing)" d="M4 4h11.5c6.4 0 11.6 4.9 11.6 11.1 0 3.5-1.7 6.6-4.5 8.6L28 31h-7l-4.3-5.9H12V31H4V4Zm8 13.8h3.8c2.4 0 4-1.6 4-3.8s-1.6-3.8-4-3.8H12v7.6Z"/></svg><span class="brand-wordmark">Revnio</span></div>
         <button class="btn secondary" onclick="showDashboard()">View Dashboard</button>
       </header>
 
       <section class="hero">
-        <h1>Financial clarity for small businesses, powered by AI.</h1>
-        <p>Upload invoices, track income and expenses, and understand your business performance in one simple dashboard.</p>
-        <div class="hero-actions">
-          <button class="btn" onclick="showDashboard()">Get Started</button>
-          <button class="btn secondary" onclick="showDashboard()">View Dashboard</button>
+        <div class="hero-grid">
+          <div>
+            <div class="hero-badge">AI-powered financial operations</div>
+            <h1>Financial clarity for small businesses, <span class="ai-gradient">powered by AI</span>.</h1>
+            <p>Upload invoices, track income and expenses, and understand your business performance in one premium operations command center.</p>
+            <div class="hero-actions">
+              <button class="btn" onclick="showDashboard()">Get Started</button>
+              <button class="btn secondary" onclick="showDashboard()">View Dashboard</button>
+            </div>
+            <div class="trust-points"><span>AI invoice extraction</span><span>Cash flow visibility</span><span>Built for small businesses</span></div>
+          </div>
+          <div class="hero-preview">
+            <h3 style="margin:0 0 12px;">Live Dashboard Preview</h3>
+            <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;">
+              <div class="state" style="margin:0;"><strong style="display:block;color:#bfdbfe;">Income</strong><span style="font-size:20px;color:#fff;">$24.8k</span></div>
+              <div class="state" style="margin:0;"><strong style="display:block;color:#bfdbfe;">Profit</strong><span style="font-size:20px;color:#fff;">$9.6k</span></div>
+            </div>
+            <div style="margin-top:12px;height:110px;border:1px solid #334155;border-radius:12px;padding:10px;background:rgba(15,23,42,.7);">
+              <svg viewBox="0 0 280 90" width="100%" height="100%"><polyline points="0,68 35,62 65,64 100,48 135,51 170,36 205,39 240,28 280,22" fill="none" stroke="url(#logo-grad-landing)" stroke-width="4" stroke-linecap="round"/></svg>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -222,7 +257,7 @@
       </section>
 
       <footer class="footer">
-        <span class="brand" style="font-size:16px; margin:0;"><svg class="brand-logo" viewBox="0 0 32 32" aria-hidden="true"><defs><linearGradient id="logo-grad-topbar" x1="6" y1="4" x2="26" y2="28" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#3B82F6" /><stop offset="0.52" stop-color="#6366F1" /><stop offset="1" stop-color="#8B5CF6" /></linearGradient></defs><path fill="url(#logo-grad-topbar)" d="M7 4h9.2c4.8 0 8.8 3.7 8.8 8.3 0 2.9-1.5 5.5-4 7.1l4.4 8.6h-6.1l-3.6-7.2h-3.2V28H7V4Zm5.5 11.8h3.4c2.1 0 3.6-1.4 3.6-3.3s-1.5-3.3-3.6-3.3h-3.4v6.6Z"/></svg><span class="brand-wordmark">Revnio</span></span>
+        <span class="brand" style="font-size:16px; margin:0;"><svg class="brand-logo" viewBox="0 0 32 32" aria-hidden="true"><defs><linearGradient id="logo-grad-topbar" x1="6" y1="4" x2="26" y2="28" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#3B82F6" /><stop offset="0.52" stop-color="#6366F1" /><stop offset="1" stop-color="#8B5CF6" /></linearGradient></defs><path fill="url(#logo-grad-topbar)" d="M4 4h11.5c6.4 0 11.6 4.9 11.6 11.1 0 3.5-1.7 6.6-4.5 8.6L28 31h-7l-4.3-5.9H12V31H4V4Zm8 13.8h3.8c2.4 0 4-1.6 4-3.8s-1.6-3.8-4-3.8H12v7.6Z"/></svg><span class="brand-wordmark">Revnio</span></span>
         <span>AI-powered financial operations platform for modern small businesses.</span>
       </footer>
     </div>
@@ -230,7 +265,7 @@
 
   <div class="shell hidden" id="dashboardPage">
     <aside class="sidebar">
-      <div class="brand"><svg class="brand-logo" viewBox="0 0 32 32" aria-hidden="true"><defs><linearGradient id="logo-grad-sidebar" x1="6" y1="4" x2="26" y2="28" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#3B82F6" /><stop offset="0.52" stop-color="#6366F1" /><stop offset="1" stop-color="#8B5CF6" /></linearGradient></defs><path fill="url(#logo-grad-sidebar)" d="M7 4h9.2c4.8 0 8.8 3.7 8.8 8.3 0 2.9-1.5 5.5-4 7.1l4.4 8.6h-6.1l-3.6-7.2h-3.2V28H7V4Zm5.5 11.8h3.4c2.1 0 3.6-1.4 3.6-3.3s-1.5-3.3-3.6-3.3h-3.4v6.6Z"/></svg><span class="brand-wordmark">Revnio</span></div>
+      <div class="brand"><svg class="brand-logo" viewBox="0 0 32 32" aria-hidden="true"><defs><linearGradient id="logo-grad-sidebar" x1="6" y1="4" x2="26" y2="28" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#3B82F6" /><stop offset="0.52" stop-color="#6366F1" /><stop offset="1" stop-color="#8B5CF6" /></linearGradient></defs><path fill="url(#logo-grad-sidebar)" d="M4 4h11.5c6.4 0 11.6 4.9 11.6 11.1 0 3.5-1.7 6.6-4.5 8.6L28 31h-7l-4.3-5.9H12V31H4V4Zm8 13.8h3.8c2.4 0 4-1.6 4-3.8s-1.6-3.8-4-3.8H12v7.6Z"/></svg><span class="brand-wordmark">Revnio</span></div>
       <div class="brand-subtitle">Financial Operations</div>
       <button class="nav-item" onclick="showLanding()">← Back to Landing</button>
       <button class="nav-item active" onclick="showTab('overview', this)">Overview</button>
@@ -325,7 +360,7 @@
 <script>
 const API_BASE = "https://docsnap-api-production-0100.up.railway.app";
 const INCOME_KEY = "flowcast_income_entries";
-let invoices = [], incomeEntries = [], categoryChartInstance = null, monthlyChartInstance = null;
+let invoices = [], incomeEntries = [], categoryChartInstance = null, monthlyChartInstance = null, openActionMenu = null;
 function showDashboard(){document.getElementById('landingPage').classList.add('hidden');document.getElementById('dashboardPage').classList.remove('hidden');}
 function showLanding(){document.getElementById('dashboardPage').classList.add('hidden');document.getElementById('landingPage').classList.remove('hidden');}
 function formatMoney(value){return "$" + (Number(value) || 0).toFixed(2);} function toCSVCell(value){return `"${String(value ?? "").replace(/"/g,'""')}"`;} function setLoadingState(m){document.getElementById("loading").textContent=m||"";}
@@ -333,20 +368,27 @@ function activateTab(tabId){document.querySelectorAll(".tab-content").forEach(el
 function showTab(tabId,btn){activateTab(tabId);document.querySelectorAll(".nav-item").forEach(el=>el.classList.remove("active"));btn.classList.add("active");}
 function loadIncomeEntries(){incomeEntries=JSON.parse(localStorage.getItem(INCOME_KEY)||"[]");renderIncomeHistory();}
 function persistIncomeEntries(){localStorage.setItem(INCOME_KEY,JSON.stringify(incomeEntries));}
-function saveIncome(event){event.preventDefault();const source=document.getElementById("incomeSource").value.trim(),date=document.getElementById("incomeDate").value,amount=Number(document.getElementById("incomeAmount").value||0),notes=document.getElementById("incomeNotes").value.trim();incomeEntries.unshift({id:Date.now(),source,date,amount,notes});persistIncomeEntries();renderIncomeHistory();updateDashboard();document.getElementById("incomeForm").reset();}
-function deleteIncome(id){incomeEntries=incomeEntries.filter(item=>item.id!==id);persistIncomeEntries();renderIncomeHistory();updateDashboard();}
-function renderIncomeHistory(){const box=document.getElementById("incomeHistory");if(!incomeEntries.length){box.className="state";box.innerHTML="No income entries yet.";return;}box.className="";box.innerHTML=`<table><tr><th>Source</th><th>Date</th><th>Amount</th><th>Notes</th><th>Actions</th></tr>${incomeEntries.map(item=>`<tr><td>${item.source}</td><td>${item.date||"-"}</td><td>${formatMoney(item.amount)}</td><td>${item.notes||"-"}</td><td><button class="delete-btn" onclick="deleteIncome(${item.id})">Delete</button></td></tr>`).join("")}</table>`;}
-async function loadDashboard(){setLoadingState("Loading dashboard data...");try{const response=await fetch(API_BASE+"/invoices");invoices=await response.json();updateDashboard();renderLatestInvoice();renderHistory();buildCategoryChart(invoices);buildMonthlyChart(invoices);buildInsights(invoices);setLoadingState("");}catch(error){console.error(error);setLoadingState("Could not load dashboard data. Please retry.");}}
+function saveIncome(event){event.preventDefault();const source=document.getElementById("incomeSource").value.trim(),date=document.getElementById("incomeDate").value,amount=Number(document.getElementById("incomeAmount").value||0),notes=document.getElementById("incomeNotes").value.trim();incomeEntries.unshift({id:Date.now(),source,date,amount,notes});persistIncomeEntries();refreshAllViews();document.getElementById("incomeForm").reset();}
+function deleteIncome(id){incomeEntries=incomeEntries.filter(item=>item.id!==id);persistIncomeEntries();refreshAllViews();}
+function renderIncomeHistory(){const box=document.getElementById("incomeHistory");if(!incomeEntries.length){box.className="state";box.innerHTML="No income entries yet.";return;}box.className="";box.innerHTML=`<table><tr><th>Source</th><th>Date</th><th>Amount</th><th>Notes</th><th>Actions</th></tr>${incomeEntries.map(item=>`<tr><td>${item.source}</td><td>${item.date||"-"}</td><td>${formatMoney(item.amount)}</td><td>${item.notes||"-"}</td><td>${renderActionMenu("income",item.id)}</td></tr>`).join("")}</table>`;}
+async function loadDashboard(){setLoadingState("Loading dashboard data...");try{const response=await fetch(API_BASE+"/invoices");invoices=await response.json();refreshAllViews();setLoadingState("");}catch(error){console.error(error);setLoadingState("Could not load dashboard data. Please retry.");}}
 function updateDashboard(){const totalExpenses=invoices.reduce((sum,invoice)=>sum+(Number(invoice.total_amount)||0),0),invoiceCount=invoices.length,averageInvoice=invoiceCount>0?totalExpenses/invoiceCount:0,totalIncome=incomeEntries.reduce((sum,item)=>sum+(Number(item.amount)||0),0),profit=totalIncome-totalExpenses;document.getElementById("totalIncome").textContent=formatMoney(totalIncome);document.getElementById("totalExpenses").textContent=formatMoney(totalExpenses);document.getElementById("profit").textContent=formatMoney(profit);document.getElementById("invoiceCount").textContent=invoiceCount;document.getElementById("averageInvoice").textContent=formatMoney(averageInvoice);}
 function renderLatestInvoice(){const box=document.getElementById("latestInvoice");if(!invoices.length){box.className="state";box.innerHTML="No invoice uploaded yet.";return;}const invoice=invoices[0];box.className="";box.innerHTML=`<p><strong>Client:</strong> ${invoice.client_name||"Unknown"}</p><p><strong>Date:</strong> ${invoice.invoice_date||"Unknown"}</p><p><strong>Category:</strong> ${invoice.category||"Other"}</p><p><strong>Total:</strong> ${formatMoney(invoice.total_amount)}</p>`;}
-function renderHistory(){const box=document.getElementById("history");if(!invoices.length){box.className="state";box.innerHTML="Your uploaded invoices will appear here.";return;}box.className="";box.innerHTML=`<table><tr><th>Client</th><th>Date</th><th>Category</th><th>Total</th><th>Uploaded</th><th>Actions</th></tr>${invoices.map(invoice=>`<tr><td>${invoice.client_name||"Unknown"}</td><td>${invoice.invoice_date||"Unknown"}</td><td>${invoice.category||"Other"}</td><td>${formatMoney(invoice.total_amount)}</td><td>${invoice.created_at?new Date(invoice.created_at).toLocaleString():""}</td><td><button class="delete-btn" onclick="deleteInvoice(${invoice.id})">Delete</button></td></tr>`).join("")}</table>`;}
-async function deleteInvoice(id){if(!confirm("Are you sure you want to delete this invoice?"))return;setLoadingState("Deleting invoice...");try{const response=await fetch(API_BASE+"/invoice/"+id,{method:"DELETE"});const data=await response.json();if(!response.ok||data.error)throw new Error(data.error||"Failed to delete invoice.");setLoadingState("Invoice deleted successfully.");await loadDashboard();}catch(error){console.error(error);setLoadingState("Error: "+error.message);}}
+function renderHistory(){const box=document.getElementById("history");if(!invoices.length){box.className="state";box.innerHTML="Your uploaded invoices will appear here.";return;}box.className="";box.innerHTML=`<table><tr><th>Client</th><th>Date</th><th>Category</th><th>Total</th><th>Uploaded</th><th>Actions</th></tr>${invoices.map(invoice=>`<tr><td>${invoice.client_name||"Unknown"}</td><td>${invoice.invoice_date||"Unknown"}</td><td>${invoice.category||"Other"}</td><td>${formatMoney(invoice.total_amount)}</td><td>${invoice.created_at?new Date(invoice.created_at).toLocaleString():""}</td><td>${renderActionMenu("invoice",invoice.id)}</td></tr>`).join("")}</table>`;}
+async function deleteInvoice(id){if(!confirm("Are you sure you want to delete this invoice?"))return;setLoadingState("Deleting invoice...");try{let response=await fetch(API_BASE+"/invoices/"+id,{method:"DELETE"});if(!response.ok){response=await fetch(API_BASE+"/invoice/"+id,{method:"DELETE"});}if(!response.ok)throw new Error("Failed to delete invoice.");invoices=invoices.filter(inv=>inv.id!==id);refreshAllViews();setLoadingState("Invoice deleted successfully.");}catch(error){console.error(error);setLoadingState("Error: "+error.message);}}
 function buildCategoryChart(invoiceList){const totals={};invoiceList.forEach(inv=>{const c=inv.category||"Other";totals[c]=(totals[c]||0)+(Number(inv.total_amount)||0);});if(categoryChartInstance)categoryChartInstance.destroy();categoryChartInstance=new Chart(document.getElementById("categoryChart"),{type:"doughnut",data:{labels:Object.keys(totals),datasets:[{data:Object.values(totals),backgroundColor:["#2563eb","#16a34a","#9333ea","#f59e0b","#ef4444","#0ea5e9"]}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:"bottom"}}}});} 
 function buildMonthlyChart(invoiceList){const monthlyTotals={};invoiceList.forEach(inv=>{if(!inv.invoice_date)return;const d=new Date(inv.invoice_date);const k=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`;monthlyTotals[k]=(monthlyTotals[k]||0)+(Number(inv.total_amount)||0);});const sorted=Object.keys(monthlyTotals).sort();if(monthlyChartInstance)monthlyChartInstance.destroy();monthlyChartInstance=new Chart(document.getElementById("monthlyChart"),{type:"bar",data:{labels:sorted.map(month=>{const [year,m]=month.split("-");return new Date(Number(year),Number(m)-1,1).toLocaleDateString(undefined,{month:"short",year:"numeric"});}),datasets:[{label:"Monthly Spending",data:sorted.map(k=>monthlyTotals[k]),borderRadius:8,backgroundColor:"rgba(37,99,235,0.7)",borderColor:"#1d4ed8",borderWidth:1}]},options:{responsive:true,maintainAspectRatio:false,scales:{y:{beginAtZero:true,ticks:{callback:value=>"$"+value}}},plugins:{legend:{position:"bottom"},tooltip:{callbacks:{label:ctx=>` ${formatMoney(ctx.parsed.y)}`}}}}});}
 function buildInsights(invoiceList){const target=document.getElementById("insights");if(invoiceList.length<2){target.className="state";target.innerHTML="No data yet. Insights appear once at least 2 invoices are uploaded.";return;}const total=invoiceList.reduce((sum,inv)=>sum+(Number(inv.total_amount)||0),0),average=total/invoiceList.length,topInvoice=[...invoiceList].sort((a,b)=>(Number(b.total_amount)||0)-(Number(a.total_amount)||0))[0],categories={};invoiceList.forEach(inv=>{const k=inv.category||"Other";categories[k]=(categories[k]||0)+(Number(inv.total_amount)||0);});const topCategory=Object.entries(categories).sort((a,b)=>b[1]-a[1])[0];target.className="";target.innerHTML=`<ul class="insights-list"><li>Your average invoice is <strong>${formatMoney(average)}</strong>.</li><li>Highest invoice is <strong>${formatMoney(topInvoice.total_amount)}</strong> from <strong>${topInvoice.client_name||"Unknown"}</strong>.</li><li>Top spending category is <strong>${topCategory?topCategory[0]:"Other"}</strong> at <strong>${formatMoney(topCategory?topCategory[1]:0)}</strong>.</li></ul>`;}
 function exportCSV(){if(!invoices.length)return alert("No invoice data to export yet.");const headers=["client_name","invoice_date","category","total_amount","created_at"],rows=invoices.map(inv=>headers.map(key=>toCSVCell(inv[key]))),csv=[headers.join(","),...rows.map(row=>row.join(","))].join("\n"),blob=new Blob([csv],{type:"text/csv;charset=utf-8;"}),url=URL.createObjectURL(blob),link=document.createElement("a");link.href=url;link.download="revnio-invoices.csv";document.body.appendChild(link);link.click();document.body.removeChild(link);URL.revokeObjectURL(url);} 
 async function uploadFile(){const fileInput=document.getElementById("fileInput"),file=fileInput.files[0];if(!file)return alert("Please choose an invoice image first.");const formData=new FormData();formData.append("file",file);setLoadingState("Processing invoice...");try{const response=await fetch(API_BASE+"/upload",{method:"POST",body:formData});const data=await response.json();if(data.error)return setLoadingState("Error: "+data.error);setLoadingState("Invoice processed successfully.");fileInput.value="";await loadDashboard();}catch(error){setLoadingState("Error: "+error.message);}}
-function clearDashboard(){if(!confirm("Clear all locally saved income entries?"))return;incomeEntries=[];persistIncomeEntries();renderIncomeHistory();updateDashboard();}
+
+function renderActionMenu(type,id){const key=`${type}-${id}`;return `<div class="action-menu-wrap"><button class="menu-trigger" aria-label="More actions" onclick="toggleActionMenu(event,'${type}',${id})"><span class="menu-dots">⋯</span></button>${openActionMenu===key?`<div class="menu-dropdown"><button class="menu-item" onclick="handleDeleteAction('${type}',${id})"><svg class="trash-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/></svg>Delete</button></div>`:""}</div>`;}
+function toggleActionMenu(event,type,id){event.stopPropagation();const key=`${type}-${id}`;openActionMenu=openActionMenu===key?null:key;renderHistory();renderIncomeHistory();}
+function closeActionMenus(){if(openActionMenu!==null){openActionMenu=null;renderHistory();renderIncomeHistory();}}
+document.addEventListener("click",closeActionMenus);
+function handleDeleteAction(type,id){openActionMenu=null;if(type==="invoice"){deleteInvoice(id);}else{deleteIncome(id);} }
+function refreshAllViews(){updateDashboard();renderLatestInvoice();renderHistory();renderIncomeHistory();buildCategoryChart(invoices);buildMonthlyChart(invoices);buildInsights(invoices);}
+function clearDashboard(){if(!confirm("Clear all locally saved income entries?"))return;incomeEntries=[];persistIncomeEntries();refreshAllViews();}
 loadIncomeEntries(); loadDashboard();
 </script>
 </body>
