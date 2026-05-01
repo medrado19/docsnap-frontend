@@ -205,7 +205,7 @@
     .sidebar-overlay.active { opacity: 1; pointer-events: auto; }
 
 
-    .top-dashboard { display:grid; grid-template-columns: 1.65fr 1fr; gap: var(--space-3); margin-bottom: var(--space-4); }
+    .top-dashboard { display:grid; grid-template-columns: 1fr; gap: var(--space-3); margin-bottom: var(--space-4); }
     .cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-3); margin-bottom: 0; }
     .card { padding: var(--card-padding); border-radius: var(--radius); box-shadow: var(--shadow); }
     .card h3 { margin: 0; font-size: var(--label-size); text-transform: uppercase; color: #9fb1ca; letter-spacing: .1em; font-weight: 600; }
@@ -251,6 +251,22 @@
     }
 
     .upload-zone h3 { margin: 0 0 8px; font-size: 14px; text-transform: uppercase; letter-spacing: .05em; color: #bfdbfe; }
+    .upload-zone.dragover { border-color: #6366f1; background: rgba(67, 56, 202, 0.18); }
+    .file-input-hidden { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+    .upload-input-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-top: 10px; }
+    .upload-file-label { min-height: 42px; }
+    .file-name-display {
+      flex: 1;
+      min-height: 42px;
+      border: 1px solid #334155;
+      border-radius: 11px;
+      padding: 11px 12px;
+      background: rgba(15, 23, 42, 0.75);
+      color: #cbd5e1;
+      font-size: 13px;
+    }
+    .overview-main-grid { display: grid; gap: var(--space-3); grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .overview-bottom-stack { display: grid; gap: var(--space-3); margin-top: var(--space-3); }
 
     .row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
     input, textarea { width: 100%; border: 1px solid #334155; border-radius: 10px; padding: 14px 12px; font-size: 14px; background: #0f172a; color: #e2e8f0; margin-top: 6px; }
@@ -274,11 +290,18 @@
     .state, .box { overflow: visible; }
     table { width: 100%; border-collapse: collapse; margin-top: var(--space-2); font-size: var(--body-size); background: rgba(15, 23, 42, 0.38); border-radius: 12px; overflow: hidden; min-width: 640px; }
     .table-scroll { overflow-x: auto; width: 100%; -webkit-overflow-scrolling: touch; }
+    #history, #incomeHistory { padding-bottom: 96px; }
     th, td { padding: var(--space-2) var(--space-1); border-bottom: 1px solid #2c3a4f; text-align: left; }
     th { color: #9fb1ca; font-size: 11px; text-transform: uppercase; letter-spacing: .06em; }
     .delete-btn { border-radius: 8px; padding: 7px 11px; cursor: pointer; }
 
-    .chart-wrapper { height: 320px; }
+    .chart-wrapper { height: 320px; margin-top: 14px; }
+    .chart-caption { margin: 10px 0 0; color: var(--muted); font-size: 13px; }
+    .chart-title-row { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+    .chart-badge { border: 1px solid #334155; border-radius: 999px; padding: 3px 10px; color: #bfdbfe; font-size: 11px; text-transform: uppercase; letter-spacing: .08em; }
+    .analytics-summary-cards { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: var(--space-3); margin-bottom: var(--space-3); }
+    .mini-metric h4 { margin: 0; font-size: 12px; color: #9fb1ca; text-transform: uppercase; letter-spacing: .1em; }
+    .mini-metric p { margin: 8px 0 0; font-size: 24px; font-weight: 700; }
 
     .help-fab {
       position: fixed;
@@ -367,7 +390,7 @@
       .top-dashboard { grid-template-columns: 1fr; }
       .cards { grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); }
       .features { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-      .layout { grid-template-columns: 1fr; }
+      .layout, .overview-main-grid, .analytics-summary-cards { grid-template-columns: 1fr; }
       .chart-wrapper { height: 280px; }
     }
     @media (max-width: 768px) {
@@ -496,16 +519,6 @@
           <article class="card"><h3>Total Expenses</h3><p id="totalExpenses">$0.00</p></article>
           <article class="card"><h3>Profit</h3><p id="profit">$0.00</p></article>
         </section>
-        <section class="financial-summary-card compact">
-          <div class="financial-summary-inner">
-            <h2 class="financial-summary-title">AI Financial Summary</h2><div class="trust-badge">AI suggested, editable</div>
-            <p id="financialSummaryMessage" class="financial-summary-message">Add invoices and income entries to generate your summary.</p>
-            <p id="financialSummaryMeta" class="financial-summary-meta">Tracking starts as soon as financial records are available.</p>
-            <div class="financial-summary-action">
-              <button class="btn secondary" onclick="showInsightsPage()">View more insights</button>
-            </div>
-          </div>
-        </section>
       </section>
 
       <div class="tabs">
@@ -516,23 +529,37 @@
       </div>
 
       <section id="overview" class="tab-content active">
-        <div class="layout">
-          <div class="stack">
-            <div class="box">
-              <h2>Upload Invoice</h2>
-              <p>Upload JPG, PNG, or screenshot invoices. Revnio will extract billing details automatically.</p>
-              <div class="upload-zone">
-                <h3>Upload Invoice File</h3>
-                <p style="margin:0 0 10px;">Drop your invoice image here or choose a file to extract key billing fields.</p>
-                <input type="file" id="fileInput" accept="image/*" />
+        <div class="overview-main-grid">
+          <div class="box">
+            <h2>Upload Invoice</h2>
+            <p>Upload JPG, PNG, or screenshot invoices. Revnio will extract billing details automatically.</p>
+            <div id="uploadZone" class="upload-zone">
+              <h3>Upload Invoice File</h3>
+              <p style="margin:0 0 10px;">Drop your invoice image here or choose a file to extract key billing fields.</p>
+              <input type="file" id="fileInput" class="file-input-hidden" accept="image/*" />
+              <div class="upload-input-row">
+                <label for="fileInput" class="btn secondary upload-file-label">Choose invoice file</label>
+                <div id="selectedFileName" class="file-name-display">No file selected</div>
               </div>
-              <div class="actions">
-                <button class="btn" onclick="uploadFile()">Extract Invoice Data</button>
-                <button class="btn ghost-danger" onclick="clearDashboard()">Clear Local Income</button>
-              </div>
-              <div id="loading" class="loading"></div>
             </div>
-
+            <div class="actions">
+              <button class="btn" onclick="uploadFile()">Extract Invoice Data</button>
+              <button class="btn ghost-danger" onclick="clearDashboard()">Clear Local Income</button>
+            </div>
+            <div id="loading" class="loading"></div>
+          </div>
+          <section class="financial-summary-card compact">
+            <div class="financial-summary-inner">
+              <h2 class="financial-summary-title">AI Financial Summary</h2><div class="trust-badge">AI suggested, editable</div>
+              <p id="financialSummaryMessage" class="financial-summary-message">Add invoices and income entries to generate your summary.</p>
+              <p id="financialSummaryMeta" class="financial-summary-meta">Tracking starts as soon as financial records are available.</p>
+              <div class="financial-summary-action">
+                <button class="btn secondary" onclick="showInsightsPage()">View more insights</button>
+              </div>
+            </div>
+          </section>
+        </div>
+        <div class="overview-bottom-stack">
             <div class="box">
               <h2>Latest Invoice</h2>
               <div id="latestInvoice" class="state">No invoice uploaded yet.</div>
@@ -561,13 +588,29 @@
               </form>
               <div id="incomeHistory" class="state">You haven’t added income yet. Add your first payment to start tracking profitability.</div>
             </div>
-          </div>
-
         </div>
       </section>
 
       <section id="operations" class="tab-content"><div class="box"><h2>Invoice History</h2><div id="history" class="state">Your uploaded invoices will appear here.</div></div></section>
-      <section id="analytics" class="tab-content"><div class="layout"><div class="box"><h2>Spending by Category</h2><div class="chart-wrapper"><canvas id="categoryChart"></canvas></div></div><div class="box"><h2>Monthly Spending Trend</h2><div class="chart-wrapper"><canvas id="monthlyChart"></canvas></div></div></div></section>
+      <section id="analytics" class="tab-content">
+        <div class="analytics-summary-cards">
+          <article class="card mini-metric"><h4>Total Expense Records</h4><p id="analyticsTotalInvoices">0</p></article>
+          <article class="card mini-metric"><h4>Avg Monthly Spend</h4><p id="analyticsAvgMonthly">$0.00</p></article>
+          <article class="card mini-metric"><h4>Top Category Spend</h4><p id="analyticsTopCategory">$0.00</p></article>
+        </div>
+        <div class="layout">
+          <div class="box">
+            <div class="chart-title-row"><h2>Spending by Category</h2><span class="chart-badge">Distribution</span></div>
+            <p class="chart-caption">Understand where your total expenses are concentrated so you can optimize category budgets.</p>
+            <div class="chart-wrapper"><canvas id="categoryChart"></canvas></div>
+          </div>
+          <div class="box">
+            <div class="chart-title-row"><h2>Monthly Spending Trend</h2><span class="chart-badge">Timeline</span></div>
+            <p class="chart-caption">Track month-by-month expense momentum to spot spending spikes before they hurt profit.</p>
+            <div class="chart-wrapper"><canvas id="monthlyChart"></canvas></div>
+          </div>
+        </div>
+      </section>
       <section id="insights" class="tab-content"><div class="box"><h2>Insights</h2><div id="insightsContent" class="state">No data yet. Add invoices to unlock AI-driven insights.</div></div></section>
     </main>
   </div>
@@ -664,16 +707,19 @@ function renderHistory(){const box=document.getElementById("history");if(!invoic
 async function deleteInvoice(id){if(!confirm("Are you sure you want to delete this invoice?"))return;setLoadingState("Deleting invoice...");const targetId=String(id);const invoiceToDelete=invoices.find((inv,index)=>getInvoiceIdentifier(inv,index)===targetId);if(!invoiceToDelete){setLoadingState("Invoice not found.");return;}lastDeletedInvoice={invoice:invoiceToDelete,targetId};invoices=invoices.filter((inv,index)=>getInvoiceIdentifier(inv,index)!==targetId);markUserHasData();persistInvoices();refreshAllViews();setLoadingState("Invoice deleted successfully.");showUndoToast("Invoice deleted.",()=>{if(!lastDeletedInvoice||lastDeletedInvoice.targetId!==targetId)return;invoices.unshift(lastDeletedInvoice.invoice);persistInvoices();refreshAllViews();lastDeletedInvoice=null;});}
 function buildCategoryChart(invoiceList){const totals={};invoiceList.forEach(inv=>{const c=inv.category||"Other";totals[c]=(totals[c]||0)+(Number(inv.total_amount)||0);});if(categoryChartInstance)categoryChartInstance.destroy();categoryChartInstance=new Chart(document.getElementById("categoryChart"),{type:"doughnut",data:{labels:Object.keys(totals),datasets:[{data:Object.values(totals),backgroundColor:["#2563eb","#16a34a","#9333ea","#f59e0b","#ef4444","#0ea5e9"]}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:"bottom"}}}});} 
 function buildMonthlyChart(invoiceList){const monthlyTotals={};invoiceList.forEach(inv=>{if(!inv.invoice_date)return;const d=new Date(inv.invoice_date);const k=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`;monthlyTotals[k]=(monthlyTotals[k]||0)+(Number(inv.total_amount)||0);});const sorted=Object.keys(monthlyTotals).sort();if(monthlyChartInstance)monthlyChartInstance.destroy();monthlyChartInstance=new Chart(document.getElementById("monthlyChart"),{type:"bar",data:{labels:sorted.map(month=>{const [year,m]=month.split("-");return new Date(Number(year),Number(m)-1,1).toLocaleDateString(undefined,{month:"short",year:"numeric"});}),datasets:[{label:"Monthly Spending",data:sorted.map(k=>monthlyTotals[k]),borderRadius:8,backgroundColor:"rgba(37,99,235,0.7)",borderColor:"#1d4ed8",borderWidth:1}]},options:{responsive:true,maintainAspectRatio:false,scales:{y:{beginAtZero:true,ticks:{callback:value=>"$"+value}}},plugins:{legend:{position:"bottom"},tooltip:{callbacks:{label:ctx=>` ${formatMoney(ctx.parsed.y)}`}}}}});}
+function updateAnalyticsSummary(invoiceList){const monthlyTotals={};const categoryTotals={};invoiceList.forEach(inv=>{const amount=Number(inv.total_amount)||0;const category=inv.category||"Other";categoryTotals[category]=(categoryTotals[category]||0)+amount;if(inv.invoice_date){const d=new Date(inv.invoice_date);const key=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`;monthlyTotals[key]=(monthlyTotals[key]||0)+amount;}});const totalInvoices=invoiceList.length;const monthsCount=Math.max(Object.keys(monthlyTotals).length,1);const avgMonthly=Object.values(monthlyTotals).reduce((sum,v)=>sum+v,0)/monthsCount;const topCategoryValue=(Object.entries(categoryTotals).sort((a,b)=>b[1]-a[1])[0]||["Other",0])[1];document.getElementById("analyticsTotalInvoices").textContent=String(totalInvoices);document.getElementById("analyticsAvgMonthly").textContent=formatMoney(avgMonthly);document.getElementById("analyticsTopCategory").textContent=formatMoney(topCategoryValue);}
 function buildInsights(invoiceList){const target=document.getElementById("insightsContent");const totalExpenses=invoiceList.reduce((s,i)=>s+(Number(i.total_amount)||0),0),totalIncome=incomeEntries.reduce((s,i)=>s+(Number(i.amount)||0),0),profit=totalIncome-totalExpenses,categories={};invoiceList.forEach(inv=>{const k=inv.category||"Other";categories[k]=(categories[k]||0)+(Number(inv.total_amount)||0);});const topCategory=Object.entries(categories).sort((a,b)=>b[1]-a[1])[0]||["Other",0];const unpaid=invoiceList.filter(i=>normalizeInvoiceStatus(i.status)!=="Paid");const highestInvoice=invoiceList.reduce((max,inv)=>Number(inv.total_amount||0)>Number(max.total_amount||0)?inv:max,invoiceList[0]||{total_amount:0});const averageInvoice=invoiceList.length?totalExpenses/invoiceList.length:0;const unpaidAmount=unpaid.reduce((s,i)=>s+(Number(i.total_amount)||0),0);if(!invoiceList.length){target.className="state";target.textContent="No data yet. Add invoices to unlock AI-driven insights.";return;}target.className="";target.innerHTML=`<div class="insight-grid"><article class="insight-card"><h4>Invoices Uploaded</h4><div class="insight-num">${invoiceList.length}</div></article><article class="insight-card"><h4>Average Invoice</h4><div class="insight-num">${formatMoney(averageInvoice)}</div></article><article class="insight-card"><h4>Unpaid Invoice Amount</h4><div class="insight-num">${formatMoney(unpaidAmount)}</div></article><article class="insight-card"><h4>Unpaid Invoice Count</h4><div class="insight-num">${unpaid.length}</div></article><article class="insight-card"><h4>Highest Invoice</h4><div class="insight-num">${formatMoney(highestInvoice.total_amount||0)}</div></article><article class="insight-card"><h4>Top Expense Category</h4><div class="insight-num">${topCategory[0]} • ${formatMoney(topCategory[1])}</div></article><article class="insight-card"><h4>Total Income</h4><div class="insight-num">${formatMoney(totalIncome)}</div></article><article class="insight-card"><h4>Total Expenses</h4><div class="insight-num">${formatMoney(totalExpenses)}</div></article><article class="insight-card"><h4>Profit</h4><div class="insight-num">${formatMoney(profit)}</div></article></div>`;}
 function exportCSV(){if(!invoices.length)return alert("No invoice data to export yet.");const headers=["client_name","invoice_date","category","total_amount","created_at","line_items_json"],rows=invoices.map(inv=>headers.map(key=>key==="line_items_json"?toCSVCell(JSON.stringify(inv.lineItems||[])):toCSVCell(inv[key]))),csv=[headers.join(","),...rows.map(row=>row.join(","))].join("\n"),blob=new Blob([csv],{type:"text/csv;charset=utf-8;"}),url=URL.createObjectURL(blob),link=document.createElement("a");link.href=url;link.download="revnio-invoices.csv";document.body.appendChild(link);link.click();document.body.removeChild(link);URL.revokeObjectURL(url);} 
 const INVOICE_EXTRACTION_SCHEMA={taxAmount:"number",lineItems:[{description:"string",quantity:"number|null",unitPrice:"number|null",totalPrice:"number"}]};
 const INVOICE_EXTRACTION_PROMPT="Extract invoice header details and every visible line item/service into lineItems. Do not invent items. Include taxes, tips, discounts, fees, shipping, or surcharges as separate lineItems when visible. Each line item must include description (string), quantity (number or null; use null when missing, or 1 only when clearly implied), unitPrice (number or null), and totalPrice (number as the line total).";
 function extractInvoiceFromUploadResponse(data){if(!data||typeof data!=="object")return null;const candidates=[data.invoice,data.data?.invoice,data.result?.invoice,data.extractedInvoice,data.extracted_data,data.parsedInvoice,data];for(const candidate of candidates){if(candidate&&typeof candidate==="object"&&(candidate.client_name||candidate.vendor_name||candidate.total_amount!=null||Array.isArray(candidate.lineItems)||Array.isArray(candidate.line_items)||Array.isArray(candidate.items))){return candidate;}}return null;}
-async function uploadFile(){const fileInput=document.getElementById("fileInput"),file=fileInput.files[0];if(!file)return alert("Please choose an invoice image first.");const formData=new FormData();formData.append("file",file);formData.append("extractionPrompt",INVOICE_EXTRACTION_PROMPT);formData.append("extractionSchema",JSON.stringify(INVOICE_EXTRACTION_SCHEMA));setLoadingState("Processing invoice...");try{const response=await fetch(API_BASE+"/upload",{method:"POST",body:formData});const data=await response.json();if(data.error)return setLoadingState("Error: "+data.error);const extractedInvoice=extractInvoiceFromUploadResponse(data);if(extractedInvoice){const rawLineItems=extractedInvoice.lineItems??extractedInvoice.line_items??extractedInvoice.items??extractedInvoice.products??extractedInvoice.services??extractedInvoice.breakdown??extractedInvoice.itemized??extractedInvoice.details??extractedInvoice.charges??extractedInvoice.receipt_items??[];const invoice=normalizeInvoiceFinancials({...extractedInvoice,lineItems:normalizeLineItems(rawLineItems),taxAmount:extractTaxAmount(extractedInvoice),file_name:extractedInvoice.file_name||extractedInvoice.filename||file.name,created_at:extractedInvoice.created_at||new Date().toISOString()});const invoiceId=getInvoiceIdentifier(invoice,invoices.length);const hasExisting=invoices.some((inv,index)=>getInvoiceIdentifier(inv,index)===invoiceId);if(!hasExisting){invoices.unshift(invoice);}else{invoices=invoices.map((inv,index)=>getInvoiceIdentifier(inv,index)===invoiceId?invoice:inv);}markUserHasData();persistInvoices();refreshAllViews();}setLoadingState("Invoice processed successfully.");fileInput.value="";}catch(error){setLoadingState("Error: "+error.message);}}
+function updateSelectedFileName(file){const label=document.getElementById("selectedFileName");if(label)label.textContent=file?file.name:"No file selected";}
+function setupUploadInteractions(){const fileInput=document.getElementById("fileInput"),uploadZone=document.getElementById("uploadZone");if(!fileInput||!uploadZone)return;fileInput.addEventListener("change",()=>updateSelectedFileName(fileInput.files[0]));["dragenter","dragover"].forEach(evt=>uploadZone.addEventListener(evt,event=>{event.preventDefault();uploadZone.classList.add("dragover");}));["dragleave","drop"].forEach(evt=>uploadZone.addEventListener(evt,event=>{event.preventDefault();uploadZone.classList.remove("dragover");}));uploadZone.addEventListener("drop",event=>{if(event.dataTransfer?.files?.length){fileInput.files=event.dataTransfer.files;updateSelectedFileName(event.dataTransfer.files[0]);}});}
+async function uploadFile(){const fileInput=document.getElementById("fileInput"),file=fileInput.files[0];if(!file)return alert("Please choose an invoice image first.");const formData=new FormData();formData.append("file",file);formData.append("extractionPrompt",INVOICE_EXTRACTION_PROMPT);formData.append("extractionSchema",JSON.stringify(INVOICE_EXTRACTION_SCHEMA));setLoadingState("Processing invoice...");try{const response=await fetch(API_BASE+"/upload",{method:"POST",body:formData});const data=await response.json();if(data.error)return setLoadingState("Error: "+data.error);const extractedInvoice=extractInvoiceFromUploadResponse(data);if(extractedInvoice){const rawLineItems=extractedInvoice.lineItems??extractedInvoice.line_items??extractedInvoice.items??extractedInvoice.products??extractedInvoice.services??extractedInvoice.breakdown??extractedInvoice.itemized??extractedInvoice.details??extractedInvoice.charges??extractedInvoice.receipt_items??[];const invoice=normalizeInvoiceFinancials({...extractedInvoice,lineItems:normalizeLineItems(rawLineItems),taxAmount:extractTaxAmount(extractedInvoice),file_name:extractedInvoice.file_name||extractedInvoice.filename||file.name,created_at:extractedInvoice.created_at||new Date().toISOString()});const invoiceId=getInvoiceIdentifier(invoice,invoices.length);const hasExisting=invoices.some((inv,index)=>getInvoiceIdentifier(inv,index)===invoiceId);if(!hasExisting){invoices.unshift(invoice);}else{invoices=invoices.map((inv,index)=>getInvoiceIdentifier(inv,index)===invoiceId?invoice:inv);}markUserHasData();persistInvoices();refreshAllViews();}setLoadingState("Invoice processed successfully.");fileInput.value="";updateSelectedFileName(null);}catch(error){setLoadingState("Error: "+error.message);}}
 
 function renderActionMenu(type,id){const safeId=String(id).replace(/\\/g,'\\\\').replace(/'/g,"\\'");return `<div class="action-menu-wrap"><button class="menu-trigger" aria-label="More actions" onclick="toggleActionMenu(event,'${type}','${safeId}')"><span class="menu-dots">⋯</span></button></div>`;}
 function renderFloatingActionMenu(){const existing=document.getElementById("floatingActionMenu");if(existing)existing.remove();if(!openActionMenu)return;const menu=document.createElement("div");menu.id="floatingActionMenu";menu.className="menu-dropdown";menu.style.left=`${openActionMenu.left}px`;menu.style.top=`${openActionMenu.top}px`;menu.innerHTML=`${openActionMenu.type==="invoice"?`<button class="menu-item" onclick="handleViewDetailsAction('${openActionMenu.id}')">👁️ View Details</button>`:""}<button class="menu-item" onclick="handleEditAction('${openActionMenu.type}','${openActionMenu.id}')"><svg class="action-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 1 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg>Edit</button><button class="menu-item danger" onclick="handleDeleteAction('${openActionMenu.type}','${openActionMenu.id}')"><svg class="trash-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/></svg>Delete</button>`;menu.addEventListener("click",event=>event.stopPropagation());document.body.appendChild(menu);}
-function toggleActionMenu(event,type,id){event.stopPropagation();const key=`${type}-${id}`;if(openActionMenu&&openActionMenu.key===key){closeActionMenus();return;}const triggerRect=event.currentTarget.getBoundingClientRect();const estimatedMenuHeight=52;const estimatedMenuWidth=132;const gap=8;const spaceBelow=window.innerHeight-triggerRect.bottom;const opensUp=spaceBelow<estimatedMenuHeight+gap;const top=opensUp?Math.max(gap,triggerRect.top-estimatedMenuHeight-gap):Math.min(window.innerHeight-estimatedMenuHeight-gap,triggerRect.bottom+gap);const preferredLeft=triggerRect.right-estimatedMenuWidth;const left=Math.max(gap,Math.min(preferredLeft,window.innerWidth-estimatedMenuWidth-gap));openActionMenu={key,type,id,top,left};renderFloatingActionMenu();}
+function toggleActionMenu(event,type,id){event.stopPropagation();const key=`${type}-${id}`;if(openActionMenu&&openActionMenu.key===key){closeActionMenus();return;}const triggerRect=event.currentTarget.getBoundingClientRect();const estimatedMenuHeight=type==="invoice"?132:92;const estimatedMenuWidth=144;const gap=8;const opensUp=(window.innerHeight-triggerRect.bottom)<estimatedMenuHeight+gap;const top=opensUp?Math.max(gap,triggerRect.top-estimatedMenuHeight-gap):Math.min(window.innerHeight-estimatedMenuHeight-gap,triggerRect.bottom+gap);const preferredLeft=triggerRect.right-estimatedMenuWidth;const left=Math.max(gap,Math.min(preferredLeft,window.innerWidth-estimatedMenuWidth-gap));openActionMenu={key,type,id,top,left,opensUp};renderFloatingActionMenu();const menu=document.getElementById("floatingActionMenu");if(menu){const menuRect=menu.getBoundingClientRect();const adjustedTop=opensUp?Math.max(gap,triggerRect.top-menuRect.height-gap):Math.min(window.innerHeight-menuRect.height-gap,triggerRect.bottom+gap);menu.style.top=`${adjustedTop}px`;}}
 function closeActionMenus(){if(openActionMenu!==null){openActionMenu=null;const existing=document.getElementById("floatingActionMenu");if(existing)existing.remove();}}
 document.addEventListener("click",closeActionMenus);
 document.addEventListener("click",event=>{if(event.target.classList && event.target.classList.contains("nav-item") && isMobileView()){closeSidebar();}});
@@ -712,7 +758,7 @@ function saveInvoiceNotesFromDetails(id,notes){saveInvoiceStatusTaxNotes(id,{not
 function saveInvoiceTaxFromDetails(id,taxAmount){const parsed=Number(taxAmount);saveInvoiceStatusTaxNotes(id,{taxAmount:Number.isFinite(parsed)?parsed:0});renderInvoiceDetailsModal();}
 function saveLineItemsChanges(){if(!activeDetailsState)return;invoices=invoices.map((inv,index)=>index!==activeDetailsState.index?inv:normalizeInvoiceFinancials({...inv,lineItems:normalizeLineItems(activeDetailsState.lineItems)}));markUserHasData();persistInvoices();refreshAllViews();activeDetailsState.editing=false;activeDetailsState.lineItems=normalizeLineItems(invoices[activeDetailsState.index].lineItems);renderInvoiceDetailsModal();showToast("Line items updated.");}
 
-function refreshAllViews(){updateDashboard();updateFinancialSummary();renderLatestInvoice();renderHistory();renderIncomeHistory();buildCategoryChart(invoices);buildMonthlyChart(invoices);buildInsights(invoices);}
+function refreshAllViews(){updateDashboard();updateFinancialSummary();renderLatestInvoice();renderHistory();renderIncomeHistory();buildCategoryChart(invoices);buildMonthlyChart(invoices);updateAnalyticsSummary(invoices);buildInsights(invoices);}
 function clearDashboard(){if(!confirm("Clear all locally saved income entries?"))return;incomeEntries=[];persistIncomeEntries();refreshAllViews();}
 function renderQuickHelpButtons(){const host=document.getElementById("quickHelpButtons");host.innerHTML=QUICK_HELP_ITEMS.map(item=>`<button type="button" class="quick-help-btn" onclick="askQuickHelp('${item.replace(/'/g,"\\'")}')">${item}</button>`).join("");}
 function addAssistantMessage(role, text){const row=document.createElement("div");row.className=`chat-msg ${role}`;row.textContent=text;const chat=document.getElementById("assistantChatLog");chat.appendChild(row);chat.scrollTop=chat.scrollHeight;}
@@ -724,7 +770,7 @@ function closeAssistantPanel(){assistantPanelOpen=false;document.getElementById(
 function saveBugReport(event){event.preventDefault();const issueType=document.getElementById("bugIssueType").value,description=document.getElementById("bugDescription").value.trim(),email=document.getElementById("bugEmail").value.trim();if(!description)return;const existing=JSON.parse(localStorage.getItem(BUG_REPORTS_KEY)||"[]");existing.unshift({id:Date.now(),createdAt:new Date().toISOString(),issueType,description,email});localStorage.setItem(BUG_REPORTS_KEY,JSON.stringify(existing));addAssistantMessage("assistant","Thanks, your report was saved locally.");document.getElementById("assistantBugFormHost").innerHTML="";}
 function renderBugReportForm(){const host=document.getElementById("assistantBugFormHost");host.innerHTML=`<form class="bug-form" onsubmit="saveBugReport(event)"><label>Issue Type<select id="bugIssueType"><option value="Invoice Upload">Invoice Upload</option><option value="Invoice Deletion">Invoice Deletion</option><option value="Income Tracker">Income Tracker</option><option value="UI / Layout">UI / Layout</option><option value="Other">Other</option></select></label><label>Description<textarea id="bugDescription" rows="3" placeholder="What happened and what did you click?" required></textarea></label><label>Optional Email<input id="bugEmail" type="email" placeholder="you@company.com" /></label><button class="assistant-send" type="submit">Submit</button></form>`;}
 document.getElementById("assistantInput").addEventListener("keydown",event=>{if(event.key==="Enter"){event.preventDefault();sendAssistantMessage();}});
-renderQuickHelpButtons();addAssistantMessage("assistant","Hi! I’m your Revnio Assistant. Ask a question or tap a quick help option.");
+setupUploadInteractions();renderQuickHelpButtons();addAssistantMessage("assistant","Hi! I’m your Revnio Assistant. Ask a question or tap a quick help option.");
 loadIncomeEntries(); loadDashboard();
 </script>
 </body>
