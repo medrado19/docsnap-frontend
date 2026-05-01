@@ -449,6 +449,7 @@
         <div class="landing-nav-actions">
           <select id="landingLanguageSelect" class="language-select" onchange="handleLanguageChange(this.value)"></select>
           <button class="btn secondary" data-i18n="view_dashboard" onclick="showDashboard()">View Dashboard</button>
+          <button class="btn secondary" onclick="startDemo()">Try Demo</button>
         </div>
       </header>
 
@@ -456,11 +457,11 @@
         <div class="hero-grid">
           <div>
             <div class="hero-badge">AI-powered financial operations</div>
-            <h1>Financial clarity for small businesses, <span class="ai-gradient">powered by AI</span>.</h1>
-            <p>Upload invoices, track income and expenses, and understand your business performance in one premium operations command center.</p>
+            <h1>Stop wasting hours on invoices. Let <span class="ai-gradient">AI organize your finances in seconds.</span></h1>
+            <p>Revnio helps small business owners upload invoices, track income and expenses, and understand cash flow without spreadsheets.</p>
             <div class="hero-actions">
-              <button class="btn" onclick="showDashboard()">Get Started</button>
-              <button class="btn secondary" onclick="showDashboard()">View Dashboard</button>
+              <button class="btn" onclick="startFree()">Start Free</button>
+              <button class="btn secondary" onclick="startDemo()">Try Demo</button>
             </div>
             <div class="trust-points"><span>AI invoice extraction</span><span>Cash flow visibility</span><span>Built for small businesses</span></div>
           </div>
@@ -478,17 +479,18 @@
       </section>
 
       <section class="features">
-        <article class="feature-card"><h3>AI Invoice Extraction</h3><p>Turn invoice uploads into structured billing records instantly with built-in intelligence.</p></article>
-        <article class="feature-card"><h3>Income & Expense Tracking</h3><p>Stay on top of operational performance with centralized records across revenue and costs.</p></article>
-        <article class="feature-card"><h3>Cash Flow Visibility</h3><p>Monitor spend trends and profitability in real time with clear analytics.</p></article>
-        <article class="feature-card"><h3>Smart Business Insights</h3><p>Get simple, actionable summaries that help you make better financial decisions faster.</p></article>
+        <article class="feature-card"><h3>Problem</h3><p>Messy receipts, no clear cash flow visibility, tax-time stress, and manual spreadsheets slow down small teams.</p></article>
+        <article class="feature-card"><h3>How it works</h3><p>Upload invoice → AI extracts details → your dashboard updates instantly with totals, categories, and trends.</p></article>
+        <article class="feature-card"><h3>Benefits</h3><p>Save hours each week, reduce manual errors, and see your real profit clearly before tough decisions.</p></article>
+        <article class="feature-card"><h3>Built for action</h3><p>Track income, monitor expenses, and export your financial data when needed.</p></article>
       </section>
 
       <section class="preview">
         <h2>Product Preview</h2>
         <div class="preview-window">
           <p>Explore the Revenue Hub to manage invoices, track income, and export your financial data whenever needed.</p>
-          <button class="btn" onclick="showDashboard()">Open Revenue Hub</button>
+          <button class="btn" onclick="startFree()">Start Free</button>
+          <button class="btn secondary" onclick="startDemo()">Try Demo</button>
         </div>
       </section>
 
@@ -496,6 +498,15 @@
         <span class="brand" style="font-size:16px; margin:0;"><svg class="brand-logo" viewBox="0 0 32 32" aria-hidden="true"><defs><linearGradient id="logo-grad-topbar" x1="6" y1="4" x2="26" y2="28" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#3B82F6" /><stop offset="0.52" stop-color="#6366F1" /><stop offset="1" stop-color="#8B5CF6" /></linearGradient></defs><path fill="url(#logo-grad-topbar)" d="M4 4h11.5c6.4 0 11.6 4.9 11.6 11.1 0 3.5-1.7 6.6-4.5 8.6L28 31h-7l-4.3-5.9H12V31H4V4Zm8 13.8h3.8c2.4 0 4-1.6 4-3.8s-1.6-3.8-4-3.8H12v7.6Z"/></svg><span class="brand-wordmark">Revnio</span></span>
         <span>AI-powered financial operations platform for modern small businesses.</span>
       </footer>
+
+      <div id="emailCaptureModal" class="edit-modal-overlay hidden">
+        <form class="edit-modal" onsubmit="submitEmailCapture(event)">
+          <h3>Start Free</h3><p>Create or open your workspace.</p>
+          <label>Email<input id="captureEmail" type="email" required /></label>
+          <label>Business Name<input id="captureBusinessName" type="text" required /></label>
+          <div class="actions"><button class="btn" type="submit">Continue</button><button class="btn secondary" type="button" onclick="closeEmailCapture()">Cancel</button></div>
+        </form>
+      </div>
     </div>
   </section>
 
@@ -516,7 +527,7 @@
         <button id="mobileMenuBtn" class="mobile-menu-btn" type="button" aria-label="Open sidebar" onclick="toggleSidebar()">☰</button>
         <div>
           <h1>Revenue Hub</h1>
-          <p>Track invoices, cash flow, and profitability from one premium operations workspace.</p>
+          <p>Track invoices, cash flow, and profitability from one premium operations workspace.</p><p id="workspaceName" style="margin-top:4px;font-size:12px;color:#a5b4fc;">No workspace selected</p>
         </div>
         <div style="display:flex; gap:10px; align-items:center;">
           <select id="dashboardLanguageSelect" class="language-select" onchange="handleLanguageChange(this.value)"></select>
@@ -655,7 +666,12 @@ const LANGUAGE_KEY = "revnio_language";
 const HAS_USER_DATA_KEY = "revnio_has_user_data";
 const BUG_REPORTS_KEY = "revnio_bug_reports";
 const VENDOR_CATEGORY_KEY = "revnio_vendor_categories";
+const USERS_KEY = "revnio_users";
+const CURRENT_USER_KEY = "revnio_current_user";
+const LEGACY_INCOME_KEY = "flowcast_income_entries";
+const LEGACY_INVOICE_KEY = "revnio_invoices";
 const ALLOWED_CATEGORIES = ["Rent","Utilities","Supplies","Food & Beverage","Marketing","Professional Services","Payroll","Transportation","Software","Other"];
+const DEMO_USER = { id: "demo", email: "demo@revnio.local", businessName: "Demo Workspace", createdAt: "2026-01-01T00:00:00.000Z", isDemo: true };
 const QUICK_HELP_ITEMS = ["How do I upload an invoice?","Why is invoice deletion not working?","How do I track income?","Report a bug"];
 const LANGUAGE_OPTIONS = [
   { code: "en", label: "English" },
@@ -684,6 +700,25 @@ let activeEditState = null;
 let activeDetailsState = null;
 let assistantPanelOpen = false;
 let sidebarOpen = false;
+let currentUser = null;
+
+function getUsers(){ return JSON.parse(localStorage.getItem(USERS_KEY)||"[]"); }
+function saveUsers(users){ localStorage.setItem(USERS_KEY, JSON.stringify(users)); }
+function getCurrentUser(){ return currentUser; }
+function setCurrentUser(user){ currentUser=user; localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(user)); updateWorkspaceLabel(); }
+function getStorageKey(type){ const user=getCurrentUser(); const id=user?.id||"guest"; return `revnio_${id}_${type}`; }
+function getIncomeKey(){ return getStorageKey("income"); }
+function getInvoiceKey(){ return getStorageKey("invoices"); }
+function getBugReportsKey(){ return getStorageKey("bug_reports"); }
+function getVendorCategoryKey(){ return getStorageKey("vendor_categories"); }
+function getHasDataKey(){ return getStorageKey("has_user_data"); }
+function updateWorkspaceLabel(){ const node=document.getElementById("workspaceName"); if(node) node.textContent = currentUser ? `${currentUser.businessName}` : "No workspace selected"; }
+function openUserWorkspace(user){ setCurrentUser(user); showDashboard(); loadIncomeEntries(); loadDashboard(); }
+function startFree(){ document.getElementById("emailCaptureModal").classList.remove("hidden"); }
+function closeEmailCapture(){ document.getElementById("emailCaptureModal").classList.add("hidden"); }
+function submitEmailCapture(event){ event.preventDefault(); const email=document.getElementById("captureEmail").value.trim().toLowerCase(); const businessName=document.getElementById("captureBusinessName").value.trim(); if(!email||!businessName) return; const users=getUsers(); let user=users.find(u=>u.email===email); if(!user){ user={ id:`u_${Date.now()}`, email, businessName, createdAt:new Date().toISOString() }; users.unshift(user); saveUsers(users); } openUserWorkspace(user); closeEmailCapture(); }
+function startDemo(){ openUserWorkspace(DEMO_USER); }
+function restoreCurrentUser(){ const raw=localStorage.getItem(CURRENT_USER_KEY); if(!raw) return; try{ const parsed=JSON.parse(raw); if(parsed?.id) currentUser=parsed; }catch{} }
 function isMobileView(){return window.innerWidth<=768;}
 function getCurrentUserId(){
   const candidates = ["revnio_user", "revnio_current_user", "user", "currentUser"];
@@ -753,8 +788,8 @@ function showLanding() {
   closeSidebar();
 }
 function normalizeVendorName(vendorName){return String(vendorName||"").toLowerCase().replace(/[^a-z0-9\s]/g," ").replace(/\b(inc|ltd|llc|corp|corporation)\b/g," ").replace(/\s+/g," ").trim();}
-function loadVendorCategoryMemory(){return JSON.parse(localStorage.getItem(VENDOR_CATEGORY_KEY)||"{}");}
-function persistVendorCategoryMemory(memory){localStorage.setItem(VENDOR_CATEGORY_KEY,JSON.stringify(memory));}
+function loadVendorCategoryMemory(){return JSON.parse(localStorage.getItem(getVendorCategoryKey())||"{}");}
+function persistVendorCategoryMemory(memory){localStorage.setItem(getVendorCategoryKey(),JSON.stringify(memory));}
 function matchAllowedCategory(rawCategory){const value=String(rawCategory||"").trim();if(!value)return "Other";const exact=ALLOWED_CATEGORIES.find(cat=>cat.toLowerCase()===value.toLowerCase());if(exact)return exact;const v=value.toLowerCase();if(/food|cafe|restaurant|coffee|beverage|meal/.test(v))return "Food & Beverage";if(/market|advert|promo|brand/.test(v))return "Marketing";if(/consult|legal|account|service|agency/.test(v))return "Professional Services";if(/utilit|electric|water|internet|phone/.test(v))return "Utilities";if(/rent|lease/.test(v))return "Rent";if(/suppl|office|material/.test(v))return "Supplies";if(/payroll|salary|wage|benefit/.test(v))return "Payroll";if(/transport|travel|fuel|uber|lyft|shipping/.test(v))return "Transportation";if(/software|saas|subscription|cloud|license/.test(v))return "Software";return "Other";}
 function applyCategoryNormalizationAndMemory(){const memory=loadVendorCategoryMemory();invoices=invoices.map(invoice=>{const vendor=invoice.client_name||invoice.vendor_name||"";const normalizedVendor=normalizeVendorName(vendor);let category=matchAllowedCategory(invoice.category);if(normalizedVendor&&memory[normalizedVendor]){category=matchAllowedCategory(memory[normalizedVendor]);}else if(normalizedVendor){memory[normalizedVendor]=category;}return {...invoice,category};});persistVendorCategoryMemory(memory);}
 function updateVendorCategoryForInvoice(invoice){const normalizedVendor=normalizeVendorName(invoice?.client_name||invoice?.vendor_name||"");if(!normalizedVendor)return;const memory=loadVendorCategoryMemory();memory[normalizedVendor]=matchAllowedCategory(invoice.category);persistVendorCategoryMemory(memory);}
@@ -763,17 +798,18 @@ function formatMoney(value){return "$" + (Number(value) || 0).toFixed(2);} funct
 function activateTab(tabId){document.querySelectorAll(".tab-content").forEach(el=>el.classList.remove("active"));document.querySelectorAll(".tab-btn").forEach(el=>el.classList.remove("active"));document.getElementById(tabId).classList.add("active");document.getElementById(`tab-${tabId}`).classList.add("active");}
 function showTab(tabId,btn){activateTab(tabId);document.querySelectorAll(".nav-item").forEach(el=>el.classList.remove("active"));btn.classList.add("active");if(isMobileView())closeSidebar();}
 function showInsightsPage(){activateTab("insights");const insightsBtn=[...document.querySelectorAll(".nav-item")].find(btn=>btn.textContent.trim()==="Insights");document.querySelectorAll(".nav-item").forEach(el=>el.classList.remove("active"));if(insightsBtn)insightsBtn.classList.add("active");}
-function loadIncomeEntries(){incomeEntries=JSON.parse(localStorage.getItem(INCOME_KEY)||"[]");renderIncomeHistory();}
-function persistIncomeEntries(){localStorage.setItem(INCOME_KEY,JSON.stringify(incomeEntries));}
+function loadIncomeEntries(){incomeEntries=JSON.parse(localStorage.getItem(getIncomeKey())||"[]");renderIncomeHistory();}
+function persistIncomeEntries(){localStorage.setItem(getIncomeKey(),JSON.stringify(incomeEntries));}
 function saveIncome(event){event.preventDefault();const source=document.getElementById("incomeSource").value.trim(),date=document.getElementById("incomeDate").value,amount=Number(document.getElementById("incomeAmount").value||0),notes=document.getElementById("incomeNotes").value.trim();incomeEntries.unshift({id:Date.now(),source,date,amount,notes});persistIncomeEntries();refreshAllViews();document.getElementById("incomeForm").reset();}
-function markUserHasData(){localStorage.setItem(HAS_USER_DATA_KEY,"true");}
-function hasUserData(){return localStorage.getItem(HAS_USER_DATA_KEY)==="true";}
+function markUserHasData(){localStorage.setItem(getHasDataKey(),"true");}
+function hasUserData(){return localStorage.getItem(getHasDataKey())==="true";}
 function deleteIncome(id){const targetId=String(id);const target=incomeEntries.find(item=>String(item.id)===targetId);if(!target)return;lastDeletedIncome={entry:target,timeoutAt:Date.now()+8000};incomeEntries=incomeEntries.filter(item=>String(item.id)!==targetId);persistIncomeEntries();markUserHasData();refreshAllViews();showUndoToast("Income deleted.",()=>{if(!lastDeletedIncome||String(lastDeletedIncome.entry.id)!==targetId)return;incomeEntries.unshift(lastDeletedIncome.entry);persistIncomeEntries();refreshAllViews();lastDeletedIncome=null;});}
 function renderIncomeHistory(){const box=document.getElementById("incomeHistory");if(!incomeEntries.length){box.className="state";box.innerHTML="You haven’t added income yet. Add your first payment to start tracking profitability.";return;}box.className="";const rows=incomeEntries.map(item=>`<tr><td>${item.source}</td><td>${item.date||"-"}</td><td>${formatMoney(item.amount)}</td><td>${item.notes||"-"}</td><td>${renderActionMenu("income",item.id)}</td></tr>`).join("");const cards=incomeEntries.map(item=>`<article class="mobile-row-card"><div class="mobile-row-head"><h4 class="mobile-row-title">${item.source}</h4><div class="mobile-row-menu">${renderActionMenu("income",item.id)}</div></div><div class="mobile-row-grid"><div class="mobile-row-item"><label>Amount</label><div>${formatMoney(item.amount)}</div></div><div class="mobile-row-item"><label>Date</label><div>${item.date||"-"}</div></div><div class="mobile-row-item"><label>Category/Type</label><div>${item.category||item.type||"-"}</div></div><div class="mobile-row-item"><label>Notes</label><div>${item.notes||"-"}</div></div></div></article>`).join("");box.innerHTML=`<div class="table-scroll"><table><tr><th>Source</th><th>Date</th><th>Amount</th><th>Notes</th><th>Actions</th></tr>${rows}</table></div><div class="mobile-table-cards">${cards}</div>`;}
 function getInvoiceIdentifier(invoice,index){return String(invoice?.id??invoice?._id??invoice?.invoiceId??invoice?.invoice_id??invoice?.uuid??index);}
 function normalizeLineItems(rawItems){if(!Array.isArray(rawItems)) return [];return rawItems.map(item=>{const quantityRaw=item?.quantity??item?.qty;const quantity=quantityRaw===""||quantityRaw==null?null:Number(quantityRaw);const unitPriceRaw=item?.unitPrice??item?.unit_price??item?.price;const unitPrice=unitPriceRaw===""||unitPriceRaw==null?null:Number(unitPriceRaw);const totalRaw=item?.totalPrice??item?.total_price??item?.amount??item?.line_total??item?.total;const totalPrice=Number(totalRaw);return {description:String(item?.description||item?.name||item?.item||item?.service||item?.product||""),quantity:Number.isFinite(quantity)?quantity:null,unitPrice:Number.isFinite(unitPrice)?unitPrice:null,totalPrice:Number.isFinite(totalPrice)?totalPrice:0};}).filter(item=>item.description||item.totalPrice!==0||item.quantity!==null||item.unitPrice!==null);}
-function persistInvoices(){localStorage.setItem(INVOICE_KEY,JSON.stringify(invoices));}
-async function loadDashboard(){setLoadingState("Loading dashboard data...");const localInvoices=JSON.parse(localStorage.getItem(INVOICE_KEY)||"[]").map(inv=>{const lineItems=normalizeLineItems(inv.lineItems??inv.line_items??inv.items??inv.products??inv.services??inv.breakdown??inv.itemized??inv.details??inv.charges??inv.receipt_items);return normalizeInvoiceFinancials({...inv,lineItems});});invoices=localInvoices;const shouldHydrateFromServer=!hasUserData()&&localInvoices.length===0;try{if(shouldHydrateFromServer){const response=await fetch(API_BASE+"/invoices");if(response.ok){const serverInvoices=await response.json();if(Array.isArray(serverInvoices)&&serverInvoices.length){invoices=serverInvoices.map(inv=>{const sourceLineItems=inv.lineItems??inv.line_items??inv.items??inv.products??inv.services??inv.breakdown??inv.itemized??inv.details??inv.charges??inv.receipt_items??[];return normalizeInvoiceFinancials({...inv,lineItems:normalizeLineItems(sourceLineItems)});});persistInvoices();}}}}catch(error){console.error(error);}applyCategoryNormalizationAndMemory();persistInvoices();refreshAllViews();setLoadingState("");}
+function persistInvoices(){localStorage.setItem(getInvoiceKey(),JSON.stringify(invoices));}
+async function loadDashboard(){setLoadingState("Loading dashboard data...");const localInvoices=JSON.parse(localStorage.getItem(getInvoiceKey())||"[]").map(inv=>{const lineItems=normalizeLineItems(inv.lineItems??inv.line_items??inv.items??inv.products??inv.services??inv.breakdown??inv.itemized??inv.details??inv.charges??inv.receipt_items);return normalizeInvoiceFinancials({...inv,lineItems});});invoices=localInvoices;const shouldHydrateFromServer=!hasUserData()&&localInvoices.length===0;
+if(!currentUser) return setLoadingState("Select a workspace to continue.");try{if(shouldHydrateFromServer){const response=await fetch(API_BASE+"/invoices");if(response.ok){const serverInvoices=await response.json();if(Array.isArray(serverInvoices)&&serverInvoices.length){invoices=serverInvoices.map(inv=>{const sourceLineItems=inv.lineItems??inv.line_items??inv.items??inv.products??inv.services??inv.breakdown??inv.itemized??inv.details??inv.charges??inv.receipt_items??[];return normalizeInvoiceFinancials({...inv,lineItems:normalizeLineItems(sourceLineItems)});});persistInvoices();}}}}catch(error){console.error(error);}applyCategoryNormalizationAndMemory();persistInvoices();refreshAllViews();setLoadingState("");}
 function updateDashboard(){const totalExpenses=invoices.reduce((sum,invoice)=>sum+(Number(invoice.total_amount)||0),0),totalIncome=incomeEntries.reduce((sum,item)=>sum+(Number(item.amount)||0),0),profit=totalIncome-totalExpenses;document.getElementById("totalIncome").textContent=formatMoney(totalIncome);document.getElementById("totalExpenses").textContent=formatMoney(totalExpenses);document.getElementById("profit").textContent=formatMoney(profit);}
 function parseEntryDate(value){const date=value?new Date(value):null;return date&&!Number.isNaN(date.getTime())?date:null;}
 function calculateExpenseTrend(invoiceList){if(invoiceList.length<2)return null;const sorted=[...invoiceList].sort((a,b)=>{const aDate=parseEntryDate(a.invoice_date||a.created_at),bDate=parseEntryDate(b.invoice_date||b.created_at);return (aDate?aDate.getTime():0)-(bDate?bDate.getTime():0);});const midpoint=Math.floor(sorted.length/2);if(midpoint===0||midpoint===sorted.length)return null;const older=sorted.slice(0,midpoint),recent=sorted.slice(midpoint);const olderTotal=older.reduce((sum,invoice)=>sum+(Number(invoice.total_amount)||0),0),recentTotal=recent.reduce((sum,invoice)=>sum+(Number(invoice.total_amount)||0),0),olderAverage=olderTotal/older.length,recentAverage=recentTotal/recent.length;if(olderAverage<=0&&recentAverage<=0)return null;if(olderAverage===0)return{direction:"up",change:100};const change=((recentAverage-olderAverage)/olderAverage)*100;if(change>7)return{direction:"up",change};if(change<-7)return{direction:"down",change:Math.abs(change)};return{direction:"flat",change:Math.abs(change)};}
@@ -844,11 +880,14 @@ function askQuickHelp(question){document.getElementById("assistantInput").value=
 function sendAssistantMessage(){const input=document.getElementById("assistantInput");const message=input.value.trim();if(!message)return;addAssistantMessage("user",message);const reply=getAssistantReply(message);addAssistantMessage("assistant",reply);if(message.trim().toLowerCase()==="report a bug"){renderBugReportForm();}input.value="";}
 function toggleAssistantPanel(){assistantPanelOpen=!assistantPanelOpen;document.getElementById("assistantPanel").classList.toggle("hidden",!assistantPanelOpen);}
 function closeAssistantPanel(){assistantPanelOpen=false;document.getElementById("assistantPanel").classList.add("hidden");}
-function saveBugReport(event){event.preventDefault();const issueType=document.getElementById("bugIssueType").value,description=document.getElementById("bugDescription").value.trim(),email=document.getElementById("bugEmail").value.trim();if(!description)return;const existing=JSON.parse(localStorage.getItem(BUG_REPORTS_KEY)||"[]");existing.unshift({id:Date.now(),createdAt:new Date().toISOString(),issueType,description,email});localStorage.setItem(BUG_REPORTS_KEY,JSON.stringify(existing));addAssistantMessage("assistant","Thanks, your report was saved locally.");document.getElementById("assistantBugFormHost").innerHTML="";}
+function saveBugReport(event){event.preventDefault();const issueType=document.getElementById("bugIssueType").value,description=document.getElementById("bugDescription").value.trim(),email=document.getElementById("bugEmail").value.trim();if(!description)return;const existing=JSON.parse(localStorage.getItem(getBugReportsKey())||"[]");existing.unshift({id:Date.now(),createdAt:new Date().toISOString(),issueType,description,email});localStorage.setItem(getBugReportsKey(),JSON.stringify(existing));addAssistantMessage("assistant","Thanks, your report was saved locally.");document.getElementById("assistantBugFormHost").innerHTML="";}
 function renderBugReportForm(){const host=document.getElementById("assistantBugFormHost");host.innerHTML=`<form class="bug-form" onsubmit="saveBugReport(event)"><label>Issue Type<select id="bugIssueType"><option value="Invoice Upload">Invoice Upload</option><option value="Invoice Deletion">Invoice Deletion</option><option value="Income Tracker">Income Tracker</option><option value="UI / Layout">UI / Layout</option><option value="Other">Other</option></select></label><label>Description<textarea id="bugDescription" rows="3" placeholder="What happened and what did you click?" required></textarea></label><label>Optional Email<input id="bugEmail" type="email" placeholder="you@company.com" /></label><button class="assistant-send" type="submit">Submit</button></form>`;}
 document.getElementById("assistantInput").addEventListener("keydown",event=>{if(event.key==="Enter"){event.preventDefault();sendAssistantMessage();}});
 initializeLanguage();setupUploadInteractions();renderQuickHelpButtons();addAssistantMessage("assistant","Hi! I’m your Revnio Assistant. Ask a question or tap a quick help option.");
 loadIncomeEntries(); loadDashboard();
+setupUploadInteractions();renderQuickHelpButtons();addAssistantMessage("assistant","Hi! I’m your Revnio Assistant. Ask a question or tap a quick help option.");
+restoreCurrentUser();
+if(currentUser){ openUserWorkspace(currentUser); }
 </script>
 </body>
 </html>
