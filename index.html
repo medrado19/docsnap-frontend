@@ -803,9 +803,15 @@ function closeAssistantPanel(){assistantPanelOpen=false;document.getElementById(
 function saveBugReport(event){event.preventDefault();const issueType=document.getElementById("bugIssueType").value,description=document.getElementById("bugDescription").value.trim(),email=document.getElementById("bugEmail").value.trim();if(!description)return;const existing=JSON.parse(localStorage.getItem(getBugReportsKey())||"[]");existing.unshift({id:Date.now(),createdAt:new Date().toISOString(),issueType,description,email});localStorage.setItem(getBugReportsKey(),JSON.stringify(existing));addAssistantMessage("assistant","Thanks, your report was saved locally.");document.getElementById("assistantBugFormHost").innerHTML="";}
 function renderBugReportForm(){const host=document.getElementById("assistantBugFormHost");host.innerHTML=`<form class="bug-form" onsubmit="saveBugReport(event)"><label>Issue Type<select id="bugIssueType"><option value="Invoice Upload">Invoice Upload</option><option value="Invoice Deletion">Invoice Deletion</option><option value="Income Tracker">Income Tracker</option><option value="UI / Layout">UI / Layout</option><option value="Other">Other</option></select></label><label>Description<textarea id="bugDescription" rows="3" placeholder="What happened and what did you click?" required></textarea></label><label>Optional Email<input id="bugEmail" type="email" placeholder="you@company.com" /></label><button class="assistant-send" type="submit">Submit</button></form>`;}
 document.getElementById("assistantInput").addEventListener("keydown",event=>{if(event.key==="Enter"){event.preventDefault();sendAssistantMessage();}});
-setupUploadInteractions();renderQuickHelpButtons();addAssistantMessage("assistant","Hi! I’m your Revnio Assistant. Ask a question or tap a quick help option.");
-restoreCurrentUser();
-if(currentUser){ openUserWorkspace(currentUser); }
+function initializeApp(){
+  if(typeof initializeLanguage==="function"){ initializeLanguage(); }
+  restoreCurrentUser();
+  setupUploadInteractions();
+  renderQuickHelpButtons();
+  addAssistantMessage("assistant","Hi! I’m your Revnio Assistant. Ask a question or tap a quick help option.");
+  showLanding();
+}
+initializeApp();
 </script>
 </body>
 </html>
