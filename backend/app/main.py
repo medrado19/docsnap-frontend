@@ -1,6 +1,7 @@
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from fastapi.routing import APIRoute
 
 from app.api.routes import router
 from app.database import Base, engine
@@ -29,6 +30,21 @@ def root_status():
 @app.get("/health")
 def health_check():
     return {"status": "ok"}
+
+
+
+
+@app.get("/debug/routes")
+def debug_routes():
+    routes = []
+    for route in app.routes:
+        if isinstance(route, APIRoute):
+            routes.append({
+                "path": route.path,
+                "name": route.name,
+                "methods": sorted([m for m in route.methods if m not in {"HEAD", "OPTIONS"}]),
+            })
+    return {"routes": routes}
 
 
 @app.exception_handler(404)
