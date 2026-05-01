@@ -9,7 +9,7 @@ app = FastAPI(title="Revnio API", version="0.1.0")
 # Keep simple for now so frontend fetch can connect during development.
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["https://medrado19.github.io"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -21,5 +21,10 @@ app.include_router(router)
 
 
 @app.get("/")
-def health_check():
+def root_status():
     return {"status": "ok", "service": "revnio-backend"}
+
+
+@app.get("/health")
+def health_check():
+    return {"status": "ok"}
