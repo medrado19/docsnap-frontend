@@ -311,8 +311,8 @@
 
     .help-fab {
       position: fixed;
-      right: 22px;
-      bottom: 22px;
+      right: 24px;
+      bottom: 24px;
       z-index: 50;
       border: 0;
       border-radius: 999px;
@@ -331,10 +331,11 @@
 
     .assistant-panel {
       position: fixed;
-      right: 22px;
-      bottom: 82px;
-      width: min(390px, calc(100vw - 24px));
-      max-height: min(72vh, 620px);
+      right: 24px;
+      bottom: 88px;
+      width: 360px;
+      max-width: calc(100vw - 24px);
+      max-height: 70vh;
       z-index: 60;
       border: 1px solid #334155;
       border-radius: 16px;
@@ -420,7 +421,10 @@
       .row { grid-template-columns: 1fr; }
       .actions .btn, .btn, .tab-btn, .assistant-send, .assistant-close, .nav-item, .menu-item { min-height: 44px; }
       .footer { padding: 14px; }
-      .assistant-panel { left: 8px; right: 8px; width: auto; max-height: calc(100vh - 90px); bottom: 72px; }
+      .assistant-panel { inset: 12px; width: auto; max-height: calc(100vh - 24px); bottom: auto; right: auto; left: auto; }
+      .assistant-body { overflow-y: auto; }
+      .help-fab { right: 12px; bottom: 12px; padding: 10px 12px; font-size: 13px; }
+      .help-fab-icon { font-size: 14px; }
       .edit-modal { max-height: calc(100vh - 30px); padding: 14px; }
       .details-modal { width: calc(100vw - 16px); max-height: calc(100vh - 20px); padding: 14px; }
       .details-grid { grid-template-columns: 1fr; }
@@ -435,7 +439,7 @@
       .topbar > div { width: 100%; }
       .table-scroll { display: none; }
       .mobile-table-cards { display: grid; gap: 10px; }
-      .assistant-panel { inset: 8px; max-height: none; }
+      .assistant-panel { inset: 12px; max-height: calc(100vh - 24px); }
       .chat-msg.user, .chat-msg.assistant { margin-left: 0; margin-right: 0; }
       .assistant-input-row { grid-template-columns: 1fr; }
       .help-fab { right: 10px; bottom: 10px; }
@@ -800,12 +804,17 @@ window.addEventListener("resize",()=>{if(!isMobileView()) sidebarOpen=false; syn
 function showDashboard() {
   document.getElementById('landingPage').classList.add('hidden');
   document.getElementById('dashboardPage').classList.remove('hidden');
+  const helpFab=document.getElementById("helpFab");
+  if(helpFab) helpFab.classList.remove("hidden");
   closeSidebar();
 }
 
 function showLanding() {
   document.getElementById('dashboardPage').classList.add('hidden');
   document.getElementById('landingPage').classList.remove('hidden');
+  const helpFab=document.getElementById("helpFab");
+  if(helpFab) helpFab.classList.add("hidden");
+  closeAssistantPanel();
   closeSidebar();
 }
 function normalizeVendorName(vendorName){return String(vendorName||"").toLowerCase().replace(/[^a-z0-9\s]/g," ").replace(/\b(inc|ltd|llc|corp|corporation)\b/g," ").replace(/\s+/g," ").trim();}
@@ -844,10 +853,36 @@ function buildInsights(invoiceList){const target=document.getElementById("insigh
 function exportCSV(){if(!invoices.length)return alert("No invoice data to export yet.");const headers=["client_name","invoice_date","category","total_amount","created_at","line_items_json"],rows=invoices.map(inv=>headers.map(key=>key==="line_items_json"?toCSVCell(JSON.stringify(inv.lineItems||[])):toCSVCell(inv[key]))),csv=[headers.join(","),...rows.map(row=>row.join(","))].join("\n"),blob=new Blob([csv],{type:"text/csv;charset=utf-8;"}),url=URL.createObjectURL(blob),link=document.createElement("a");link.href=url;link.download="revnio-invoices.csv";document.body.appendChild(link);link.click();document.body.removeChild(link);URL.revokeObjectURL(url);} 
 const INVOICE_EXTRACTION_SCHEMA={taxAmount:"number",lineItems:[{description:"string",quantity:"number|null",unitPrice:"number|null",totalPrice:"number"}]};
 const INVOICE_EXTRACTION_PROMPT="Extract invoice header details and every visible line item/service into lineItems. Do not invent items. Include taxes, tips, discounts, fees, shipping, or surcharges as separate lineItems when visible. Each line item must include description (string), quantity (number or null; use null when missing, or 1 only when clearly implied), unitPrice (number or null), and totalPrice (number as the line total).";
-function extractInvoiceFromUploadResponse(data){if(!data||typeof data!=="object")return null;const candidates=[data.invoice,data.data?.invoice,data.result?.invoice,data.extractedInvoice,data.extracted_data,data.parsedInvoice,data];for(const candidate of candidates){if(candidate&&typeof candidate==="object"&&(candidate.client_name||candidate.vendor_name||candidate.total_amount!=null||Array.isArray(candidate.lineItems)||Array.isArray(candidate.line_items)||Array.isArray(candidate.items))){return candidate;}}return null;}
+function extractInvoiceFromUploadResponse(data){if(!data||typeof data!=="object")return null;const candidates=[data.invoice,data.data?.invoice,data.result?.invoice,data.extractedInvoice,data.extracted_data,data.parsedInvoice,data];for(const candidate of candidates){if(candidate&&typeof candidate==="object")return candidate;}return null;}
+function normalizeExtractedInvoice(data,fileName){if(!data||typeof data!=="object")return null;const rawLineItems=data.lineItems??data.line_items??data.items??data.receipt_items??data.products??data.services??data.breakdown??[];const lineItems=normalizeLineItems(rawLineItems);const vendorRaw=data.client_name??data.vendor??data.vendor_name??data.merchant??data.business_name??"";const invoiceDateRaw=data.invoice_date??data.date??data.receipt_date??"";const totalRaw=Number(data.total_amount??data.total??data.amount??data.grand_total);
+const taxRaw=Number(data.taxAmount??data.tax??data.taxes??data.HST??data.GST??data.VAT??data.hst??data.gst??data.vat??0);
+const normalized={
+  id:String(data.id??data._id??data.invoiceId??data.invoice_id??Date.now()),
+  client_name:String(vendorRaw||"Unknown"),
+  vendor:String(vendorRaw||"Unknown"),
+  vendor_name:String(vendorRaw||"Unknown"),
+  invoice_date:invoiceDateRaw?String(invoiceDateRaw):new Date().toISOString().slice(0,10),
+  category:matchAllowedCategory(data.category),
+  total_amount:Number.isFinite(totalRaw)?totalRaw:0,
+  taxAmount:Number.isFinite(taxRaw)?taxRaw:0,
+  status:normalizeInvoiceStatus(data.status||"Unpaid"),
+  notes:String(data.notes??""),
+  lineItems,
+  uploaded_at:data.uploaded_at||new Date().toISOString(),
+  created_at:data.created_at||new Date().toISOString(),
+  file_name:data.file_name||data.filename||fileName
+};
+const hasVendor=normalized.client_name && normalized.client_name!=="Unknown";
+const hasTotal=Number.isFinite(normalized.total_amount)&&normalized.total_amount>0;
+const hasDate=Boolean(normalized.invoice_date);
+if(!hasVendor && !hasTotal && !lineItems.length) return null;
+if(!hasTotal && !lineItems.length) return null;
+if(!hasDate) return null;
+return normalizeInvoiceFinancials(normalized);
+}
 function updateSelectedFileName(file){const label=document.getElementById("selectedFileName");if(label)label.textContent=file?file.name:"No file selected";}
 function setupUploadInteractions(){const fileInput=document.getElementById("fileInput"),uploadZone=document.getElementById("uploadZone");if(!fileInput||!uploadZone)return;fileInput.addEventListener("change",()=>updateSelectedFileName(fileInput.files[0]));["dragenter","dragover"].forEach(evt=>uploadZone.addEventListener(evt,event=>{event.preventDefault();uploadZone.classList.add("dragover");}));["dragleave","drop"].forEach(evt=>uploadZone.addEventListener(evt,event=>{event.preventDefault();uploadZone.classList.remove("dragover");}));uploadZone.addEventListener("drop",event=>{if(event.dataTransfer?.files?.length){fileInput.files=event.dataTransfer.files;updateSelectedFileName(event.dataTransfer.files[0]);}});}
-async function uploadFile(){const fileInput=document.getElementById("fileInput"),file=fileInput.files[0];if(!file)return alert("Please choose an invoice image first.");const formData=new FormData();formData.append("file",file);formData.append("extractionPrompt",INVOICE_EXTRACTION_PROMPT);formData.append("extractionSchema",JSON.stringify(INVOICE_EXTRACTION_SCHEMA));setLoadingState("Processing invoice...");try{const response=await fetch(API_BASE+"/upload",{method:"POST",body:formData});const data=await response.json();if(data.error)return setLoadingState("Error: "+data.error);const extractedInvoice=extractInvoiceFromUploadResponse(data);if(extractedInvoice){const rawLineItems=extractedInvoice.lineItems??extractedInvoice.line_items??extractedInvoice.items??extractedInvoice.products??extractedInvoice.services??extractedInvoice.breakdown??extractedInvoice.itemized??extractedInvoice.details??extractedInvoice.charges??extractedInvoice.receipt_items??[];const invoice=normalizeInvoiceFinancials({...extractedInvoice,lineItems:normalizeLineItems(rawLineItems),taxAmount:extractTaxAmount(extractedInvoice),file_name:extractedInvoice.file_name||extractedInvoice.filename||file.name,created_at:extractedInvoice.created_at||new Date().toISOString()});const invoiceId=getInvoiceIdentifier(invoice,invoices.length);const hasExisting=invoices.some((inv,index)=>getInvoiceIdentifier(inv,index)===invoiceId);if(!hasExisting){invoices.unshift(invoice);}else{invoices=invoices.map((inv,index)=>getInvoiceIdentifier(inv,index)===invoiceId?invoice:inv);}markUserHasData();persistInvoices();refreshAllViews();}setLoadingState("Invoice processed successfully.");fileInput.value="";updateSelectedFileName(null);}catch(error){setLoadingState("Error: "+error.message);}}
+async function uploadFile(){const fileInput=document.getElementById("fileInput"),file=fileInput.files[0];if(!file)return alert("Please choose an invoice image first.");const formData=new FormData();formData.append("file",file);formData.append("extractionPrompt",INVOICE_EXTRACTION_PROMPT);formData.append("extractionSchema",JSON.stringify(INVOICE_EXTRACTION_SCHEMA));setLoadingState("Processing invoice...");try{const response=await fetch(API_BASE+"/upload",{method:"POST",body:formData});const data=await response.json();if(data.error)return setLoadingState("Error: "+data.error);const extractedInvoice=extractInvoiceFromUploadResponse(data);const invoice=normalizeExtractedInvoice(extractedInvoice,file.name);if(!invoice){setLoadingState("Invoice processed, but no usable invoice data was found. Please try a clearer image.");return;}const invoiceId=getInvoiceIdentifier(invoice,invoices.length);const hasExisting=invoices.some((inv,index)=>getInvoiceIdentifier(inv,index)===invoiceId);if(!hasExisting){invoices.unshift(invoice);}else{invoices=invoices.map((inv,index)=>getInvoiceIdentifier(inv,index)===invoiceId?invoice:inv);}markUserHasData();persistInvoices();refreshAllViews();setLoadingState("Invoice processed successfully.");fileInput.value="";updateSelectedFileName(null);}catch(error){setLoadingState("Error: "+error.message);}}
 
 function renderActionMenu(type,id){const safeId=String(id).replace(/\\/g,'\\\\').replace(/'/g,"\\'");return `<div class="action-menu-wrap"><button class="menu-trigger" aria-label="More actions" onclick="toggleActionMenu(event,'${type}','${safeId}')"><span class="menu-dots">⋯</span></button></div>`;}
 function renderFloatingActionMenu(){const existing=document.getElementById("floatingActionMenu");if(existing)existing.remove();if(!openActionMenu)return;const menu=document.createElement("div");menu.id="floatingActionMenu";menu.className="menu-dropdown";menu.style.left=`${openActionMenu.left}px`;menu.style.top=`${openActionMenu.top}px`;menu.innerHTML=`${openActionMenu.type==="invoice"?`<button class="menu-item" onclick="handleViewDetailsAction('${openActionMenu.id}')">👁️ View Details</button>`:""}<button class="menu-item" onclick="handleEditAction('${openActionMenu.type}','${openActionMenu.id}')"><svg class="action-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 1 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg>Edit</button><button class="menu-item danger" onclick="handleDeleteAction('${openActionMenu.type}','${openActionMenu.id}')"><svg class="trash-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/></svg>Delete</button>`;menu.addEventListener("click",event=>event.stopPropagation());document.body.appendChild(menu);}
