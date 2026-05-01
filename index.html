@@ -449,21 +449,21 @@
         <div class="landing-nav-actions">
           <select id="landingLanguageSelect" class="language-select" onchange="handleLanguageChange(this.value)"></select>
           <button class="btn secondary" data-i18n="view_dashboard" onclick="showDashboard()">View Dashboard</button>
-          <button class="btn secondary" onclick="startDemo()">Try Demo</button>
+          <button id="tryDemoBtn1" class="btn secondary" onclick="startDemo()">Try Demo</button>
         </div>
       </header>
 
       <section class="hero">
         <div class="hero-grid">
           <div>
-            <div class="hero-badge">AI-powered financial operations</div>
-            <h1>Stop wasting hours on invoices. Let <span class="ai-gradient">AI organize your finances in seconds.</span></h1>
-            <p>Revnio helps small business owners upload invoices, track income and expenses, and understand cash flow without spreadsheets.</p>
+            <div id="heroBadge" class="hero-badge">AI-powered financial operations</div>
+            <h1 id="heroHeadline">Stop wasting hours on invoices. Let <span class="ai-gradient">AI organize your finances in seconds.</span></h1>
+            <p id="heroSubheadline">Revnio helps small business owners upload invoices, track income and expenses, and understand cash flow without spreadsheets.</p>
             <div class="hero-actions">
-              <button class="btn" onclick="startFree()">Start Free</button>
-              <button class="btn secondary" onclick="startDemo()">Try Demo</button>
+              <button id="startFreeBtn2" class="btn" onclick="startFree()">Start Free</button>
+              <button id="tryDemoBtn2" class="btn secondary" onclick="startDemo()">Try Demo</button>
             </div>
-            <div class="trust-points"><span>AI invoice extraction</span><span>Cash flow visibility</span><span>Built for small businesses</span></div>
+            <div id="trustPoints" class="trust-points"><span>AI invoice extraction</span><span>Cash flow visibility</span><span>Built for small businesses</span></div>
           </div>
           <div class="hero-preview">
             <h3 style="margin:0 0 12px;">Live Dashboard Preview</h3>
@@ -486,17 +486,17 @@
       </section>
 
       <section class="preview">
-        <h2>Product Preview</h2>
+        <h2 id="productPreviewTitle">Product Preview</h2>
         <div class="preview-window">
-          <p>Explore the Revenue Hub to manage invoices, track income, and export your financial data whenever needed.</p>
-          <button class="btn" onclick="startFree()">Start Free</button>
-          <button class="btn secondary" onclick="startDemo()">Try Demo</button>
+          <p id="productPreviewText">Explore the Revnio Hub to manage invoices, track income, and export your financial data whenever needed.</p>
+          <button id="startFreeBtn3" class="btn" onclick="startFree()">Start Free</button>
+          <button id="tryDemoBtn3" class="btn secondary" onclick="startDemo()">Try Demo</button>
         </div>
       </section>
 
       <footer class="footer">
         <span class="brand" style="font-size:16px; margin:0;"><svg class="brand-logo" viewBox="0 0 32 32" aria-hidden="true"><defs><linearGradient id="logo-grad-topbar" x1="6" y1="4" x2="26" y2="28" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#3B82F6" /><stop offset="0.52" stop-color="#6366F1" /><stop offset="1" stop-color="#8B5CF6" /></linearGradient></defs><path fill="url(#logo-grad-topbar)" d="M4 4h11.5c6.4 0 11.6 4.9 11.6 11.1 0 3.5-1.7 6.6-4.5 8.6L28 31h-7l-4.3-5.9H12V31H4V4Zm8 13.8h3.8c2.4 0 4-1.6 4-3.8s-1.6-3.8-4-3.8H12v7.6Z"/></svg><span class="brand-wordmark">Revnio</span></span>
-        <span>AI-powered financial operations platform for modern small businesses.</span>
+        <span id="footerTagline">AI-powered financial operations platform for modern small businesses.</span>
       </footer>
 
       <div id="emailCaptureModal" class="edit-modal-overlay hidden">
@@ -526,8 +526,8 @@
       <header class="topbar">
         <button id="mobileMenuBtn" class="mobile-menu-btn" type="button" aria-label="Open sidebar" onclick="toggleSidebar()">☰</button>
         <div>
-          <h1>Revenue Hub</h1>
-          <p>Track invoices, cash flow, and profitability from one premium operations workspace.</p><p id="workspaceName" style="margin-top:4px;font-size:12px;color:#a5b4fc;">No workspace selected</p>
+          <h1 id="dashboardTitle">Revnio Hub</h1>
+          <p id="dashboardSubtitle">Track invoices, cash flow, and profitability from one premium operations workspace.</p><p id="workspaceName" style="margin-top:4px;font-size:12px;color:#a5b4fc;">No workspace selected</p>
         </div>
         <div style="display:flex; gap:10px; align-items:center;">
           <select id="dashboardLanguageSelect" class="language-select" onchange="handleLanguageChange(this.value)"></select>
@@ -572,18 +572,18 @@
           </div>
           <section class="financial-summary-card compact">
             <div class="financial-summary-inner">
-              <h2 class="financial-summary-title">AI Financial Summary</h2><div class="trust-badge">AI suggested, editable</div>
+              <h2 class="financial-summary-title" id="financialSummaryTitle">AI Financial Summary</h2><div id="aiSuggestedBadge" class="trust-badge">AI suggested, editable</div>
               <p id="financialSummaryMessage" class="financial-summary-message">Add invoices and income entries to generate your summary.</p>
               <p id="financialSummaryMeta" class="financial-summary-meta">Tracking starts as soon as financial records are available.</p>
               <div class="financial-summary-action">
-                <button class="btn secondary" onclick="showInsightsPage()">View more insights</button>
+                <button id="viewMoreInsightsBtn" class="btn secondary" onclick="showInsightsPage()">View more insights</button>
               </div>
             </div>
           </section>
         </div>
         <div class="overview-bottom-stack">
             <div class="box">
-              <h2>Latest Invoice</h2>
+              <h2 id="latestInvoiceTitle">Latest Invoice</h2>
               <div id="latestInvoice" class="state">No invoice uploaded yet.</div>
             </div>
 
@@ -636,7 +636,7 @@
       <section id="insights" class="tab-content"><div class="box"><h2 data-i18n="insights">Insights</h2><div id="insightsContent" class="state">No data yet. Add invoices to unlock AI-driven insights.</div></div></section>
     </main>
   </div>
-  <button id="helpFab" class="help-fab hidden" type="button" onclick="toggleAssistantPanel()"><span class="help-fab-icon">✨</span>Help</button>
+  <button id="helpFab" class="help-fab hidden" type="button" onclick="toggleAssistantPanel()"><span class="help-fab-icon">✨</span><span id="helpFabText">Help</span></button>
   <aside id="assistantPanel" class="assistant-panel hidden" aria-label="Revnio Assistant">
     <div class="assistant-head">
       <div>
@@ -680,10 +680,10 @@ const LANGUAGE_OPTIONS = [
   { code: "es", label: "Español" }
 ];
 const translations = {
-  en: { view_dashboard:"View Dashboard", export_csv:"Export CSV", back_to_landing:"← Back to Landing", overview:"Overview", operations:"Operations", analytics:"Analytics", insights:"Insights", upload_invoice:"Upload Invoice", total_income:"Total Income", total_expenses:"Total Expenses", profit:"Profit", invoice_history:"Invoice History", income_tracker:"Income Tracker", add_income:"Add Income" },
-  fr: { view_dashboard:"Voir le tableau de bord", export_csv:"Exporter CSV", back_to_landing:"← Retour à l'accueil", overview:"Aperçu", operations:"Opérations", analytics:"Analytique", insights:"Insights", upload_invoice:"Téléverser une facture", total_income:"Revenu total", total_expenses:"Dépenses totales", profit:"Profit", invoice_history:"Historique des factures", income_tracker:"Suivi des revenus", add_income:"Ajouter un revenu" },
-  pt: { view_dashboard:"Ver painel", export_csv:"Exportar CSV", back_to_landing:"← Voltar ao início", overview:"Visão geral", operations:"Operações", analytics:"Análises", insights:"Insights", upload_invoice:"Enviar fatura", total_income:"Receita total", total_expenses:"Despesas totais", profit:"Lucro", invoice_history:"Histórico de faturas", income_tracker:"Rastreador de receitas", add_income:"Adicionar receita" },
-  es: { view_dashboard:"Ver panel", export_csv:"Exportar CSV", back_to_landing:"← Volver al inicio", overview:"Resumen", operations:"Operaciones", analytics:"Analítica", insights:"Insights", upload_invoice:"Subir factura", total_income:"Ingresos totales", total_expenses:"Gastos totales", profit:"Ganancia", invoice_history:"Historial de facturas", income_tracker:"Seguimiento de ingresos", add_income:"Agregar ingreso" }
+  en: {view_dashboard:"View Dashboard",export_csv:"Export CSV",back_to_landing:"← Back to Landing",overview:"Overview",operations:"Operations",analytics:"Analytics",insights:"Insights",upload_invoice:"Upload Invoice",total_income:"Total Income",total_expenses:"Total Expenses",profit:"Profit",invoice_history:"Invoice History",income_tracker:"Income Tracker",add_income:"Add Income",dashboard_title:"Revnio Hub"},
+  fr: {view_dashboard:"Voir le tableau de bord",export_csv:"Exporter CSV",back_to_landing:"← Retour à l'accueil",overview:"Vue d'ensemble",operations:"Opérations",analytics:"Analytique",insights:"Insights",upload_invoice:"Téléverser une facture",total_income:"Revenus totaux",total_expenses:"Dépenses totales",profit:"Profit",invoice_history:"Historique des factures",income_tracker:"Suivi des revenus",add_income:"Ajouter un revenu",dashboard_title:"Revnio Hub"},
+  pt: {view_dashboard:"Ver painel",export_csv:"Exportar CSV",back_to_landing:"← Voltar ao início",overview:"Visão geral",operations:"Operações",analytics:"Análises",insights:"Insights",upload_invoice:"Enviar nota fiscal",total_income:"Receita",total_expenses:"Despesas",profit:"Lucro",invoice_history:"Histórico de notas",income_tracker:"Controle de receitas",add_income:"Adicionar receita",dashboard_title:"Revnio Hub"},
+  es: {view_dashboard:"Ver panel",export_csv:"Exportar CSV",back_to_landing:"← Volver al inicio",overview:"Resumen",operations:"Operaciones",analytics:"Analítica",insights:"Insights",upload_invoice:"Subir factura",total_income:"Ingresos totales",total_expenses:"Gastos totales",profit:"Ganancia",invoice_history:"Historial de facturas",income_tracker:"Seguimiento de ingresos",add_income:"Agregar ingreso",dashboard_title:"Revnio Hub"}
 };
 let currentLanguage = "en";
 const localAssistantHandlers = {
@@ -765,12 +765,14 @@ function handleLanguageChange(language){
   persistLanguagePreference(currentLanguage);
   populateLanguageSelectors();
   applyTranslations();
+  updateStaticUIText();
 }
 function initializeLanguage(){
   const saved = localStorage.getItem(LANGUAGE_KEY);
   currentLanguage = translations[saved] ? saved : "en";
   populateLanguageSelectors();
   applyTranslations();
+  updateStaticUIText();
 }
 function toggleSidebar(){if(!isMobileView()) return; sidebarOpen=!sidebarOpen; syncSidebarState();}
 function closeSidebar(){sidebarOpen=false; syncSidebarState();}
@@ -883,6 +885,19 @@ function closeAssistantPanel(){assistantPanelOpen=false;document.getElementById(
 function saveBugReport(event){event.preventDefault();const issueType=document.getElementById("bugIssueType").value,description=document.getElementById("bugDescription").value.trim(),email=document.getElementById("bugEmail").value.trim();if(!description)return;const existing=JSON.parse(localStorage.getItem(getBugReportsKey())||"[]");existing.unshift({id:Date.now(),createdAt:new Date().toISOString(),issueType,description,email});localStorage.setItem(getBugReportsKey(),JSON.stringify(existing));addAssistantMessage("assistant","Thanks, your report was saved locally.");document.getElementById("assistantBugFormHost").innerHTML="";}
 function renderBugReportForm(){const host=document.getElementById("assistantBugFormHost");host.innerHTML=`<form class="bug-form" onsubmit="saveBugReport(event)"><label>Issue Type<select id="bugIssueType"><option value="Invoice Upload">Invoice Upload</option><option value="Invoice Deletion">Invoice Deletion</option><option value="Income Tracker">Income Tracker</option><option value="UI / Layout">UI / Layout</option><option value="Other">Other</option></select></label><label>Description<textarea id="bugDescription" rows="3" placeholder="What happened and what did you click?" required></textarea></label><label>Optional Email<input id="bugEmail" type="email" placeholder="you@company.com" /></label><button class="assistant-send" type="submit">Submit</button></form>`;}
 document.getElementById("assistantInput").addEventListener("keydown",event=>{if(event.key==="Enter"){event.preventDefault();sendAssistantMessage();}});
+
+
+function updateStaticUIText(){
+  const copy={
+    en:{hero_badge:"AI-powered financial operations",hero_headline:'Stop wasting hours on invoices. Let <span class="ai-gradient">AI organize your finances in seconds.</span>',hero_sub:"Revnio helps small business owners upload invoices, track income and expenses, and understand cash flow without spreadsheets.",start_free:"Start Free",try_demo:"Try Demo",trust:"<span>AI invoice extraction</span><span>Cash flow visibility</span><span>Built for small businesses</span>",preview_title:"Product Preview",preview_text:"Explore the Revnio Hub to manage invoices, track income, and export your financial data whenever needed.",footer:"AI-powered financial operations platform for modern small businesses.",dashboard_sub:"Track invoices, cash flow, and profitability from one premium operations workspace.",latest:"Latest Invoice",help:"Help"},
+    fr:{hero_badge:"Opérations financières propulsées par l'IA",hero_headline:'Ne perdez plus des heures sur les factures. Laissez <span class="ai-gradient">l’IA organiser vos finances en quelques secondes.</span>',hero_sub:"Revnio aide les petites entreprises à téléverser des factures, suivre revenus et dépenses, et comprendre la trésorerie sans tableurs.",start_free:"Commencer gratuitement",try_demo:"Essayer la démo",trust:"<span>Extraction IA des factures</span><span>Visibilité de trésorerie</span><span>Conçu pour les petites entreprises</span>",preview_title:"Aperçu du produit",preview_text:"Explorez Revnio Hub pour gérer les factures, suivre les revenus et exporter vos données financières à tout moment.",footer:"Plateforme d'opérations financières propulsée par l'IA pour les petites entreprises modernes.",dashboard_sub:"Suivez factures, trésorerie et rentabilité depuis un espace d’opérations premium.",latest:"Dernière facture",help:"Aide"},
+    pt:{hero_badge:"Operações financeiras com IA",hero_headline:'Pare de perder horas com notas fiscais. Deixe a <span class="ai-gradient">IA organizar suas finanças em segundos.</span>',hero_sub:"A Revnio ajuda pequenos negócios a enviar notas fiscais, acompanhar receitas e despesas e entender o fluxo de caixa sem planilhas.",start_free:"Começar grátis",try_demo:"Testar demonstração",trust:"<span>Extração de notas com IA</span><span>Visão do fluxo de caixa</span><span>Feito para pequenos negócios</span>",preview_title:"Prévia do produto",preview_text:"Explore o Revnio Hub para gerenciar notas, acompanhar receitas e exportar seus dados financeiros quando precisar.",footer:"Plataforma de operações financeiras com IA para pequenos negócios modernos.",dashboard_sub:"Acompanhe notas, fluxo de caixa e lucro em um espaço premium de operações.",latest:"Última nota",help:"Ajuda"},
+    es:{hero_badge:"Operaciones financieras con IA",hero_headline:'Deja de perder horas con facturas. Deja que <span class="ai-gradient">la IA organice tus finanzas en segundos.</span>',hero_sub:"Revnio ayuda a pequeños negocios a subir facturas, seguir ingresos y gastos, y entender el flujo de caja sin hojas de cálculo.",start_free:"Comenzar gratis",try_demo:"Probar demo",trust:"<span>Extracción de facturas con IA</span><span>Visibilidad del flujo de caja</span><span>Hecho para pequeños negocios</span>",preview_title:"Vista previa del producto",preview_text:"Explora Revnio Hub para gestionar facturas, seguir ingresos y exportar tus datos financieros cuando lo necesites.",footer:"Plataforma de operaciones financieras con IA para pequeños negocios modernos.",dashboard_sub:"Controla facturas, flujo de caja y rentabilidad desde un espacio premium de operaciones.",latest:"Última factura",help:"Ayuda"}
+  };
+  const c=copy[currentLanguage]||copy.en;
+  const set=(id,v,html=false)=>{const el=document.getElementById(id);if(el){if(html)el.innerHTML=v;else el.textContent=v;}};
+  set("heroBadge",c.hero_badge);set("heroHeadline",c.hero_headline,true);set("heroSubheadline",c.hero_sub);set("startFreeBtn2",c.start_free);set("tryDemoBtn1",c.try_demo);set("tryDemoBtn2",c.try_demo);set("tryDemoBtn3",c.try_demo);set("trustPoints",c.trust,true);set("productPreviewTitle",c.preview_title);set("productPreviewText",c.preview_text);set("footerTagline",c.footer);set("dashboardTitle","Revnio Hub");set("dashboardSubtitle",c.dashboard_sub);set("latestInvoiceTitle",c.latest);set("helpFabText",c.help);
+}
 
 function initializeApp(){
   if(typeof initializeLanguage==="function"){ 
