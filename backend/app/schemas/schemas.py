@@ -21,6 +21,7 @@ class InvoiceCreate(BaseModel):
     vendor: str
     amount: float
     due_date: str | None = None
+    status: str | None = None
     notes: str | None = None
 
 
