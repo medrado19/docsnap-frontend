@@ -526,6 +526,7 @@
       <button class="nav-item" data-i18n="operations" onclick="showTab('operations', this)">Operations</button>
       <button class="nav-item" data-i18n="analytics" onclick="showTab('analytics', this)">Analytics</button>
       <button class="nav-item" data-i18n="insights" onclick="showTab('insights', this)">Insights</button>
+      <button class="nav-item" onclick="showTab('profile', this)">Profile</button>
     </aside>
 
     <main class="main">
@@ -555,6 +556,7 @@
         <button id="tab-operations" class="tab-btn" data-i18n="operations" onclick="activateTab('operations')">Operations</button>
         <button id="tab-analytics" class="tab-btn" data-i18n="analytics" onclick="activateTab('analytics')">Analytics</button>
         <button id="tab-insights" class="tab-btn" data-i18n="insights" onclick="activateTab('insights')">Insights</button>
+        <button id="tab-profile" class="tab-btn" onclick="activateTab('profile')">Profile</button>
       </div>
 
       <section id="overview" class="tab-content active">
@@ -651,6 +653,7 @@
         </div>
       </section>
       <section id="insights" class="tab-content"><div class="box"><h2 data-i18n="insights">Insights</h2><div id="insightsContent" class="state">Add income and upload invoices to generate your financial summary.</div></div></section>
+      <section id="profile" class="tab-content"><div class="box"><h2>Profile</h2><div id="profileContent" class="state">Select or create a workspace to view profile details.</div></div></section>
     </main>
   </div>
   <button id="helpFab" class="help-fab hidden" type="button" onclick="toggleAssistantPanel()"><span class="help-fab-icon">✨</span><span id="helpFabText">Help</span></button>
@@ -704,8 +707,6 @@ const BUG_REPORTS_KEY = "revnio_bug_reports";
 const VENDOR_CATEGORY_KEY = "revnio_vendor_categories";
 const USERS_KEY = "revnio_users";
 const CURRENT_USER_KEY = "revnio_current_user";
-const LEGACY_INCOME_KEY = "flowcast_income_entries";
-const LEGACY_INVOICE_KEY = "revnio_invoices";
 const ALLOWED_CATEGORIES = ["Rent","Utilities","Supplies","Food & Beverage","Marketing","Professional Services","Payroll","Transportation","Software","Other"];
 const DEMO_USER = { id: "demo", email: "demo@revnio.local", businessName: "Demo Workspace", createdAt: "2026-01-01T00:00:00.000Z", isDemo: true };
 const QUICK_HELP_ITEMS = ["How do I upload an invoice?","Why is invoice deletion not working?","How do I track income?","Report a bug"];
@@ -775,11 +776,11 @@ function saveUsers(users){ localStorage.setItem(USERS_KEY, JSON.stringify(users)
 function getCurrentUser(){ return currentUser; }
 function setCurrentUser(user){ currentUser=user; localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(user)); updateWorkspaceLabel(); }
 function getStorageKey(type){ const user=getCurrentUser(); const id=user?.id||"guest"; return `revnio_${id}_${type}`; }
-function getIncomeKey(){ return currentUser?.isDemo ? DEMO_INCOME_KEY : getStorageKey("income"); }
-function getInvoiceKey(){ return currentUser?.isDemo ? DEMO_INVOICE_KEY : getStorageKey("invoices"); }
-function getInvoiceStorageKey(){ return getInvoiceKey(); }
+function getInvoiceStorageKey(){ return currentUser?.isDemo ? DEMO_INVOICE_KEY : getStorageKey("invoices"); }
+function getIncomeStorageKey(){ return currentUser?.isDemo ? DEMO_INCOME_KEY : getStorageKey("income"); }
+function getVendorCategoryStorageKey(){ return getStorageKey("vendor_categories"); }
+function getSettingsStorageKey(){ return getStorageKey("settings"); }
 function getBugReportsKey(){ return getStorageKey("bug_reports"); }
-function getVendorCategoryKey(){ return getStorageKey("vendor_categories"); }
 function getHasDataKey(){ return getStorageKey("has_user_data"); }
 function updateWorkspaceLabel(){ const node=document.getElementById("workspaceName"); if(node) node.textContent = currentUser ? `${currentUser.businessName}` : t("no_workspace_selected"); }
 function getOnboardingKey(){return getStorageKey("onboarding_completed");}
@@ -795,24 +796,8 @@ function getCuratedDemoInvoices(){ return [normalizeInvoiceFinancials({id:"demo_
 function getCuratedDemoIncome(){ return [{id:"demo_income_001",source:"Website Design Project",date:"2026-04-18",amount:4200,notes:"Client payment received via bank transfer."}]; }
 function resetDemoWorkspaceData(){ localStorage.setItem(DEMO_INVOICE_KEY,JSON.stringify(getCuratedDemoInvoices())); localStorage.setItem(DEMO_INCOME_KEY,JSON.stringify(getCuratedDemoIncome())); }
 function startDemo(){ resetDemoWorkspaceData(); openUserWorkspace(DEMO_USER); }
-// Developer-only utility for manual cleanup of legacy global test data
-function clearLegacyTestDataManually(){ localStorage.removeItem(LEGACY_INVOICE_KEY); localStorage.removeItem(LEGACY_INCOME_KEY); }
 function restoreCurrentUser(){ const raw=localStorage.getItem(CURRENT_USER_KEY); if(!raw) return; try{ const parsed=JSON.parse(raw); if(parsed?.id) currentUser=parsed; }catch{} }
 function isMobileView(){return window.innerWidth<=768;}
-function getCurrentUserId(){
-  const candidates = ["revnio_user", "revnio_current_user", "user", "currentUser"];
-  for (const key of candidates) {
-    const raw = localStorage.getItem(key);
-    if (!raw) continue;
-    try {
-      const parsed = JSON.parse(raw);
-      if (parsed?.id) return String(parsed.id);
-      if (parsed?.userId) return String(parsed.userId);
-    } catch (_e) {}
-    if (raw && !raw.startsWith("{")) return String(raw);
-  }
-  return "";
-}
 function t(key, params = {}) {
   const localized = (translations[currentLanguage] && translations[currentLanguage][key]) || translations.en[key] || key;
   return String(localized).replace(/\{(\w+)\}/g, (_, token) => (params[token] ?? `{${token}}`));
@@ -846,12 +831,11 @@ function applyTranslations(){
 }
 function persistLanguagePreference(language){
   localStorage.setItem(LANGUAGE_KEY, language);
-  const userId = getCurrentUserId();
-  if (userId) {
-    const userSettingsKey = `revnio_${userId}_settings`;
-    const settings = JSON.parse(localStorage.getItem(userSettingsKey) || "{}");
+  if (currentUser?.id) {
+    const settingsKey = getSettingsStorageKey();
+    const settings = JSON.parse(localStorage.getItem(settingsKey) || "{}");
     settings.language = language;
-    localStorage.setItem(userSettingsKey, JSON.stringify(settings));
+    localStorage.setItem(settingsKey, JSON.stringify(settings));
   }
 }
 function handleLanguageChange(language){
@@ -891,8 +875,8 @@ function showLanding() {
   closeSidebar();
 }
 function normalizeVendorName(vendorName){return String(vendorName||"").toLowerCase().replace(/[^a-z0-9\s]/g," ").replace(/\b(inc|ltd|llc|corp|corporation)\b/g," ").replace(/\s+/g," ").trim();}
-function loadVendorCategoryMemory(){return JSON.parse(localStorage.getItem(getVendorCategoryKey())||"{}");}
-function persistVendorCategoryMemory(memory){localStorage.setItem(getVendorCategoryKey(),JSON.stringify(memory));}
+function loadVendorCategoryMemory(){return JSON.parse(localStorage.getItem(getVendorCategoryStorageKey())||"{}");}
+function persistVendorCategoryMemory(memory){localStorage.setItem(getVendorCategoryStorageKey(),JSON.stringify(memory));}
 function matchAllowedCategory(rawCategory){const value=String(rawCategory||"").trim();if(!value)return "Other";const exact=ALLOWED_CATEGORIES.find(cat=>cat.toLowerCase()===value.toLowerCase());if(exact)return exact;const v=value.toLowerCase();if(/food|cafe|restaurant|coffee|beverage|meal/.test(v))return "Food & Beverage";if(/market|advert|promo|brand/.test(v))return "Marketing";if(/consult|legal|account|service|agency/.test(v))return "Professional Services";if(/utilit|electric|water|internet|phone/.test(v))return "Utilities";if(/rent|lease/.test(v))return "Rent";if(/suppl|office|material/.test(v))return "Supplies";if(/payroll|salary|wage|benefit/.test(v))return "Payroll";if(/transport|travel|fuel|uber|lyft|shipping/.test(v))return "Transportation";if(/software|saas|subscription|cloud|license/.test(v))return "Software";return "Other";}
 function applyCategoryNormalizationAndMemory(){const memory=loadVendorCategoryMemory();invoices=invoices.map(invoice=>{const vendor=invoice.client_name||invoice.vendor_name||"";const normalizedVendor=normalizeVendorName(vendor);let category=matchAllowedCategory(invoice.category);if(normalizedVendor&&memory[normalizedVendor]){category=matchAllowedCategory(memory[normalizedVendor]);}else if(normalizedVendor){memory[normalizedVendor]=category;}return {...invoice,category};});persistVendorCategoryMemory(memory);}
 function updateVendorCategoryForInvoice(invoice){const normalizedVendor=normalizeVendorName(invoice?.client_name||invoice?.vendor_name||"");if(!normalizedVendor)return;const memory=loadVendorCategoryMemory();memory[normalizedVendor]=matchAllowedCategory(invoice.category);persistVendorCategoryMemory(memory);}
@@ -903,8 +887,8 @@ async function fetchWithTimeout(url,options={},timeoutMs=REQUEST_TIMEOUT_MS){con
 function activateTab(tabId){document.querySelectorAll(".tab-content").forEach(el=>el.classList.remove("active"));document.querySelectorAll(".tab-btn").forEach(el=>el.classList.remove("active"));document.getElementById(tabId).classList.add("active");document.getElementById(`tab-${tabId}`).classList.add("active");}
 function showTab(tabId,btn){activateTab(tabId);document.querySelectorAll(".nav-item").forEach(el=>el.classList.remove("active"));btn.classList.add("active");if(isMobileView())closeSidebar();}
 function showInsightsPage(){activateTab("insights");const insightsBtn=[...document.querySelectorAll(".nav-item")].find(btn=>btn.textContent.trim()==="Insights");document.querySelectorAll(".nav-item").forEach(el=>el.classList.remove("active"));if(insightsBtn)insightsBtn.classList.add("active");}
-function loadIncomeEntries(){incomeEntries=JSON.parse(localStorage.getItem(getIncomeKey())||"[]");renderIncomeHistory();}
-function persistIncomeEntries(){localStorage.setItem(getIncomeKey(),JSON.stringify(incomeEntries));}
+function loadIncomeEntries(){incomeEntries=JSON.parse(localStorage.getItem(getIncomeStorageKey())||"[]");renderIncomeHistory();}
+function persistIncomeEntries(){localStorage.setItem(getIncomeStorageKey(),JSON.stringify(incomeEntries));}
 function saveIncome(event){event.preventDefault();const source=document.getElementById("incomeSource").value.trim(),date=document.getElementById("incomeDate").value,amount=Number(document.getElementById("incomeAmount").value||0),notes=document.getElementById("incomeNotes").value.trim();incomeEntries.unshift({id:Date.now(),source,date,amount,notes});persistIncomeEntries();refreshAllViews();document.getElementById("incomeForm").reset();}
 function markUserHasData(){localStorage.setItem(getHasDataKey(),"true");}
 function hasUserData(){return localStorage.getItem(getHasDataKey())==="true";}
@@ -912,8 +896,8 @@ function deleteIncome(id){const targetId=String(id);const target=incomeEntries.f
 function renderIncomeHistory(){const box=document.getElementById("incomeHistory");if(!incomeEntries.length){box.className="state";box.innerHTML=t("add_income_profit_hint");return;}box.className="";const rows=incomeEntries.map(item=>`<tr><td>${item.source}</td><td>${item.date||"-"}</td><td>${formatMoney(item.amount)}</td><td>${item.notes||"-"}</td><td>${renderActionMenu("income",item.id)}</td></tr>`).join("");const cards=incomeEntries.map(item=>`<article class="mobile-row-card"><div class="mobile-row-head"><h4 class="mobile-row-title">${item.source}</h4><div class="mobile-row-menu">${renderActionMenu("income",item.id)}</div></div><div class="mobile-row-grid"><div class="mobile-row-item"><label>Amount</label><div>${formatMoney(item.amount)}</div></div><div class="mobile-row-item"><label>Date</label><div>${item.date||"-"}</div></div><div class="mobile-row-item"><label>Category/Type</label><div>${item.category||item.type||"-"}</div></div><div class="mobile-row-item"><label>Notes</label><div>${item.notes||"-"}</div></div></div></article>`).join("");box.innerHTML=`<div class="table-scroll"><table><tr><th>Source</th><th>Date</th><th>Amount</th><th>Notes</th><th>Actions</th></tr>${rows}</table></div><div class="mobile-table-cards">${cards}</div>`;}
 function getInvoiceIdentifier(invoice,index){return String(invoice?.id??invoice?._id??invoice?.invoiceId??invoice?.invoice_id??invoice?.uuid??index);}
 function normalizeLineItems(rawItems){if(!Array.isArray(rawItems)) return [];return rawItems.map(item=>{const quantityRaw=item?.quantity??item?.qty;const quantity=quantityRaw===""||quantityRaw==null?null:Number(quantityRaw);const unitPriceRaw=item?.unitPrice??item?.unit_price??item?.price;const unitPrice=unitPriceRaw===""||unitPriceRaw==null?null:Number(unitPriceRaw);const totalRaw=item?.totalPrice??item?.total_price??item?.amount??item?.line_total??item?.total;const totalPrice=Number(totalRaw);return {description:String(item?.description||item?.name||item?.item||item?.service||item?.product||""),quantity:Number.isFinite(quantity)?quantity:null,unitPrice:Number.isFinite(unitPrice)?unitPrice:null,totalPrice:Number.isFinite(totalPrice)?totalPrice:0};}).filter(item=>item.description||item.totalPrice!==0||item.quantity!==null||item.unitPrice!==null);}
-function persistInvoices(){localStorage.setItem(getInvoiceKey(),JSON.stringify(invoices));}
-async function loadDashboard(){setLoadingState(t("loading_dashboard"));if(!currentUser) return setLoadingState(t("select_workspace_continue"));if(currentUser?.isDemo){invoices=JSON.parse(localStorage.getItem(DEMO_INVOICE_KEY)||"[]").map(inv=>normalizeInvoiceFinancials(inv));applyCategoryNormalizationAndMemory();refreshAllViews();setLoadingState("");return;}try{const userId=encodeURIComponent(currentUser.id||"");const response=await fetch(`${API_BASE}/invoices?user_id=${userId}`);if(!response.ok) throw new Error(`Failed to fetch invoices (${response.status})`);const dbInvoices=await response.json();invoices=(dbInvoices||[]).map(inv=>normalizeInvoiceFinancials({...inv,client_name:inv.vendor,vendor_name:inv.vendor,total_amount:Number(inv.amount)||0,invoice_date:inv.due_date,status:inv.status||"Unpaid",lineItems:normalizeLineItems(inv.lineItems??[])}));applyCategoryNormalizationAndMemory();refreshAllViews();maybeShowOnboarding();setLoadingState("");}catch(error){setLoadingState(`Error loading dashboard: ${error.message}`);}}
+function persistInvoices(){localStorage.setItem(getInvoiceStorageKey(),JSON.stringify(invoices));}
+async function loadDashboard(){setLoadingState(t("loading_dashboard"));if(!currentUser) return setLoadingState(t("select_workspace_continue"));invoices=JSON.parse(localStorage.getItem(getInvoiceStorageKey())||"[]").map(inv=>normalizeInvoiceFinancials(inv));applyCategoryNormalizationAndMemory();refreshAllViews();maybeShowOnboarding();renderProfileTab();setLoadingState("");}
 function updateDashboard(){const totalExpenses=invoices.reduce((sum,invoice)=>sum+(Number(invoice.total_amount)||0),0),totalIncome=incomeEntries.reduce((sum,item)=>sum+(Number(item.amount)||0),0),profit=totalIncome-totalExpenses;document.getElementById("totalIncome").textContent=formatMoney(totalIncome);document.getElementById("totalExpenses").textContent=formatMoney(totalExpenses);document.getElementById("profit").textContent=formatMoney(profit);}
 function parseEntryDate(value){const date=value?new Date(value):null;return date&&!Number.isNaN(date.getTime())?date:null;}
 function calculateExpenseTrend(invoiceList){if(invoiceList.length<2)return null;const sorted=[...invoiceList].sort((a,b)=>{const aDate=parseEntryDate(a.invoice_date||a.created_at),bDate=parseEntryDate(b.invoice_date||b.created_at);return (aDate?aDate.getTime():0)-(bDate?bDate.getTime():0);});const midpoint=Math.floor(sorted.length/2);if(midpoint===0||midpoint===sorted.length)return null;const older=sorted.slice(0,midpoint),recent=sorted.slice(midpoint);const olderTotal=older.reduce((sum,invoice)=>sum+(Number(invoice.total_amount)||0),0),recentTotal=recent.reduce((sum,invoice)=>sum+(Number(invoice.total_amount)||0),0),olderAverage=olderTotal/older.length,recentAverage=recentTotal/recent.length;if(olderAverage<=0&&recentAverage<=0)return null;if(olderAverage===0)return{direction:"up",change:100};const change=((recentAverage-olderAverage)/olderAverage)*100;if(change>7)return{direction:"up",change};if(change<-7)return{direction:"down",change:Math.abs(change)};return{direction:"flat",change:Math.abs(change)};}
@@ -936,7 +920,7 @@ const errors=[];const hasAmount=Number.isFinite(normalized.total_amount)&&normal
 function updateSelectedFileName(file){const label=document.getElementById("selectedFileName");if(label)label.textContent=file?file.name:t("no_file_selected");}
 function renderUploadUrlDebug(){const uploadUrlDebug=document.getElementById("uploadUrlDebug");if(!uploadUrlDebug)return;if(!DEBUG_MODE){uploadUrlDebug.style.display="none";uploadUrlDebug.textContent="";return;}uploadUrlDebug.style.display="block";uploadUrlDebug.textContent=`Upload URL: ${API_BASE}${UPLOAD_ENDPOINT}`;}
 function setupUploadInteractions(){const fileInput=document.getElementById("fileInput"),uploadZone=document.getElementById("uploadZone");if(!fileInput||!uploadZone)return;fileInput.addEventListener("change",()=>updateSelectedFileName(fileInput.files[0]));["dragenter","dragover"].forEach(evt=>uploadZone.addEventListener(evt,event=>{event.preventDefault();uploadZone.classList.add("dragover");}));["dragleave","drop"].forEach(evt=>uploadZone.addEventListener(evt,event=>{event.preventDefault();uploadZone.classList.remove("dragover");}));uploadZone.addEventListener("drop",event=>{if(event.dataTransfer?.files?.length){fileInput.files=event.dataTransfer.files;updateSelectedFileName(event.dataTransfer.files[0]);}});}
-async function uploadFile(){const fileInput=document.getElementById("fileInput"),file=fileInput.files[0];if(!file)return alert(t("choose_invoice_first"));const formData=new FormData();formData.append("file",file);if(currentUser?.id)formData.append("user_id",currentUser.id);const uploadUrl=`${API_BASE}${UPLOAD_ENDPOINT}`;if(DEBUG_MODE){const uploadUrlDebug=document.getElementById("uploadUrlDebug");if(uploadUrlDebug)uploadUrlDebug.textContent=`Upload URL: ${uploadUrl}`;console.log("Upload URL:", uploadUrl);}toggleManualEntryButton(false);setExtractButtonLoading(true);setLoadingState(t("processing_invoice"));try{const response=await fetchWithTimeout(uploadUrl,{method:"POST",body:formData},REQUEST_TIMEOUT_MS);const rawResponse=await response.text();let parsedJson=null;try{parsedJson=rawResponse?JSON.parse(rawResponse):null;}catch(_e){}if(!response.ok){console.error("Upload request failed:",{endpoint:uploadUrl,status:response.status,statusText:response.statusText,rawResponse});const is404=response.status===404;const message=is404?"Upload service not found. Please check the backend endpoint.":"We could not read this invoice. Try a clearer image or enter details manually.";setLoadingState(message);toggleManualEntryButton(true);setExtractionDebug({endpoint:uploadUrl,status:response.status,statusText:response.statusText,rawResponse},null,[message]);return;}const data=parsedJson??{};const extracted=extractInvoiceFromUploadResponse(data)||data;const normalized=normalizeExtractedInvoice(extracted,file.name);if(normalized.errors.length||!normalized.invoice){setLoadingState("We could not read this invoice. Try a clearer image or enter details manually.");toggleManualEntryButton(true);setExtractionDebug({endpoint:uploadUrl,status:response.status,rawResponse:data},normalized.invoice,normalized.errors);return;}const normalizedInvoice=normalized.invoice;console.log("RAW AI RESULT:",data);setExtractionDebug({endpoint:uploadUrl,status:response.status,rawResponse:data},normalizedInvoice,[]);const existingIds=new Set(invoices.map((invoice,index)=>getInvoiceIdentifier(invoice,index)));await loadDashboard();let wasSaved=invoices.some((invoice,index)=>{const invoiceId=getInvoiceIdentifier(invoice,index);if(existingIds.has(invoiceId))return false;const vendor=(invoice.client_name||invoice.vendor_name||"").trim().toLowerCase();const expectedVendor=(normalizedInvoice.client_name||normalizedInvoice.vendor_name||"").trim().toLowerCase();const amountMatches=Math.abs((Number(invoice.total_amount)||0)-(Number(normalizedInvoice.total_amount)||0))<0.01;return vendor===expectedVendor&&String(invoice.invoice_date||"")===String(normalizedInvoice.invoice_date||"")&&amountMatches;});if(!wasSaved){invoices.unshift(normalizedInvoice);markUserHasData();persistInvoices();wasSaved=true;}if(wasSaved){applyCategoryNormalizationAndMemory();persistInvoices();refreshAllViews();setLoadingState(t("invoice_uploaded_saved"));fileInput.value="";updateSelectedFileName(null);}else{toggleManualEntryButton(true);setLoadingState("Invoice processed but could not be saved. Please try again.");}}catch(error){console.error("Upload invoice error:",error);toggleManualEntryButton(true);if(error?.name==="AbortError"){setLoadingState("Processing in background. Extraction took longer than 30 seconds—please refresh shortly.");}else if(error instanceof TypeError){setLoadingState("Cannot connect to server. Check backend URL.");}else{setLoadingState("We could not read this invoice. Try a clearer image or enter details manually.");}}finally{setExtractButtonLoading(false);}}
+async function uploadFile(){const fileInput=document.getElementById("fileInput"),file=fileInput.files[0];if(!file)return alert(t("choose_invoice_first"));const formData=new FormData();formData.append("file",file);if(currentUser?.id)formData.append("user_id",currentUser.id);const uploadUrl=`${API_BASE}${UPLOAD_ENDPOINT}`;if(DEBUG_MODE){const uploadUrlDebug=document.getElementById("uploadUrlDebug");if(uploadUrlDebug)uploadUrlDebug.textContent=`Upload URL: ${uploadUrl}`;console.log("Upload URL:", uploadUrl);}toggleManualEntryButton(false);setExtractButtonLoading(true);setLoadingState(t("processing_invoice"));try{const response=await fetchWithTimeout(uploadUrl,{method:"POST",body:formData},REQUEST_TIMEOUT_MS);const rawResponse=await response.text();let parsedJson=null;try{parsedJson=rawResponse?JSON.parse(rawResponse):null;}catch(_e){}if(!response.ok){console.error("Upload request failed:",{endpoint:uploadUrl,status:response.status,statusText:response.statusText,rawResponse});const is404=response.status===404;const message=is404?"Upload service not found. Please check the backend endpoint.":"We could not read this invoice. Try a clearer image or enter details manually.";setLoadingState(message);toggleManualEntryButton(true);setExtractionDebug({endpoint:uploadUrl,status:response.status,statusText:response.statusText,rawResponse},null,[message]);return;}const data=parsedJson??{};const extracted=extractInvoiceFromUploadResponse(data)||data;const normalized=normalizeExtractedInvoice(extracted,file.name);if(normalized.errors.length||!normalized.invoice){setLoadingState("We could not read this invoice. Try a clearer image or enter details manually.");toggleManualEntryButton(true);setExtractionDebug({endpoint:uploadUrl,status:response.status,rawResponse:data},normalized.invoice,normalized.errors);return;}const normalizedInvoice=normalizeInvoiceFinancials(normalized.invoice);console.log("RAW AI RESULT:",data);setExtractionDebug({endpoint:uploadUrl,status:response.status,rawResponse:data},normalizedInvoice,[]);invoices.unshift(normalizedInvoice);markUserHasData();persistInvoices();applyCategoryNormalizationAndMemory();persistInvoices();refreshAllViews();setLoadingState(t("invoice_uploaded_saved"));fileInput.value="";updateSelectedFileName(null);}catch(error){console.error("Upload invoice error:",error);toggleManualEntryButton(true);if(error?.name==="AbortError"){setLoadingState("Processing in background. Extraction took longer than 30 seconds—please refresh shortly.");}else if(error instanceof TypeError){setLoadingState("Cannot connect to server. Check backend URL.");}else{setLoadingState("We could not read this invoice. Try a clearer image or enter details manually.");}}finally{setExtractButtonLoading(false);}}
 
 function renderActionMenu(type,id){const safeId=String(id).replace(/\\/g,'\\\\').replace(/'/g,"\\'");return `<div class="action-menu-wrap"><button class="menu-trigger" aria-label="More actions" onclick="toggleActionMenu(event,'${type}','${safeId}')"><span class="menu-dots">⋯</span></button></div>`;}
 function renderFloatingActionMenu(){const existing=document.getElementById("floatingActionMenu");if(existing)existing.remove();if(!openActionMenu)return;const menu=document.createElement("div");menu.id="floatingActionMenu";menu.className="menu-dropdown";menu.style.left=`${openActionMenu.left}px`;menu.style.top=`${openActionMenu.top}px`;menu.innerHTML=`${openActionMenu.type==="invoice"?`<button class="menu-item" onclick="handleViewDetailsAction('${openActionMenu.id}')">👁️ View Details</button>`:""}<button class="menu-item" onclick="handleEditAction('${openActionMenu.type}','${openActionMenu.id}')"><svg class="action-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 1 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg>Edit</button><button class="menu-item danger" onclick="handleDeleteAction('${openActionMenu.type}','${openActionMenu.id}')"><svg class="trash-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/></svg>Delete</button>`;menu.addEventListener("click",event=>event.stopPropagation());document.body.appendChild(menu);}
@@ -983,8 +967,10 @@ function saveInvoiceNotesFromDetails(id,notes){saveInvoiceStatusTaxNotes(id,{not
 function saveInvoiceTaxFromDetails(id,taxAmount){const parsed=Number(taxAmount);saveInvoiceStatusTaxNotes(id,{taxAmount:Number.isFinite(parsed)?parsed:0});renderInvoiceDetailsModal();}
 function saveLineItemsChanges(){if(!activeDetailsState)return;invoices=invoices.map((inv,index)=>index!==activeDetailsState.index?inv:normalizeInvoiceFinancials({...inv,lineItems:normalizeLineItems(activeDetailsState.lineItems)}));markUserHasData();persistInvoices();refreshAllViews();activeDetailsState.editing=false;activeDetailsState.lineItems=normalizeLineItems(invoices[activeDetailsState.index].lineItems);renderInvoiceDetailsModal();showToast("Line items updated.");}
 
-function refreshAllViews(){updateDashboard();updateFinancialSummary();renderLatestInvoice();renderHistory();renderIncomeHistory();buildCategoryChart(invoices);buildMonthlyChart(invoices);updateAnalyticsSummary(invoices);buildInsights(invoices);}
+function refreshAllViews(){updateDashboard();updateFinancialSummary();renderLatestInvoice();renderHistory();renderIncomeHistory();buildCategoryChart(invoices);buildMonthlyChart(invoices);updateAnalyticsSummary(invoices);buildInsights(invoices);renderProfileTab();}
 function clearDashboard(){if(!confirm(t("clear_income_confirm")))return;incomeEntries=[];persistIncomeEntries();refreshAllViews();}
+function renderProfileTab(){const node=document.getElementById("profileContent");if(!node)return;if(!currentUser){node.className="state";node.textContent="Select or create a workspace to view profile details.";return;}node.className="";const workspaceType=currentUser.isDemo?"Demo":"Personal workspace";node.innerHTML=`<div class=\"profile-grid\"><p><strong>Business name:</strong> ${currentUser.businessName||"—"}</p><p><strong>Email:</strong> ${currentUser.email||"—"}</p><p><strong>Preferred language:</strong> ${currentLanguage.toUpperCase()}</p><p><strong>Current workspace type:</strong> ${workspaceType}</p><div class=\"actions\"><button class=\"btn ghost-danger\" onclick=\"clearWorkspaceData()\">Clear my workspace data</button><button class=\"btn secondary\" onclick=\"showLanding()\">Back to landing / Switch workspace</button></div></div>`;}
+function clearWorkspaceData(){if(!currentUser)return;const confirmed=confirm(\"Clear this workspace data? This only affects the active workspace.\");if(!confirmed)return;localStorage.removeItem(getInvoiceStorageKey());localStorage.removeItem(getIncomeStorageKey());localStorage.removeItem(getVendorCategoryStorageKey());localStorage.removeItem(getSettingsStorageKey());localStorage.removeItem(getHasDataKey());invoices=[];incomeEntries=[];refreshAllViews();setLoadingState(\"Workspace data cleared.\");}
 function renderQuickHelpButtons(){const host=document.getElementById("quickHelpButtons");host.innerHTML=QUICK_HELP_ITEMS.map(item=>`<button type="button" class="quick-help-btn" onclick="askQuickHelp('${item.replace(/'/g,"\\'")}')">${item}</button>`).join("");}
 function addAssistantMessage(role, text){const row=document.createElement("div");row.className=`chat-msg ${role}`;row.textContent=text;const chat=document.getElementById("assistantChatLog");chat.appendChild(row);chat.scrollTop=chat.scrollHeight;}
 function getAssistantReply(message){const key=message.trim().toLowerCase();return localAssistantHandlers[key]||t("assistant_default_reply");}
