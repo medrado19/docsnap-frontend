@@ -788,9 +788,9 @@ function isOnboardingCompleted(){return localStorage.getItem(getOnboardingKey())
 function completeOnboarding(){localStorage.setItem(getOnboardingKey(),"true");document.getElementById("onboardingModal").classList.add("hidden");}
 function skipOnboarding(){completeOnboarding();}
 function maybeShowOnboarding(){if(currentUser?.isDemo) return; if(!isOnboardingCompleted()&&invoices.length===0&&incomeEntries.length===0){document.getElementById("onboardingModal").classList.remove("hidden");}}
-function openUserWorkspace(user){ setCurrentUser(user); showDashboard(); loadIncomeEntries(); loadDashboard(); }
-function startFree(){ document.getElementById("emailCaptureModal").classList.remove("hidden"); }
-function closeEmailCapture(){ document.getElementById("emailCaptureModal").classList.add("hidden"); }
+function openUserWorkspace(user){ if(!user) return; setCurrentUser(user); showDashboard(); loadIncomeEntries(); loadDashboard(); }
+function startFree(){ const modal=document.getElementById("emailCaptureModal"); if(modal) modal.classList.remove("hidden"); }
+function closeEmailCapture(){ const modal=document.getElementById("emailCaptureModal"); if(modal) modal.classList.add("hidden"); }
 function submitEmailCapture(event){ event.preventDefault(); const email=document.getElementById("captureEmail").value.trim().toLowerCase(); const businessName=document.getElementById("captureBusinessName").value.trim(); if(!email||!businessName) return; const users=getUsers(); let user=users.find(u=>u.email===email); if(!user){ user={ id:`u_${Date.now()}`, email, businessName, createdAt:new Date().toISOString() }; users.unshift(user); saveUsers(users); } openUserWorkspace(user); closeEmailCapture(); }
 function getCuratedDemoInvoices(){ return [normalizeInvoiceFinancials({id:"demo_invoice_001",client_name:"Blue Harbor Studio",vendor:"Blue Harbor Studio",vendor_name:"Blue Harbor Studio",invoice_date:"2026-04-15",category:"Professional Services",total_amount:1250,taxAmount:100,status:"Paid",notes:"Brand strategy workshop and monthly advisory.",lineItems:[{description:"Strategy workshop",quantity:1,unitPrice:800,totalPrice:800},{description:"Monthly advisory retainer",quantity:1,unitPrice:350,totalPrice:350}],created_at:"2026-04-15T10:00:00.000Z",uploaded_at:"2026-04-15T10:00:00.000Z"})]; }
 function getCuratedDemoIncome(){ return [{id:"demo_income_001",source:"Website Design Project",date:"2026-04-18",amount:4200,notes:"Client payment received via bank transfer."}]; }
@@ -859,16 +859,20 @@ function closeSidebar(){sidebarOpen=false; syncSidebarState();}
 function syncSidebarState(){const sidebar=document.getElementById("dashboardSidebar"),overlay=document.getElementById("sidebarOverlay");if(!sidebar||!overlay)return;sidebar.classList.toggle("mobile-open",sidebarOpen&&isMobileView());overlay.classList.toggle("active",sidebarOpen&&isMobileView());document.body.style.overflow=(sidebarOpen&&isMobileView())?"hidden":"";}
 window.addEventListener("resize",()=>{if(!isMobileView()) sidebarOpen=false; syncSidebarState();});
 function showDashboard() {
-  document.getElementById('landingPage').classList.add('hidden');
-  document.getElementById('dashboardPage').classList.remove('hidden');
+  const landing=document.getElementById('landingPage');
+  const dashboard=document.getElementById('dashboardPage');
+  if(landing) landing.classList.add('hidden');
+  if(dashboard) dashboard.classList.remove('hidden');
   const helpFab=document.getElementById("helpFab");
   if(helpFab) helpFab.classList.remove("hidden");
   closeSidebar();
 }
 
 function showLanding() {
-  document.getElementById('dashboardPage').classList.add('hidden');
-  document.getElementById('landingPage').classList.remove('hidden');
+  const landing=document.getElementById('landingPage');
+  const dashboard=document.getElementById('dashboardPage');
+  if(dashboard) dashboard.classList.add('hidden');
+  if(landing) landing.classList.remove('hidden');
   const helpFab=document.getElementById("helpFab");
   if(helpFab) helpFab.classList.add("hidden");
   closeAssistantPanel();
@@ -971,7 +975,7 @@ function refreshAllViews(){updateDashboard();updateFinancialSummary();renderLate
 function clearDashboard(){if(!confirm(t("clear_income_confirm")))return;incomeEntries=[];persistIncomeEntries();refreshAllViews();}
 function renderProfileTab(){const node=document.getElementById("profileContent");if(!node)return;if(!currentUser){node.className="state";node.textContent="Select or create a workspace to view profile details.";return;}node.className="";const workspaceType=currentUser.isDemo?"Demo":"Personal workspace";node.innerHTML=`<div class=\"profile-grid\"><p><strong>Business name:</strong> ${currentUser.businessName||"—"}</p><p><strong>Email:</strong> ${currentUser.email||"—"}</p><p><strong>Preferred language:</strong> ${currentLanguage.toUpperCase()}</p><p><strong>Current workspace type:</strong> ${workspaceType}</p><div class=\"actions\"><button class=\"btn ghost-danger\" onclick=\"clearWorkspaceData()\">Clear my workspace data</button><button class=\"btn secondary\" onclick=\"showLanding()\">Back to landing / Switch workspace</button></div></div>`;}
 function clearWorkspaceData(){if(!currentUser)return;const confirmed=confirm(\"Clear this workspace data? This only affects the active workspace.\");if(!confirmed)return;localStorage.removeItem(getInvoiceStorageKey());localStorage.removeItem(getIncomeStorageKey());localStorage.removeItem(getVendorCategoryStorageKey());localStorage.removeItem(getSettingsStorageKey());localStorage.removeItem(getHasDataKey());invoices=[];incomeEntries=[];refreshAllViews();setLoadingState(\"Workspace data cleared.\");}
-function renderQuickHelpButtons(){const host=document.getElementById("quickHelpButtons");host.innerHTML=QUICK_HELP_ITEMS.map(item=>`<button type="button" class="quick-help-btn" onclick="askQuickHelp('${item.replace(/'/g,"\\'")}')">${item}</button>`).join("");}
+function renderQuickHelpButtons(){const host=document.getElementById("quickHelpButtons");if(!host)return;host.innerHTML=QUICK_HELP_ITEMS.map(item=>`<button type="button" class="quick-help-btn" onclick="askQuickHelp('${item.replace(/'/g,"\\'")}')">${item}</button>`).join("");}
 function addAssistantMessage(role, text){const row=document.createElement("div");row.className=`chat-msg ${role}`;row.textContent=text;const chat=document.getElementById("assistantChatLog");chat.appendChild(row);chat.scrollTop=chat.scrollHeight;}
 function getAssistantReply(message){const key=message.trim().toLowerCase();return localAssistantHandlers[key]||t("assistant_default_reply");}
 function askQuickHelp(question){document.getElementById("assistantInput").value=question;sendAssistantMessage();}
@@ -980,8 +984,24 @@ function toggleAssistantPanel(){assistantPanelOpen=!assistantPanelOpen;document.
 function closeAssistantPanel(){assistantPanelOpen=false;document.getElementById("assistantPanel").classList.add("hidden");}
 function saveBugReport(event){event.preventDefault();const issueType=document.getElementById("bugIssueType").value,description=document.getElementById("bugDescription").value.trim(),email=document.getElementById("bugEmail").value.trim();if(!description)return;const existing=JSON.parse(localStorage.getItem(getBugReportsKey())||"[]");existing.unshift({id:Date.now(),createdAt:new Date().toISOString(),issueType,description,email});localStorage.setItem(getBugReportsKey(),JSON.stringify(existing));addAssistantMessage("assistant","Thanks, your report was saved locally.");document.getElementById("assistantBugFormHost").innerHTML="";}
 function renderBugReportForm(){const host=document.getElementById("assistantBugFormHost");host.innerHTML=`<form class="bug-form" onsubmit="saveBugReport(event)"><label>Issue Type<select id="bugIssueType"><option value="Invoice Upload">Invoice Upload</option><option value="Invoice Deletion">Invoice Deletion</option><option value="Income Tracker">Income Tracker</option><option value="UI / Layout">UI / Layout</option><option value="Other">Other</option></select></label><label>Description<textarea id="bugDescription" rows="3" placeholder="What happened and what did you click?" required></textarea></label><label>Optional Email<input id="bugEmail" type="email" placeholder="you@company.com" /></label><button class="assistant-send" type="submit">Submit</button></form>`;}
-document.getElementById("assistantInput").addEventListener("keydown",event=>{if(event.key==="Enter"){event.preventDefault();sendAssistantMessage();}});
+const assistantInputEl=document.getElementById("assistantInput");
+if(assistantInputEl){assistantInputEl.addEventListener("keydown",event=>{if(event.key==="Enter"){event.preventDefault();sendAssistantMessage();}});}
 
+
+function setupLandingButtonHandlers(){
+  const bindings=[
+    ["startFreeBtn2",startFree],
+    ["startFreeBtn3",startFree],
+    ["tryDemoBtn1",startDemo],
+    ["tryDemoBtn2",startDemo],
+    ["tryDemoBtn3",startDemo]
+  ];
+  bindings.forEach(([id,handler])=>{
+    const el=document.getElementById(id);
+    if(!el) return;
+    el.onclick=handler;
+  });
+}
 
 function updateStaticUIText(){
   const copy={
@@ -996,24 +1016,16 @@ function updateStaticUIText(){
 }
 
 function initializeApp(){
-  if(typeof initializeLanguage==="function"){ 
-    initializeLanguage(); 
-  }
-  
+  initializeLanguage();
+  showLanding();
   restoreCurrentUser();
-  
+  setupLandingButtonHandlers();
   setupUploadInteractions();
   renderUploadUrlDebug();
   const extractionDebugBox=document.getElementById("extractionDebugBox");
   if(extractionDebugBox) extractionDebugBox.style.display = DEBUG_MODE ? "block" : "none";
   renderQuickHelpButtons();
-  
-  addAssistantMessage(
-    "assistant",
-    t("assistant_welcome")
-  );
-  
-  showLanding();
+  addAssistantMessage("assistant", t("assistant_welcome"));
 }
   
 initializeApp();
