@@ -454,7 +454,7 @@
         <div class="brand"><svg class="brand-logo" viewBox="0 0 32 32" aria-hidden="true"><defs><linearGradient id="logo-grad-landing" x1="6" y1="4" x2="26" y2="28" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#3B82F6" /><stop offset="0.52" stop-color="#6366F1" /><stop offset="1" stop-color="#8B5CF6" /></linearGradient></defs><path fill="url(#logo-grad-landing)" d="M4 4h11.5c6.4 0 11.6 4.9 11.6 11.1 0 3.5-1.7 6.6-4.5 8.6L28 31h-7l-4.3-5.9H12V31H4V4Zm8 13.8h3.8c2.4 0 4-1.6 4-3.8s-1.6-3.8-4-3.8H12v7.6Z"/></svg><span class="brand-wordmark">Revnio</span></div>
         <div class="landing-nav-actions">
           <select id="landingLanguageSelect" class="language-select" onchange="handleLanguageChange(this.value)"></select>
-          <button class="btn secondary" data-i18n="view_dashboard" onclick="showDashboard()">View Dashboard</button>
+          <button id="viewDashboardBtn" class="btn secondary" data-i18n="view_dashboard" onclick="showDashboard()">View Dashboard</button>
           <button id="tryDemoBtn1" class="btn secondary" onclick="startDemo()">Try demo</button>
         </div>
       </header>
@@ -859,6 +859,10 @@ function closeSidebar(){sidebarOpen=false; syncSidebarState();}
 function syncSidebarState(){const sidebar=document.getElementById("dashboardSidebar"),overlay=document.getElementById("sidebarOverlay");if(!sidebar||!overlay)return;sidebar.classList.toggle("mobile-open",sidebarOpen&&isMobileView());overlay.classList.toggle("active",sidebarOpen&&isMobileView());document.body.style.overflow=(sidebarOpen&&isMobileView())?"hidden":"";}
 window.addEventListener("resize",()=>{if(!isMobileView()) sidebarOpen=false; syncSidebarState();});
 function showDashboard() {
+  if(!currentUser){
+    startDemo();
+    return;
+  }
   const landing=document.getElementById('landingPage');
   const dashboard=document.getElementById('dashboardPage');
   if(landing) landing.classList.add('hidden');
@@ -974,7 +978,7 @@ function saveLineItemsChanges(){if(!activeDetailsState)return;invoices=invoices.
 function refreshAllViews(){updateDashboard();updateFinancialSummary();renderLatestInvoice();renderHistory();renderIncomeHistory();buildCategoryChart(invoices);buildMonthlyChart(invoices);updateAnalyticsSummary(invoices);buildInsights(invoices);renderProfileTab();}
 function clearDashboard(){if(!confirm(t("clear_income_confirm")))return;incomeEntries=[];persistIncomeEntries();refreshAllViews();}
 function renderProfileTab(){const node=document.getElementById("profileContent");if(!node)return;if(!currentUser){node.className="state";node.textContent="Select or create a workspace to view profile details.";return;}node.className="";const workspaceType=currentUser.isDemo?"Demo":"Personal workspace";node.innerHTML=`<div class=\"profile-grid\"><p><strong>Business name:</strong> ${currentUser.businessName||"—"}</p><p><strong>Email:</strong> ${currentUser.email||"—"}</p><p><strong>Preferred language:</strong> ${currentLanguage.toUpperCase()}</p><p><strong>Current workspace type:</strong> ${workspaceType}</p><div class=\"actions\"><button class=\"btn ghost-danger\" onclick=\"clearWorkspaceData()\">Clear my workspace data</button><button class=\"btn secondary\" onclick=\"showLanding()\">Back to landing / Switch workspace</button></div></div>`;}
-function clearWorkspaceData(){if(!currentUser)return;const confirmed=confirm(\"Clear this workspace data? This only affects the active workspace.\");if(!confirmed)return;localStorage.removeItem(getInvoiceStorageKey());localStorage.removeItem(getIncomeStorageKey());localStorage.removeItem(getVendorCategoryStorageKey());localStorage.removeItem(getSettingsStorageKey());localStorage.removeItem(getHasDataKey());invoices=[];incomeEntries=[];refreshAllViews();setLoadingState(\"Workspace data cleared.\");}
+function clearWorkspaceData(){if(!currentUser)return;const confirmed=confirm("Clear this workspace data? This only affects the active workspace.");if(!confirmed)return;localStorage.removeItem(getInvoiceStorageKey());localStorage.removeItem(getIncomeStorageKey());localStorage.removeItem(getVendorCategoryStorageKey());localStorage.removeItem(getSettingsStorageKey());localStorage.removeItem(getHasDataKey());invoices=[];incomeEntries=[];refreshAllViews();setLoadingState("Workspace data cleared.");}
 function renderQuickHelpButtons(){const host=document.getElementById("quickHelpButtons");if(!host)return;host.innerHTML=QUICK_HELP_ITEMS.map(item=>`<button type="button" class="quick-help-btn" onclick="askQuickHelp('${item.replace(/'/g,"\\'")}')">${item}</button>`).join("");}
 function addAssistantMessage(role, text){const row=document.createElement("div");row.className=`chat-msg ${role}`;row.textContent=text;const chat=document.getElementById("assistantChatLog");chat.appendChild(row);chat.scrollTop=chat.scrollHeight;}
 function getAssistantReply(message){const key=message.trim().toLowerCase();return localAssistantHandlers[key]||t("assistant_default_reply");}
@@ -994,7 +998,8 @@ function setupLandingButtonHandlers(){
     ["startFreeBtn3",startFree],
     ["tryDemoBtn1",startDemo],
     ["tryDemoBtn2",startDemo],
-    ["tryDemoBtn3",startDemo]
+    ["tryDemoBtn3",startDemo],
+    ["viewDashboardBtn",showDashboard]
   ];
   bindings.forEach(([id,handler])=>{
     const el=document.getElementById(id);
@@ -1014,6 +1019,13 @@ function updateStaticUIText(){
   const set=(id,v,html=false)=>{const el=document.getElementById(id);if(el){if(html)el.innerHTML=v;else el.textContent=v;}};
   set("heroBadge",c.hero_badge);set("heroHeadline",c.hero_headline,true);set("heroSubheadline",c.hero_sub);set("startFreeBtn2",c.start_free);set("startFreeBtn3",c.start_free);set("tryDemoBtn1",c.try_demo);set("tryDemoBtn2",c.try_demo);set("tryDemoBtn3",c.try_demo);set("trustPoints",c.trust,true);set("productPreviewTitle",c.preview_title);set("productPreviewText",c.preview_text);set("footerTagline",c.footer);set("dashboardTitle","Revnio Hub");set("dashboardSubtitle",c.dashboard_sub);set("latestInvoiceTitle",c.latest);set("helpFabText",c.help);set("featureProblemTitle",c.feature_problem_title);set("featureProblemDesc",c.feature_problem_desc);set("featureHowTitle",c.feature_how_title);set("featureHowDesc",c.feature_how_desc);set("featureBenefitsTitle",c.feature_benefits_title);set("featureBenefitsDesc",c.feature_benefits_desc);set("featureActionTitle",c.feature_action_title);set("featureActionDesc",c.feature_action_desc);set("heroPreviewTitle",c.hero_preview_title);set("heroPreviewIncomeLabel",c.hero_preview_income);set("heroPreviewProfitLabel",c.hero_preview_profit);
 }
+
+
+window.showDashboard=showDashboard;
+window.showLanding=showLanding;
+window.startFree=startFree;
+window.startDemo=startDemo;
+window.openUserWorkspace=openUserWorkspace;
 
 function initializeApp(){
   initializeLanguage();
