@@ -6,8 +6,8 @@ from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
 from sqlalchemy.orm import Session
 
 from app.database import get_db
-from app.models.models import Income, Invoice
-from app.schemas.schemas import IncomeCreate, IncomeResponse, InvoiceResponse
+from app.models.models import Income, Invoice, User
+from app.schemas.schemas import IncomeCreate, IncomeResponse, InvoiceResponse, UserBase, UserResponse
 
 router = APIRouter()
 logger = logging.getLogger("revnio.upload")
@@ -63,6 +63,23 @@ def _fake_ai_extract(filename: str):
     return {"vendor": filename.rsplit(".", 1)[0].replace("_", " "), "status": "draft"}
 
 
+
+@router.post("/users/lookup", response_model=UserResponse)
+def lookup_or_create_user(payload: UserBase, db: Session = Depends(get_db)):
+    email = payload.email.strip().lower()
+    user = db.query(User).filter(User.email == email).first()
+    if user:
+        if payload.name and user.name != payload.name:
+            user.name = payload.name
+            db.commit()
+            db.refresh(user)
+        return user
+    user = User(name=payload.name, email=email)
+    db.add(user)
+    db.commit()
+    db.refresh(user)
+    return user
+
 @router.post("/upload-invoice", response_model=InvoiceResponse)
 async def upload_invoice_file(
     file: UploadFile = File(...),
@@ -116,8 +133,11 @@ def create_income(payload: IncomeCreate, db: Session = Depends(get_db)):
 
 
 @router.get("/income", response_model=list[IncomeResponse])
-def get_income(db: Session = Depends(get_db)):
-    return db.query(Income).order_by(Income.created_at.desc()).all()
+def get_income(user_id: uuid.UUID | None = None, db: Session = Depends(get_db)):
+    query = db.query(Income)
+    if user_id:
+        query = query.filter(Income.user_id == user_id)
+    return query.order_by(Income.created_at.desc()).all()
 
 
 @router.delete("/income/{id}")
