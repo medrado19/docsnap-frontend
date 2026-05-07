@@ -696,6 +696,7 @@ const API_BASE_URL = window.API_CONFIG?.API_BASE_URL || "https://docsnap-api-pro
 const API_BASE = API_BASE_URL.replace(/\/$/, "");
 const UPLOAD_ENDPOINT = "/upload-invoice";
 const FEEDBACK_ENDPOINT = "/feedback";
+const BUG_REPORT_ENDPOINT = "/bug-report";
 const REQUEST_TIMEOUT_MS = 30000;
 const DEBUG_MODE = false;
 const DEMO_INVOICE_KEY = "revnio_demo_invoices";
@@ -771,6 +772,48 @@ let activeDetailsState = null;
 let assistantPanelOpen = false;
 let sidebarOpen = false;
 let currentUser = null;
+let lastUserAction = "App loaded";
+
+function trackLastAction(action){ lastUserAction = action; }
+document.addEventListener("click",event=>{
+  const target = event.target;
+  if(!(target instanceof HTMLElement)) return;
+  const marker = target.getAttribute("data-track-action") || target.id || target.textContent?.trim()?.slice(0,80);
+  if(marker) trackLastAction(`click:${marker}`);
+});
+
+window.addEventListener("error", event => {
+  const message = event?.error?.message || event?.message || "Unknown frontend error";
+  autoReportFrontendError(message);
+});
+window.addEventListener("unhandledrejection", event => {
+  const reason = event?.reason?.message || String(event?.reason || "Unhandled promise rejection");
+  autoReportFrontendError(reason);
+});
+
+async function autoReportFrontendError(errorMessage){
+  const payload = buildBugReportPayload({
+    issueType: "Frontend Runtime Error",
+    description: errorMessage,
+    email: currentUser?.email || "unknown@revnio.local"
+  });
+  try{
+    await fetchWithTimeout(`${API_BASE}${BUG_REPORT_ENDPOINT}`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});
+  }catch(_e){}
+}
+
+function buildBugReportPayload({issueType, description, email}){
+  return {
+    user_id: currentUser?.isDemo ? null : currentUser?.id || null,
+    email: email || currentUser?.email || "unknown@revnio.local",
+    workspace_id: currentUser?.id || "guest",
+    page: window.location.pathname || "/",
+    error_message: `[${issueType}] ${description}`,
+    browser: navigator.userAgent,
+    timestamp: new Date().toISOString(),
+    last_action: lastUserAction
+  };
+}
 
 function getUsers(){ return JSON.parse(localStorage.getItem(USERS_KEY)||"[]"); }
 function saveUsers(users){ localStorage.setItem(USERS_KEY, JSON.stringify(users)); }
@@ -987,7 +1030,7 @@ function askQuickHelp(question){document.getElementById("assistantInput").value=
 function sendAssistantMessage(){const input=document.getElementById("assistantInput");const message=input.value.trim();if(!message)return;addAssistantMessage("user",message);const reply=getAssistantReply(message);addAssistantMessage("assistant",reply);if(message.trim().toLowerCase()==="report a bug"){renderBugReportForm();}input.value="";}
 function toggleAssistantPanel(){assistantPanelOpen=!assistantPanelOpen;document.getElementById("assistantPanel").classList.toggle("hidden",!assistantPanelOpen);}
 function closeAssistantPanel(){assistantPanelOpen=false;document.getElementById("assistantPanel").classList.add("hidden");}
-async function saveBugReport(event){event.preventDefault();const issueType=document.getElementById("bugIssueType").value,description=document.getElementById("bugDescription").value.trim(),email=(document.getElementById("bugEmail").value.trim()||currentUser?.email||"");if(!description)return;try{const response=await fetchWithTimeout(`${API_BASE}${FEEDBACK_ENDPOINT}`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({user_id:currentUser?.isDemo?null:currentUser?.id||null,email,message:description,issue_type:issueType})});if(!response.ok)throw new Error("feedback failed");addAssistantMessage("assistant","Thanks, your report was sent to our team.");}catch(_e){const existing=JSON.parse(localStorage.getItem(getBugReportsKey())||"[]");existing.unshift({id:Date.now(),createdAt:new Date().toISOString(),issueType,description,email});localStorage.setItem(getBugReportsKey(),JSON.stringify(existing));addAssistantMessage("assistant","We could not reach the server, so your report was saved locally.");}document.getElementById("assistantBugFormHost").innerHTML="";}
+async function saveBugReport(event){event.preventDefault();const issueType=document.getElementById("bugIssueType").value,description=document.getElementById("bugDescription").value.trim(),email=(document.getElementById("bugEmail").value.trim()||currentUser?.email||"");if(!description)return;try{const payload=buildBugReportPayload({issueType,description,email});const response=await fetchWithTimeout(`${API_BASE}${BUG_REPORT_ENDPOINT}`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});if(!response.ok)throw new Error("bug report failed");const data=await response.json();addAssistantMessage("assistant",`Thanks, your report was sent to our team.${data.github_issue_url?` GitHub issue: ${data.github_issue_url}`:""}`);}catch(_e){const existing=JSON.parse(localStorage.getItem(getBugReportsKey())||"[]");existing.unshift({id:Date.now(),createdAt:new Date().toISOString(),issueType,description,email,workspaceId:currentUser?.id||"guest",page:window.location.pathname||"/",browser:navigator.userAgent,lastAction:lastUserAction});localStorage.setItem(getBugReportsKey(),JSON.stringify(existing));addAssistantMessage("assistant","We could not reach the server, so your report was saved locally.");}document.getElementById("assistantBugFormHost").innerHTML="";}
 function renderBugReportForm(){const host=document.getElementById("assistantBugFormHost");host.innerHTML=`<form class="bug-form" onsubmit="saveBugReport(event)"><label>Issue Type<select id="bugIssueType"><option value="Invoice Upload">Invoice Upload</option><option value="Invoice Deletion">Invoice Deletion</option><option value="Income Tracker">Income Tracker</option><option value="UI / Layout">UI / Layout</option><option value="Other">Other</option></select></label><label>Description<textarea id="bugDescription" rows="3" placeholder="What happened and what did you click?" required></textarea></label><label>Optional Email<input id="bugEmail" type="email" placeholder="you@company.com" /></label><button class="assistant-send" type="submit">Submit</button></form>`;}
 const assistantInputEl=document.getElementById("assistantInput");
 if(assistantInputEl){assistantInputEl.addEventListener("keydown",event=>{if(event.key==="Enter"){event.preventDefault();sendAssistantMessage();}});}

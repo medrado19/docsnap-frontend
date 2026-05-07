@@ -2,14 +2,15 @@ import json
 import logging
 import os
 import uuid
+from textwrap import dedent
 
 import requests
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
 from sqlalchemy.orm import Session
 
 from app.database import get_db
-from app.models.models import FeedbackReport, IncomeEntry, Invoice, User
-from app.schemas.schemas import FeedbackCreate, IncomeCreate, IncomeResponse, InvoiceCreate, InvoiceResponse, UserFindOrCreate, UserResponse
+from app.models.models import BugReport, FeedbackReport, IncomeEntry, Invoice, User
+from app.schemas.schemas import BugReportCreate, FeedbackCreate, IncomeCreate, IncomeResponse, InvoiceCreate, InvoiceResponse, UserFindOrCreate, UserResponse
 
 router = APIRouter()
 logger = logging.getLogger("revnio.upload")
@@ -37,6 +38,67 @@ def _send_feedback_email(email: str, issue_type: str, message: str):
         "to": ["contact@revnio.co"],
         "subject": f"Revnio feedback: {issue_type}",
         "html": f"<p><strong>User email:</strong> {email}</p><p><strong>Issue type:</strong> {issue_type}</p><p><strong>Message:</strong><br>{message}</p>",
+    }
+    requests.post("https://api.resend.com/emails", headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}, json=payload, timeout=10)
+
+
+def _create_github_issue_if_enabled(report: BugReportCreate):
+    token = os.getenv("GITHUB_TOKEN")
+    repo = os.getenv("GITHUB_REPO")
+    if not token or not repo:
+        return None
+    issue_payload = {
+        "title": f"[Bug] {report.page}: {report.error_message[:80]}",
+        "body": dedent(
+            f"""
+            Automated bug report from Revnio frontend.
+
+            - Email: {report.email}
+            - Workspace ID: {report.workspace_id or "N/A"}
+            - Page: {report.page}
+            - Error: {report.error_message}
+            - Browser: {report.browser}
+            - Timestamp: {report.timestamp}
+            - Last action: {report.last_action or "N/A"}
+
+            AI may suggest fixes, but implementation must be submitted as a PR with human review before merge.
+            """
+        ).strip(),
+        "labels": ["bug", "needs-review", "ai-suggested-fix-allowed-no-automerge"],
+    }
+    response = requests.post(
+        f"https://api.github.com/repos/{repo}/issues",
+        headers={"Authorization": f"Bearer {token}", "Accept": "application/vnd.github+json"},
+        json=issue_payload,
+        timeout=10,
+    )
+    if not response.ok:
+        logger.warning("Failed to create GitHub issue for bug report", extra={"repo": repo, "status": response.status_code})
+        return None
+    return response.json().get("html_url")
+
+
+def _send_bug_report_email(report: BugReportCreate, github_issue_url: str | None):
+    api_key = os.getenv("RESEND_API_KEY")
+    sender = os.getenv("RESEND_FROM_EMAIL", "noreply@revnio.co")
+    if not api_key:
+        logger.warning("RESEND_API_KEY not configured; skipping bug report email send")
+        return
+    payload = {
+        "from": sender,
+        "to": ["contact@revnio.co"],
+        "subject": f"Revnio bug report from {report.email}",
+        "html": (
+            f"<p><strong>Email:</strong> {report.email}</p>"
+            f"<p><strong>Workspace ID:</strong> {report.workspace_id or 'N/A'}</p>"
+            f"<p><strong>Page:</strong> {report.page}</p>"
+            f"<p><strong>Error:</strong> {report.error_message}</p>"
+            f"<p><strong>Browser:</strong> {report.browser}</p>"
+            f"<p><strong>Timestamp:</strong> {report.timestamp}</p>"
+            f"<p><strong>Last action:</strong> {report.last_action or 'N/A'}</p>"
+            f"<p><strong>GitHub issue:</strong> {github_issue_url or 'Not created'}</p>"
+            "<p><strong>Policy:</strong> AI fixes must be submitted through PR and human review. No auto-merge.</p>"
+        ),
     }
     requests.post("https://api.resend.com/emails", headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}, json=payload, timeout=10)
 
@@ -111,6 +173,20 @@ def save_feedback(payload: FeedbackCreate, db: Session = Depends(get_db)):
     db.commit()
     _send_feedback_email(payload.email, payload.issue_type, payload.message)
     return {"message": "Feedback saved"}
+
+
+@router.post("/bug-report")
+def save_bug_report(payload: BugReportCreate, db: Session = Depends(get_db)):
+    github_issue_url = _create_github_issue_if_enabled(payload)
+    report = BugReport(**payload.model_dump(), github_issue_url=github_issue_url, requires_pr_review=True)
+    db.add(report)
+    db.commit()
+    _send_bug_report_email(payload, github_issue_url)
+    return {
+        "message": "Bug report saved",
+        "github_issue_url": github_issue_url,
+        "policy": "AI fixes must be pull requests and require human review before merge.",
+    }
 
 
 @router.post("/upload-invoice", response_model=InvoiceResponse)
