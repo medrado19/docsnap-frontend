@@ -59,3 +59,14 @@ class FeedbackCreate(BaseModel):
     email: str
     message: str
     issue_type: str
+
+
+class BugReportCreate(BaseModel):
+    user_id: uuid.UUID | None = None
+    email: str
+    workspace_id: str | None = None
+    page: str
+    error_message: str
+    browser: str
+    timestamp: str
+    last_action: str | None = None

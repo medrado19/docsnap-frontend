@@ -65,3 +65,21 @@ class FeedbackReport(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
 
     user: Mapped["User" | None] = relationship(back_populates="feedback_reports")
+
+
+class BugReport(Base):
+    __tablename__ = "bug_reports"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=True)
+    email: Mapped[str] = mapped_column(String(255), nullable=False)
+    workspace_id: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    page: Mapped[str] = mapped_column(String(255), nullable=False)
+    error_message: Mapped[str] = mapped_column(Text, nullable=False)
+    browser: Mapped[str] = mapped_column(String(255), nullable=False)
+    timestamp: Mapped[str] = mapped_column(String(50), nullable=False)
+    last_action: Mapped[str | None] = mapped_column(Text, nullable=True)
+    ai_suggested_fix: Mapped[str | None] = mapped_column(Text, nullable=True)
+    github_issue_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    requires_pr_review: Mapped[bool] = mapped_column(default=True, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
