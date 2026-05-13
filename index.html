@@ -526,6 +526,7 @@
       <button class="nav-item" data-i18n="operations" onclick="showTab('operations', this)">Operations</button>
       <button class="nav-item" data-i18n="analytics" onclick="showTab('analytics', this)">Analytics</button>
       <button class="nav-item" data-i18n="insights" onclick="showTab('insights', this)">Insights</button>
+      <button class="nav-item" data-i18n="jobs_hours" onclick="showTab('jobs', this)">Jobs / Hours</button>
       <button class="nav-item" onclick="showTab('profile', this)">Profile</button>
     </aside>
 
@@ -556,6 +557,7 @@
         <button id="tab-operations" class="tab-btn" data-i18n="operations" onclick="activateTab('operations')">Operations</button>
         <button id="tab-analytics" class="tab-btn" data-i18n="analytics" onclick="activateTab('analytics')">Analytics</button>
         <button id="tab-insights" class="tab-btn" data-i18n="insights" onclick="activateTab('insights')">Insights</button>
+        <button id="tab-jobs" class="tab-btn" data-i18n="jobs_hours" onclick="activateTab('jobs')">Jobs / Hours</button>
         <button id="tab-profile" class="tab-btn" onclick="activateTab('profile')">Profile</button>
       </div>
 
@@ -652,6 +654,29 @@
           </div>
         </div>
       </section>
+      
+      <section id="jobs" class="tab-content">
+        <div class="layout">
+          <div class="box">
+            <h2 data-i18n="jobs_hours">Jobs / Hours</h2>
+            <form id="jobForm" onsubmit="saveJobEntry(event)">
+              <div class="row"><label data-i18n="date_label">Date<input type="date" id="jobDate" required /></label><label data-i18n="client_job_name">Client / Job name<input type="text" id="jobClient" required /></label></div>
+              <div class="row"><label data-i18n="location">Location<input type="text" id="jobLocation" /></label><label data-i18n="amount_earned">Amount earned<input type="number" id="jobAmount" min="0" step="0.01" required /></label></div>
+              <div class="row"><label data-i18n="start_time">Start time<input type="time" id="jobStart" required /></label><label data-i18n="end_time">End time<input type="time" id="jobEnd" required /></label></div>
+              <div class="row"><label data-i18n="paid_status">Paid status<select id="jobStatus"><option value="Paid">Paid</option><option value="Unpaid">Unpaid</option></select></label><label data-i18n="notes">Notes<input type="text" id="jobNotes" /></label></div>
+              <div class="actions"><button class="btn" type="submit" data-i18n="save_job">Save Job</button></div>
+            </form>
+          </div>
+          <div class="box">
+            <h2 data-i18n="daily_summary">Daily Summary</h2>
+            <div id="jobsDailySummary" class="state">No jobs recorded yet.</div>
+          </div>
+        </div>
+        <div class="box" style="margin-top:16px;">
+          <h2 data-i18n="jobs_entries">Job Entries</h2>
+          <div id="jobsHistory" class="state">No jobs recorded yet.</div>
+        </div>
+      </section>
       <section id="insights" class="tab-content"><div class="box"><h2 data-i18n="insights">Insights</h2><div id="insightsContent" class="state">Add income and upload invoices to generate your financial summary.</div></div></section>
       <section id="profile" class="tab-content"><div class="box"><h2>Profile</h2><div id="profileContent" class="state">Select or create a workspace to view profile details.</div></div></section>
     </main>
@@ -702,6 +727,7 @@ const REQUEST_TIMEOUT_MS = 30000;
 const DEBUG_MODE = false;
 const DEMO_INVOICE_KEY = "revnio_demo_invoices";
 const DEMO_INCOME_KEY = "revnio_demo_income";
+const DEMO_JOBS_KEY = "revnio_demo_jobs";
 if (isGitHubPages && API_BASE.includes("localhost")) {
   console.error("Invalid API_BASE for GitHub Pages deployment:", API_BASE);
 }
@@ -720,12 +746,13 @@ const LANGUAGE_OPTIONS = [
   { code: "es", label: "Español" }
 ];
 const translations = {
-  en: {view_dashboard:"View dashboard",export_csv:"Export CSV",back_to_landing:"← Back to Landing",overview:"Overview",operations:"Operations",analytics:"Analytics",insights:"Insights",upload_invoice:"Upload Invoice",total_income:"Total Income",total_expenses:"Total Expenses",profit:"Profit",invoice_history:"Invoice History",income_tracker:"Income Tracker",add_income:"Add Income",dashboard_title:"Revnio Hub"},
-  fr: {view_dashboard:"Voir le tableau de bord",export_csv:"Exporter CSV",back_to_landing:"← Retour à l'accueil",overview:"Vue d'ensemble",operations:"Opérations",analytics:"Analytique",insights:"Insights",upload_invoice:"Téléverser une facture",total_income:"Revenus totaux",total_expenses:"Dépenses totales",profit:"Profit",invoice_history:"Historique des factures",income_tracker:"Suivi des revenus",add_income:"Ajouter un revenu",dashboard_title:"Revnio Hub"},
-  pt: {view_dashboard:"Ver painel",export_csv:"Exportar CSV",back_to_landing:"← Voltar ao início",overview:"Visão geral",operations:"Operações",analytics:"Análises",insights:"Insights",upload_invoice:"Enviar nota fiscal",total_income:"Receita",total_expenses:"Despesas",profit:"Lucro",invoice_history:"Histórico de notas",income_tracker:"Controle de receitas",add_income:"Adicionar receita",dashboard_title:"Revnio Hub"},
-  es: {view_dashboard:"Ver panel",export_csv:"Exportar CSV",back_to_landing:"← Volver al inicio",overview:"Resumen",operations:"Operaciones",analytics:"Analítica",insights:"Insights",upload_invoice:"Subir factura",total_income:"Ingresos totales",total_expenses:"Gastos totales",profit:"Ganancia",invoice_history:"Historial de facturas",income_tracker:"Seguimiento de ingresos",add_income:"Agregar ingreso",dashboard_title:"Revnio Hub"}
+  en: {view_dashboard:"View dashboard",export_csv:"Export CSV",back_to_landing:"← Back to Landing",overview:"Overview",operations:"Operations",analytics:"Analytics",insights:"Insights",upload_invoice:"Upload Invoice",total_income:"Total Income",total_expenses:"Total Expenses",profit:"Profit",invoice_history:"Invoice History",income_tracker:"Income Tracker",add_income:"Add Income",dashboard_title:"Revnio Hub",jobs_hours:"Jobs / Hours",daily_summary:"Daily Summary",jobs_entries:"Job Entries",save_job:"Save Job",client_job_name:"Client / Job name",location:"Location",start_time:"Start time",end_time:"End time",amount_earned:"Amount earned",paid_status:"Paid status",notes:"Notes",date_label:"Date"},
+  fr: {view_dashboard:"Voir le tableau de bord",export_csv:"Exporter CSV",back_to_landing:"← Retour à l'accueil",overview:"Vue d'ensemble",operations:"Opérations",analytics:"Analytique",insights:"Insights",upload_invoice:"Téléverser une facture",total_income:"Revenus totaux",total_expenses:"Dépenses totales",profit:"Profit",invoice_history:"Historique des factures",income_tracker:"Suivi des revenus",add_income:"Ajouter un revenu",dashboard_title:"Revnio Hub",jobs_hours:"Jobs / Hours",daily_summary:"Daily Summary",jobs_entries:"Job Entries",save_job:"Save Job",client_job_name:"Client / Job name",location:"Location",start_time:"Start time",end_time:"End time",amount_earned:"Amount earned",paid_status:"Paid status",notes:"Notes",date_label:"Date"},
+  pt: {view_dashboard:"Ver painel",export_csv:"Exportar CSV",back_to_landing:"← Voltar ao início",overview:"Visão geral",operations:"Operações",analytics:"Análises",insights:"Insights",upload_invoice:"Enviar nota fiscal",total_income:"Receita",total_expenses:"Despesas",profit:"Lucro",invoice_history:"Histórico de notas",income_tracker:"Controle de receitas",add_income:"Adicionar receita",dashboard_title:"Revnio Hub",jobs_hours:"Jobs / Hours",daily_summary:"Daily Summary",jobs_entries:"Job Entries",save_job:"Save Job",client_job_name:"Client / Job name",location:"Location",start_time:"Start time",end_time:"End time",amount_earned:"Amount earned",paid_status:"Paid status",notes:"Notes",date_label:"Date"},
+  es: {view_dashboard:"Ver panel",export_csv:"Exportar CSV",back_to_landing:"← Volver al inicio",overview:"Resumen",operations:"Operaciones",analytics:"Analítica",insights:"Insights",upload_invoice:"Subir factura",total_income:"Ingresos totales",total_expenses:"Gastos totales",profit:"Ganancia",invoice_history:"Historial de facturas",income_tracker:"Seguimiento de ingresos",add_income:"Agregar ingreso",dashboard_title:"Revnio Hub",jobs_hours:"Jobs / Hours",daily_summary:"Daily Summary",jobs_entries:"Job Entries",save_job:"Save Job",client_job_name:"Client / Job name",location:"Location",start_time:"Start time",end_time:"End time",amount_earned:"Amount earned",paid_status:"Paid status",notes:"Notes",date_label:"Date"}
 };
 Object.assign(translations.en,{
+  jobs_hours:"Jobs / Hours",daily_summary:"Daily summary",jobs_entries:"Job entries",save_job:"Save Job",
   no_workspace_selected:"No workspace selected",loading_dashboard:"Loading dashboard data...",select_workspace_continue:"Select a workspace to continue.",
   add_income_profit_hint:"Add income to see your profit.",no_file_selected:"No file selected",upload_first_invoice_details:"Upload your first invoice to see details here.",
   no_invoices_tracking:"No invoices yet. Upload your first invoice to start tracking expenses.",no_invoice_export:"No invoice data to export yet.",
@@ -734,6 +761,7 @@ Object.assign(translations.en,{
   assistant_welcome:"Hi! I’m your Revnio Assistant. Ask a question or tap a quick help option.",assistant_default_reply:"I can help with uploads, invoice deletion, income tracking, and bug reporting. Try a quick help button above."
 });
 Object.assign(translations.fr,{
+  jobs_hours:"Emplois / Heures",daily_summary:"Résumé quotidien",jobs_entries:"Entrées de travail",save_job:"Enregistrer",
   no_workspace_selected:"Aucun espace sélectionné",loading_dashboard:"Chargement du tableau de bord...",select_workspace_continue:"Sélectionnez un espace pour continuer.",
   add_income_profit_hint:"Ajoutez un revenu pour voir votre profit.",no_file_selected:"Aucun fichier sélectionné",upload_first_invoice_details:"Téléversez votre première facture pour voir les détails.",
   no_invoices_tracking:"Aucune facture. Téléversez votre première facture pour commencer.",no_invoice_export:"Aucune donnée de facture à exporter.",
@@ -742,6 +770,7 @@ Object.assign(translations.fr,{
   assistant_welcome:"Bonjour, je suis votre assistant Revnio. Posez une question ou utilisez l’aide rapide.",assistant_default_reply:"Je peux aider sur le téléversement, la suppression de facture, le suivi des revenus et les bugs."
 });
 Object.assign(translations.pt,{
+  jobs_hours:"Trabalhos / Horas",daily_summary:"Resumo diário",jobs_entries:"Registros",save_job:"Salvar trabalho",
   no_workspace_selected:"Nenhum workspace selecionado",loading_dashboard:"Carregando painel...",select_workspace_continue:"Selecione um workspace para continuar.",
   add_income_profit_hint:"Adicione receita para ver seu lucro.",no_file_selected:"Nenhum arquivo selecionado",upload_first_invoice_details:"Envie sua primeira nota para ver os detalhes.",
   no_invoices_tracking:"Ainda sem notas. Envie a primeira para começar.",no_invoice_export:"Nenhum dado de nota para exportar.",
@@ -750,6 +779,7 @@ Object.assign(translations.pt,{
   assistant_welcome:"Olá! Sou o Assistente Revnio. Faça uma pergunta ou use a ajuda rápida.",assistant_default_reply:"Posso ajudar com upload, exclusão de notas, receitas e bugs."
 });
 Object.assign(translations.es,{
+  jobs_hours:"Trabajos / Horas",daily_summary:"Resumen diario",jobs_entries:"Registros de trabajo",save_job:"Guardar trabajo",
   no_workspace_selected:"Ningún espacio seleccionado",loading_dashboard:"Cargando panel...",select_workspace_continue:"Selecciona un espacio para continuar.",
   add_income_profit_hint:"Agrega ingresos para ver tu ganancia.",no_file_selected:"Ningún archivo seleccionado",upload_first_invoice_details:"Sube tu primera factura para ver detalles.",
   no_invoices_tracking:"Sin facturas aún. Sube la primera para empezar.",no_invoice_export:"No hay datos de facturas para exportar.",
@@ -764,7 +794,7 @@ const localAssistantHandlers = {
   "how do i track income?": "Use the Income Tracker form in Overview. Add source, date, amount, and optional notes, then click Add Income. Entries update totals and profit cards instantly.",
   "report a bug": "Please describe what happened and what you clicked. You can submit the bug form below and it will be saved locally."
 };
-let invoices = [], incomeEntries = [], categoryChartInstance = null, monthlyChartInstance = null, openActionMenu = null;
+let invoices = [], incomeEntries = [], jobEntries = [], categoryChartInstance = null, monthlyChartInstance = null, openActionMenu = null;
 let activeToastState = null;
 let lastDeletedInvoice = null;
 let lastDeletedIncome = null;
@@ -823,6 +853,7 @@ function setCurrentUser(user){ currentUser=user; localStorage.setItem(CURRENT_US
 function getStorageKey(type){ const user=getCurrentUser(); const id=user?.id||"guest"; return `revnio_${id}_${type}`; }
 function getInvoiceStorageKey(){ return currentUser?.isDemo ? DEMO_INVOICE_KEY : getStorageKey("invoices"); }
 function getIncomeStorageKey(){ return currentUser?.isDemo ? DEMO_INCOME_KEY : getStorageKey("income"); }
+function getJobsStorageKey(){ return currentUser?.isDemo ? DEMO_JOBS_KEY : getStorageKey("jobs"); }
 function getVendorCategoryStorageKey(){ return getStorageKey("vendor_categories"); }
 function getSettingsStorageKey(){ return getStorageKey("settings"); }
 function getBugReportsKey(){ return getStorageKey("bug_reports"); }
@@ -950,7 +981,9 @@ function renderIncomeHistory(){const box=document.getElementById("incomeHistory"
 function getInvoiceIdentifier(invoice,index){return String(invoice?.id??invoice?._id??invoice?.invoiceId??invoice?.invoice_id??invoice?.uuid??index);}
 function normalizeLineItems(rawItems){if(!Array.isArray(rawItems)) return [];return rawItems.map(item=>{const quantityRaw=item?.quantity??item?.qty;const quantity=quantityRaw===""||quantityRaw==null?null:Number(quantityRaw);const unitPriceRaw=item?.unitPrice??item?.unit_price??item?.price;const unitPrice=unitPriceRaw===""||unitPriceRaw==null?null:Number(unitPriceRaw);const totalRaw=item?.totalPrice??item?.total_price??item?.amount??item?.line_total??item?.total;const totalPrice=Number(totalRaw);return {description:String(item?.description||item?.name||item?.item||item?.service||item?.product||""),quantity:Number.isFinite(quantity)?quantity:null,unitPrice:Number.isFinite(unitPrice)?unitPrice:null,totalPrice:Number.isFinite(totalPrice)?totalPrice:0};}).filter(item=>item.description||item.totalPrice!==0||item.quantity!==null||item.unitPrice!==null);}
 async function persistInvoices(){localStorage.setItem(getInvoiceStorageKey(),JSON.stringify(invoices)); if(currentUser?.isDemo||!currentUser?.id) return; for(const invoice of invoices){ if(String(invoice.id).startsWith("manual_")||String(invoice.id).startsWith("tmp_")){ try{const response=await fetchWithTimeout(`${API_BASE}/users/${encodeURIComponent(currentUser.id)}/invoices`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({vendor:invoice.vendor||invoice.client_name||"Unknown",date:invoice.invoice_date,total_amount:Number(invoice.total_amount)||0,tax_amount:Number(invoice.taxAmount)||0,category:invoice.category||"Other",status:invoice.status||"Unpaid",notes:invoice.notes||"",line_items:Array.isArray(invoice.lineItems)?invoice.lineItems:[]})});if(response.ok){const saved=await response.json();invoice.id=saved.id;}}catch(_e){} } }}
-async function loadDashboard(){setLoadingState("Loading your workspace...");if(!currentUser) return setLoadingState(t("select_workspace_continue"));if(currentUser?.isDemo){invoices=JSON.parse(localStorage.getItem(getInvoiceStorageKey())||"[]").map(inv=>normalizeInvoiceFinancials(inv));await loadIncomeEntries();}else{try{const response=await fetchWithTimeout(`${API_BASE}/users/${encodeURIComponent(currentUser.id)}/invoices`);if(response.ok){const data=await response.json();invoices=data.map(inv=>normalizeInvoiceFinancials({id:inv.id,client_name:inv.vendor,vendor_name:inv.vendor,vendor:inv.vendor,invoice_date:inv.date,total_amount:Number(inv.total_amount)||0,taxAmount:Number(inv.tax_amount)||0,status:inv.status||"Unpaid",category:inv.category||"Other",notes:inv.notes||"",lineItems:Array.isArray(inv.line_items)?inv.line_items:[]}));localStorage.setItem(getInvoiceStorageKey(),JSON.stringify(invoices));}else{invoices=JSON.parse(localStorage.getItem(getInvoiceStorageKey())||"[]").map(inv=>normalizeInvoiceFinancials(inv));}}catch(_e){invoices=JSON.parse(localStorage.getItem(getInvoiceStorageKey())||"[]").map(inv=>normalizeInvoiceFinancials(inv));} await loadIncomeEntries();}applyCategoryNormalizationAndMemory();refreshAllViews();maybeShowOnboarding();renderProfileTab();setLoadingState("");}
+async function loadDashboard(){setLoadingState("Loading your workspace...");if(!currentUser) return setLoadingState(t("select_workspace_continue"));if(currentUser?.isDemo){invoices=JSON.parse(localStorage.getItem(getInvoiceStorageKey())||"[]").map(inv=>normalizeInvoiceFinancials(inv));await loadIncomeEntries();
+  loadJobEntries();}else{try{const response=await fetchWithTimeout(`${API_BASE}/users/${encodeURIComponent(currentUser.id)}/invoices`);if(response.ok){const data=await response.json();invoices=data.map(inv=>normalizeInvoiceFinancials({id:inv.id,client_name:inv.vendor,vendor_name:inv.vendor,vendor:inv.vendor,invoice_date:inv.date,total_amount:Number(inv.total_amount)||0,taxAmount:Number(inv.tax_amount)||0,status:inv.status||"Unpaid",category:inv.category||"Other",notes:inv.notes||"",lineItems:Array.isArray(inv.line_items)?inv.line_items:[]}));localStorage.setItem(getInvoiceStorageKey(),JSON.stringify(invoices));}else{invoices=JSON.parse(localStorage.getItem(getInvoiceStorageKey())||"[]").map(inv=>normalizeInvoiceFinancials(inv));}}catch(_e){invoices=JSON.parse(localStorage.getItem(getInvoiceStorageKey())||"[]").map(inv=>normalizeInvoiceFinancials(inv));} await loadIncomeEntries();
+  loadJobEntries();}applyCategoryNormalizationAndMemory();refreshAllViews();maybeShowOnboarding();renderProfileTab();setLoadingState("");}
 function updateDashboard(){const totalExpenses=invoices.reduce((sum,invoice)=>sum+(Number(invoice.total_amount)||0),0),totalIncome=incomeEntries.reduce((sum,item)=>sum+(Number(item.amount)||0),0),profit=totalIncome-totalExpenses;document.getElementById("totalIncome").textContent=formatMoney(totalIncome);document.getElementById("totalExpenses").textContent=formatMoney(totalExpenses);document.getElementById("profit").textContent=formatMoney(profit);}
 function parseEntryDate(value){const date=value?new Date(value):null;return date&&!Number.isNaN(date.getTime())?date:null;}
 function calculateExpenseTrend(invoiceList){if(invoiceList.length<2)return null;const sorted=[...invoiceList].sort((a,b)=>{const aDate=parseEntryDate(a.invoice_date||a.created_at),bDate=parseEntryDate(b.invoice_date||b.created_at);return (aDate?aDate.getTime():0)-(bDate?bDate.getTime():0);});const midpoint=Math.floor(sorted.length/2);if(midpoint===0||midpoint===sorted.length)return null;const older=sorted.slice(0,midpoint),recent=sorted.slice(midpoint);const olderTotal=older.reduce((sum,invoice)=>sum+(Number(invoice.total_amount)||0),0),recentTotal=recent.reduce((sum,invoice)=>sum+(Number(invoice.total_amount)||0),0),olderAverage=olderTotal/older.length,recentAverage=recentTotal/recent.length;if(olderAverage<=0&&recentAverage<=0)return null;if(olderAverage===0)return{direction:"up",change:100};const change=((recentAverage-olderAverage)/olderAverage)*100;if(change>7)return{direction:"up",change};if(change<-7)return{direction:"down",change:Math.abs(change)};return{direction:"flat",change:Math.abs(change)};}
@@ -1020,10 +1053,22 @@ function saveInvoiceNotesFromDetails(id,notes){saveInvoiceStatusTaxNotes(id,{not
 function saveInvoiceTaxFromDetails(id,taxAmount){const parsed=Number(taxAmount);saveInvoiceStatusTaxNotes(id,{taxAmount:Number.isFinite(parsed)?parsed:0});renderInvoiceDetailsModal();}
 function saveLineItemsChanges(){if(!activeDetailsState)return;invoices=invoices.map((inv,index)=>index!==activeDetailsState.index?inv:normalizeInvoiceFinancials({...inv,lineItems:normalizeLineItems(activeDetailsState.lineItems)}));markUserHasData();persistInvoices();refreshAllViews();activeDetailsState.editing=false;activeDetailsState.lineItems=normalizeLineItems(invoices[activeDetailsState.index].lineItems);renderInvoiceDetailsModal();showToast("Line items updated.");}
 
-function refreshAllViews(){updateDashboard();updateFinancialSummary();renderLatestInvoice();renderHistory();renderIncomeHistory();buildCategoryChart(invoices);buildMonthlyChart(invoices);updateAnalyticsSummary(invoices);buildInsights(invoices);renderProfileTab();}
+
+function toMinutes(t){const [h,m]=String(t||'').split(':').map(Number);if(!Number.isFinite(h)||!Number.isFinite(m))return null;return h*60+m;}
+function calcJobMetrics(amount,start,end){const startM=toMinutes(start),endM=toMinutes(end);if(startM===null||endM===null||endM<=startM)return {minutes:0,hours:0,hourlyRate:0};const minutes=endM-startM;const hours=minutes/60;return {minutes,hours,hourlyRate:hours>0?(Number(amount)||0)/hours:0};}
+function loadJobEntries(){jobEntries=JSON.parse(localStorage.getItem(getJobsStorageKey())||'[]');renderJobs();}
+function persistJobEntries(){localStorage.setItem(getJobsStorageKey(),JSON.stringify(jobEntries));}
+function formatDuration(min){const h=Math.floor(min/60),m=min%60;return `${h}h ${m}min`;}
+function saveJobEntry(e){e.preventDefault();const id=`job_${Date.now()}`;const date=document.getElementById('jobDate').value;const client=document.getElementById('jobClient').value.trim();const location=document.getElementById('jobLocation').value.trim();const amount=Number(document.getElementById('jobAmount').value||0);const start=document.getElementById('jobStart').value;const end=document.getElementById('jobEnd').value;const status=document.getElementById('jobStatus').value;const notes=document.getElementById('jobNotes').value.trim();const m=calcJobMetrics(amount,start,end);if(!date||!client||m.minutes<=0){showToast('Invalid job entry.');return;}jobEntries.unshift({id,date,client,location,amount,start,end,status,notes,minutes:m.minutes,hourlyRate:m.hourlyRate});persistJobEntries();renderJobs();document.getElementById('jobForm').reset();}
+function editJobEntry(id){const j=jobEntries.find(x=>x.id===id);if(!j)return;document.getElementById('jobDate').value=j.date;document.getElementById('jobClient').value=j.client;document.getElementById('jobLocation').value=j.location||'';document.getElementById('jobAmount').value=j.amount;document.getElementById('jobStart').value=j.start;document.getElementById('jobEnd').value=j.end;document.getElementById('jobStatus').value=j.status;document.getElementById('jobNotes').value=j.notes||'';jobEntries=jobEntries.filter(x=>x.id!==id);persistJobEntries();renderJobs();}
+function deleteJobEntry(id){jobEntries=jobEntries.filter(x=>x.id!==id);persistJobEntries();renderJobs();}
+function addDailyJobsToIncome(date){const day=jobEntries.filter(j=>j.date===date);const total=day.reduce((s,j)=>s+(Number(j.amount)||0),0);if(total<=0)return;incomeEntries.unshift({id:`tmp_${Date.now()}`,source:`Jobs total (${date})`,date,amount:total,notes:'Added from Jobs / Hours'});persistIncomeEntries();refreshAllViews();showToast('Daily jobs added to income.');}
+function renderJobs(){const box=document.getElementById('jobsHistory'),sum=document.getElementById('jobsDailySummary');if(!box||!sum)return;if(!jobEntries.length){box.className='state';box.textContent='No jobs recorded yet.';sum.className='state';sum.textContent='No jobs recorded yet.';return;}const groups={};jobEntries.forEach(j=>{(groups[j.date]=groups[j.date]||[]).push(j);});const dates=Object.keys(groups).sort((a,b)=>b.localeCompare(a));box.className='';sum.className='';sum.innerHTML=dates.map(d=>{const items=groups[d];const earned=items.reduce((s,j)=>s+(Number(j.amount)||0),0),mins=items.reduce((s,j)=>s+(j.minutes||0),0),paid=items.filter(j=>j.status==='Paid').reduce((s,j)=>s+j.amount,0),unpaid=earned-paid;const avg=mins?earned/(mins/60):0;return `<div class="card" style="margin-bottom:12px;"><strong>${d}</strong><div>Total earned: ${formatMoney(earned)} | Total hours: ${formatDuration(mins)} | Avg hourly: ${formatMoney(avg)}/hour | Paid: ${formatMoney(paid)} | Unpaid: ${formatMoney(unpaid)}</div><div class="actions" style="margin-top:8px;"><button class="btn secondary" onclick="addDailyJobsToIncome('${d}')">Add to Income</button></div></div>`;}).join('');box.innerHTML=dates.map(d=>`<div class="card" style="margin-bottom:12px;"><h3 style="margin:0 0 8px;">${d}</h3>${groups[d].map(j=>`<div style="border:1px solid #334155;border-radius:12px;padding:10px;margin-bottom:8px;"><div><strong>${j.client}</strong> ${j.location?`• ${j.location}`:''}</div><div>${j.start} - ${j.end} • ${formatDuration(j.minutes)} • ${formatMoney(j.amount)} • ${formatMoney(j.hourlyRate)}/hour • ${j.status}</div><div style="color:#94a3b8;">${j.notes||''}</div><div class="actions" style="margin-top:8px;"><button class="btn secondary" onclick="editJobEntry('${j.id}')">Edit</button><button class="btn ghost-danger" onclick="deleteJobEntry('${j.id}')">Delete</button></div></div>`).join('')}</div>`).join('');}
+
+function refreshAllViews(){updateDashboard();updateFinancialSummary();renderLatestInvoice();renderHistory();renderIncomeHistory();renderJobs();buildCategoryChart(invoices);buildMonthlyChart(invoices);updateAnalyticsSummary(invoices);buildInsights(invoices);renderProfileTab();}
 function clearDashboard(){if(!confirm(t("clear_income_confirm")))return;incomeEntries=[];persistIncomeEntries();refreshAllViews();}
 function renderProfileTab(){const node=document.getElementById("profileContent");if(!node)return;if(!currentUser){node.className="state";node.textContent="Select or create a workspace to view profile details.";return;}node.className="";const workspaceType=currentUser.isDemo?"Demo":"Personal workspace";node.innerHTML=`<div class=\"profile-grid\"><p><strong>Business name:</strong> ${currentUser.businessName||"—"}</p><p><strong>Email:</strong> ${currentUser.email||"—"}</p><p><strong>Preferred language:</strong> ${currentLanguage.toUpperCase()}</p><p><strong>Current workspace type:</strong> ${workspaceType}</p><div class=\"actions\"><button class=\"btn ghost-danger\" onclick=\"clearWorkspaceData()\">Clear my workspace data</button><button class=\"btn secondary\" onclick=\"showLanding()\">Back to landing / Switch workspace</button></div></div>`;}
-function clearWorkspaceData(){if(!currentUser)return;const confirmed=confirm("Clear this workspace data? This only affects the active workspace.");if(!confirmed)return;localStorage.removeItem(getInvoiceStorageKey());localStorage.removeItem(getIncomeStorageKey());localStorage.removeItem(getVendorCategoryStorageKey());localStorage.removeItem(getSettingsStorageKey());localStorage.removeItem(getHasDataKey());invoices=[];incomeEntries=[];refreshAllViews();setLoadingState("Workspace data cleared.");}
+function clearWorkspaceData(){if(!currentUser)return;const confirmed=confirm("Clear this workspace data? This only affects the active workspace.");if(!confirmed)return;localStorage.removeItem(getInvoiceStorageKey());localStorage.removeItem(getIncomeStorageKey());localStorage.removeItem(getVendorCategoryStorageKey());localStorage.removeItem(getSettingsStorageKey());localStorage.removeItem(getHasDataKey());invoices=[];incomeEntries=[];jobEntries=[];localStorage.removeItem(getJobsStorageKey());refreshAllViews();setLoadingState("Workspace data cleared.");}
 function renderQuickHelpButtons(){const host=document.getElementById("quickHelpButtons");if(!host)return;host.innerHTML=QUICK_HELP_ITEMS.map(item=>`<button type="button" class="quick-help-btn" onclick="askQuickHelp('${item.replace(/'/g,"\\'")}')">${item}</button>`).join("");}
 function addAssistantMessage(role, text){const row=document.createElement("div");row.className=`chat-msg ${role}`;row.textContent=text;const chat=document.getElementById("assistantChatLog");chat.appendChild(row);chat.scrollTop=chat.scrollHeight;}
 function getAssistantReply(message){const key=message.trim().toLowerCase();return localAssistantHandlers[key]||t("assistant_default_reply");}
