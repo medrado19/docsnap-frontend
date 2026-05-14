@@ -66,7 +66,7 @@
       justify-content: center;
       transition: transform 0.25s ease, box-shadow 0.25s ease, filter 0.25s ease, border-color 0.2s ease;
     }
-    .btn:hover { transform: translateY(-1px); filter: brightness(1.08); box-shadow: 0 14px 24px rgba(99, 102, 241, 0.3); }
+    .btn:hover { transform: translateY(-1px); filter: brightness(1.08); box-shadow: 0 16px 28px rgba(99, 102, 241, 0.35), 0 0 24px rgba(139, 92, 246, 0.2); }
     .btn.secondary { background: #1f2a3f; border-color: #303f57; }
 
     .btn.ghost-danger {
@@ -173,9 +173,9 @@
     .shell { min-height: 100vh; display: grid; grid-template-columns: 248px 1fr; overflow-x: hidden; position: relative; }
     .sidebar { background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(12px); border-right: 1px solid var(--border); padding: 28px 18px; position: sticky; top: 0; height: 100vh; transition: left 0.3s ease; z-index: 80; }
 
-    .nav-item { width: 100%; border: 1px solid transparent; background: transparent; color: #c6d2e4; text-align: left; padding: 12px 14px; border-radius: 12px; margin-bottom: 8px; cursor: pointer; font-size: 14px; font-weight: 500; transition: 0.25s ease; }
-    .nav-item.active { background: rgba(99, 102, 241, 0.16); border-color: rgba(139, 92, 246, 0.42); box-shadow: inset 0 0 0 1px rgba(59, 130, 246, 0.24), 0 0 30px rgba(99, 102, 241, 0.2); color: #eef2ff; }
-    .nav-item:hover { background: rgba(148, 163, 184, 0.12); color: #e2e8f0; }
+    .nav-item { width: 100%; border: 1px solid transparent; background: transparent; color: #aebbd0; text-align: left; padding: 11px 14px; border-radius: 12px; margin-bottom: 10px; cursor: pointer; font-size: 14px; font-weight: 500; transition: background 0.28s ease, color 0.28s ease, border-color 0.28s ease, transform 0.28s ease, box-shadow 0.28s ease; }
+    .nav-item.active { background: linear-gradient(140deg, rgba(99, 102, 241, 0.28), rgba(76, 29, 149, 0.16)); border-color: rgba(139, 92, 246, 0.56); box-shadow: inset 0 0 0 1px rgba(147, 197, 253, 0.2), 0 12px 26px rgba(79, 70, 229, 0.24), 0 0 24px rgba(139, 92, 246, 0.2); color: #f5f3ff; transform: translateX(1px); }
+    .nav-item:hover { background: rgba(99, 102, 241, 0.14); border-color: rgba(99, 102, 241, 0.26); color: #dbe7ff; }
 
     .main { padding: var(--space-5); min-width: 0; overflow-x: hidden; }
     .topbar { padding: var(--card-padding); display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 22px; }
@@ -375,16 +375,21 @@
     .mobile-row-head { display:flex; justify-content: space-between; align-items: center; gap: 10px; }
     .mobile-row-title { font-weight: 700; font-size: 15px; margin:0; }
     .mobile-row-menu { flex-shrink:0; }
-    .jobs-form { display: grid; gap: 14px; }
-    .jobs-form textarea { min-height: 92px; resize: vertical; }
+    .jobs-form { display: grid; gap: 10px; }
+    .jobs-form .row { gap: 10px; }
+    .jobs-form label { margin-bottom: 0; }
+    .jobs-form textarea { min-height: 74px; resize: vertical; }
     .jobs-metrics { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 10px; }
-    .jobs-metric-card { border: 1px solid rgba(99,102,241,.38); border-radius: 12px; background: linear-gradient(150deg, rgba(30,41,59,.92), rgba(15,23,42,.86)); padding: 10px 12px; box-shadow: inset 0 1px 0 rgba(191,219,254,.08), 0 0 0 1px rgba(99,102,241,.08), 0 14px 26px rgba(15,23,42,.42); }
+    .jobs-metric-card { border: 1px solid rgba(129, 140, 248, 0.44); border-radius: 13px; background: linear-gradient(150deg, rgba(30,41,59,.94), rgba(15,23,42,.88)); padding: 11px 12px; box-shadow: inset 0 1px 0 rgba(191,219,254,.08), 0 0 0 1px rgba(99,102,241,.1), 0 16px 30px rgba(15,23,42,.45); position: relative; overflow: hidden; }
+    .jobs-metric-card::before { content:""; position:absolute; inset:-45% auto auto -20%; width:160px; height:160px; border-radius:999px; background: radial-gradient(circle, rgba(139,92,246,.16), transparent 70%); pointer-events:none; }
     .jobs-metric-card span { font-size: 10px; color:#94a3b8; text-transform: uppercase; letter-spacing: .08em; display:block; margin-bottom: 4px; }
-    .jobs-metric-card strong { font-size: 20px; color: #eff6ff; font-weight: 700; line-height: 1.2; display:block; }
+    .jobs-metric-card strong { font-size: 24px; color: #eff6ff; font-weight: 800; line-height: 1.2; display:block; letter-spacing: -0.02em; text-shadow: 0 0 18px rgba(139, 92, 246, 0.2); }
     .jobs-metric-helper { margin-top: 6px; font-size: 11px; color: #9aa7bc; letter-spacing: .01em; }
     .jobs-metric-empty { color: #93c5fd; font-size: 14px; font-weight: 600; }
-    .jobs-list { display:grid; gap:10px; }
-    .job-entry-card { border:1px solid #334155; border-radius:12px; background:rgba(15,23,42,.78); padding:12px; display:grid; gap:10px; }
+    .jobs-list { display:grid; gap:14px; }
+    .job-entry-card { border:1px solid rgba(148, 163, 184, 0.25); border-radius:14px; background:linear-gradient(150deg, rgba(30,41,59,.52), rgba(15,23,42,.74)); backdrop-filter: blur(10px); padding:13px; display:grid; gap:11px; box-shadow: 0 12px 22px rgba(2,6,23,.35), inset 0 1px 0 rgba(255,255,255,.04); transition: transform .25s ease, border-color .25s ease, box-shadow .25s ease; }
+    .job-entry-card:hover { transform: translateY(-2px); border-color: rgba(129, 140, 248, 0.52); box-shadow: 0 18px 34px rgba(30, 41, 59, 0.48), 0 0 0 1px rgba(129, 140, 248, 0.22); }
+    .job-entry-card.job-new { animation: jobCardIn .48s cubic-bezier(.22,.61,.36,1); }
     .job-entry-top { display:flex; justify-content:space-between; align-items:flex-start; gap:8px; }
     .job-client { font-weight:700; color:#eef2ff; }
     .job-meta { color:#a5b4fc; font-size:12px; }
@@ -395,18 +400,25 @@
     .paid-pill { border-radius:999px; padding:4px 10px; font-size:11px; font-weight:700; border:1px solid #334155; }
     .paid-pill.paid { color:#86efac; border-color:#166534; background:rgba(22,101,52,.2); }
     .paid-pill.unpaid { color:#fca5a5; border-color:#7f1d1d; background:rgba(127,29,29,.2); }
-    .summary-list { display:grid; gap:10px; }
-    .summary-row { border:1px solid #334155; border-radius:12px; padding:12px; background:rgba(15,23,42,.74); }
-    .summary-grid { margin-top:8px; display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:8px; }
-    .summary-cell { background:rgba(30,41,59,.55); border:1px solid #334155; border-radius:8px; padding:8px; }
+    .summary-list { display:grid; gap:12px; position: relative; isolation: isolate; }
+    .summary-list::before { content:""; position:absolute; inset:-8px -8px auto -8px; height:120px; border-radius:20px; background: radial-gradient(circle at 22% 18%, rgba(139, 92, 246, 0.24), rgba(15,23,42,0)); z-index:-1; pointer-events:none; }
+    .summary-row { border:1px solid rgba(129,140,248,.32); border-radius:14px; padding:14px; background:linear-gradient(160deg, rgba(30,41,59,.5), rgba(15,23,42,.78)); }
+    .summary-grid { margin-top:11px; display:grid; grid-template-columns:minmax(0,1.6fr) repeat(4,minmax(0,1fr)); gap:10px; }
+    .summary-cell { background:rgba(30,41,59,.58); border:1px solid rgba(71,85,105,.75); border-radius:10px; padding:9px; }
+    .summary-cell.primary { border-color: rgba(129,140,248,.54); background: linear-gradient(150deg, rgba(67,56,202,.22), rgba(30,41,59,.64)); box-shadow: 0 0 24px rgba(99,102,241,.16); }
     .summary-cell span { display:block; color:#93c5fd; font-size:11px; text-transform:uppercase; }
     .summary-cell strong { color:#e2e8f0; font-size:13px; }
+    .summary-cell.primary strong { font-size: 20px; font-weight: 800; color:#f8faff; letter-spacing:-0.02em; }
+    .summary-cell.secondary strong { font-size: 12px; color:#cbd5e1; }
+    .summary-cell .summary-value-updated { animation: metricPulse .45s ease; display:inline-block; }
     input, select, textarea { color:#f8fafc; background:#0f172a; border-color:#334155; }
     input::placeholder, textarea::placeholder { color:#94a3b8; }
     input[type="date"], input[type="time"] { color-scheme: dark; }
     input[type="date"]::-webkit-calendar-picker-indicator, input[type="time"]::-webkit-calendar-picker-indicator { filter: invert(69%) sepia(18%) saturate(1562%) hue-rotate(206deg) brightness(98%) contrast(95%); cursor:pointer; }
     @media (max-width: 900px){ .job-grid { grid-template-columns:1fr 1fr; } .summary-grid { grid-template-columns:1fr 1fr; } }
-    @media (max-width: 640px){ .job-grid, .summary-grid { grid-template-columns:1fr; } }
+    @media (max-width: 640px){ .job-grid, .summary-grid, .jobs-metrics { grid-template-columns:1fr; } .jobs-form { gap: 8px; } .jobs-form .actions { position: sticky; bottom: 8px; background: linear-gradient(180deg, rgba(11,18,32,0), rgba(11,18,32,0.95) 34%); padding-top: 8px; } }
+    @keyframes jobCardIn { from { opacity:0; transform: translateY(10px); } to { opacity:1; transform: translateY(0); } }
+    @keyframes metricPulse { 0% { transform: translateY(4px); opacity:.4; } 100% { transform: translateY(0); opacity:1; } }
 
     .daily-summary-grid { display:grid; gap: 12px; }
     .summary-metrics { display:grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap:8px; margin:10px 0; }
@@ -773,7 +785,7 @@ const VENDOR_CATEGORY_KEY = "revnio_vendor_categories";
 const USERS_KEY = "revnio_users";
 const CURRENT_USER_KEY = "revnio_current_user";
 const ALLOWED_CATEGORIES = ["Rent","Utilities","Supplies","Food & Beverage","Marketing","Professional Services","Payroll","Transportation","Software","Other"];
-const DEMO_USER = { id: "demo", email: "demo@revnio.local", businessName: "Demo Workspace", createdAt: "2026-01-01T00:00:00.000Z", isDemo: true };
+const DEMO_USER = { id: "demo", email: "demo@revnio.local", businessName: "Personal Workspace", createdAt: "2026-01-01T00:00:00.000Z", isDemo: true };
 const QUICK_HELP_ITEMS = ["How do I upload an invoice?","Why is invoice deletion not working?","How do I track income?","Report a bug"];
 const LANGUAGE_OPTIONS = [
   { code: "en", label: "English" },
@@ -1134,7 +1146,8 @@ function renderJobsPage(){
     const duration=j.durationMinutes||calcJobMetrics(j.amountEarned,j.startTime,j.endTime).minutes;
     const hourly=duration?((Number(j.amountEarned)||0)/(duration/60)):0;
     const paidClass=(j.status||"").toLowerCase()==="paid"?"paid":"unpaid";
-    return `<article class="job-entry-card"><div class="job-entry-top"><div><div class="job-client">${j.clientName}</div><div class="job-meta">${formatJobDate(j.date)} • ${j.startTime} - ${j.endTime}${j.location?` • ${j.location}`:""}</div></div><div class="action-menu-wrap"><button class="menu-trigger" type="button" onclick="openContextMenu(event,[{label:'Edit',action:'editJobEntry(\'${j.id}\')'},{label:'Delete',danger:true,action:'deleteJobEntry(\'${j.id}\')'}])"><span class="menu-dots">⋯</span></button></div></div><div class="job-grid"><div class="job-item"><span>Duration</span><strong>${formatDuration(duration)}</strong></div><div class="job-item"><span>Amount Earned</span><strong>${formatMoney(Number(j.amountEarned)||0)}</strong></div><div class="job-item"><span>Hourly Rate</span><strong>${formatMoney(hourly)}/hour</strong></div><div class="job-item"><span>Status</span><strong><span class="paid-pill ${paidClass}">${j.status||'Unpaid'}</span></strong></div>${j.notes?`<div class="job-item" style="grid-column:1 / -1;"><span>Notes</span><strong>${j.notes}</strong></div>`:""}</div></article>`;
+    const isFresh=Date.now()-new Date(j.createdAt||0).getTime()<1600;
+    return `<article class="job-entry-card ${isFresh?'job-new':''}"><div class="job-entry-top"><div><div class="job-client">${j.clientName}</div><div class="job-meta">${formatJobDate(j.date)} • ${j.startTime} - ${j.endTime}${j.location?` • ${j.location}`:""}</div></div><div class="action-menu-wrap"><button class="menu-trigger" type="button" onclick="openContextMenu(event,[{label:'Edit',action:'editJobEntry(\'${j.id}\')'},{label:'Delete',danger:true,action:'deleteJobEntry(\'${j.id}\')'}])"><span class="menu-dots">⋯</span></button></div></div><div class="job-grid"><div class="job-item"><span>Duration</span><strong>${formatDuration(duration)}</strong></div><div class="job-item"><span>Amount Earned</span><strong>${formatMoney(Number(j.amountEarned)||0)}</strong></div><div class="job-item"><span>Hourly Rate</span><strong>${formatMoney(hourly)}/hour</strong></div><div class="job-item"><span>Status</span><strong><span class="paid-pill ${paidClass}">${j.status||'Unpaid'}</span></strong></div>${j.notes?`<div class="job-item" style="grid-column:1 / -1;"><span>Notes</span><strong>${j.notes}</strong></div>`:""}</div></article>`;
   }).join("");
 
   const grouped=jobEntries.reduce((acc,j)=>{(acc[j.date]??=[]).push(j);return acc;},{});
@@ -1147,13 +1160,13 @@ function renderJobsPage(){
     const paidTotal=entries.filter(j=>(j.status||"").toLowerCase()==="paid").reduce((s,j)=>s+(Number(j.amountEarned)||0),0);
     const unpaidTotal=totalEarned-paidTotal;
     const avgRate=totalMinutes?totalEarned/(totalMinutes/60):0;
-    return `<div class="summary-row"><strong>${formatJobDate(date)}</strong><div class="summary-grid"><div class="summary-cell"><span>Total earned</span><strong>${formatMoney(totalEarned)}</strong></div><div class="summary-cell"><span>Total hours</span><strong>${(totalMinutes/60).toFixed(2)}h</strong></div><div class="summary-cell"><span>Avg hourly</span><strong>${formatMoney(avgRate)}/hour</strong></div><div class="summary-cell"><span>Paid total</span><strong>${formatMoney(paidTotal)}</strong></div><div class="summary-cell"><span>Unpaid total</span><strong>${formatMoney(unpaidTotal)}</strong></div></div></div>`;
+    return `<div class="summary-row"><strong>${formatJobDate(date)}</strong><div class="summary-grid"><div class="summary-cell primary"><span>Total earned</span><strong><span class="summary-value-updated">${formatMoney(totalEarned)}</span></strong></div><div class="summary-cell secondary"><span>Total hours</span><strong><span class="summary-value-updated">${(totalMinutes/60).toFixed(2)}h</span></strong></div><div class="summary-cell secondary"><span>Avg hourly</span><strong><span class="summary-value-updated">${formatMoney(avgRate)}/hour</span></strong></div><div class="summary-cell"><span>Paid total</span><strong>${formatMoney(paidTotal)}</strong></div><div class="summary-cell"><span>Unpaid total</span><strong>${formatMoney(unpaidTotal)}</strong></div></div></div>`;
   }).join("");
 }
 
 function refreshAllViews(){updateDashboard();updateFinancialSummary();renderLatestInvoice();renderHistory();renderIncomeHistory();renderJobsPage();buildCategoryChart(invoices);buildMonthlyChart(invoices);updateAnalyticsSummary(invoices);buildInsights(invoices);renderProfileTab();}
 function clearDashboard(){if(!confirm(t("clear_income_confirm")))return;incomeEntries=[];persistIncomeEntries();refreshAllViews();}
-function renderProfileTab(){const node=document.getElementById("profileContent");if(!node)return;if(!currentUser){node.className="state";node.textContent="Select or create a workspace to view profile details.";return;}node.className="";const workspaceType=currentUser.isDemo?"Demo":"Personal workspace";node.innerHTML=`<div class=\"profile-grid\"><p><strong>Business name:</strong> ${currentUser.businessName||"—"}</p><p><strong>Email:</strong> ${currentUser.email||"—"}</p><p><strong>Preferred language:</strong> ${currentLanguage.toUpperCase()}</p><p><strong>Current workspace type:</strong> ${workspaceType}</p><div class=\"actions\"><button class=\"btn ghost-danger\" onclick=\"clearWorkspaceData()\">Clear my workspace data</button><button class=\"btn secondary\" onclick=\"showLanding()\">Back to landing / Switch workspace</button></div></div>`;}
+function renderProfileTab(){const node=document.getElementById("profileContent");if(!node)return;if(!currentUser){node.className="state";node.textContent="Select or create a workspace to view profile details.";return;}node.className="";const workspaceType=currentUser.isDemo?"Workspace":"Personal workspace";node.innerHTML=`<div class=\"profile-grid\"><p><strong>Business name:</strong> ${currentUser.businessName||"—"}</p><p><strong>Email:</strong> ${currentUser.email||"—"}</p><p><strong>Preferred language:</strong> ${currentLanguage.toUpperCase()}</p><p><strong>Current workspace type:</strong> ${workspaceType}</p><div class=\"actions\"><button class=\"btn ghost-danger\" onclick=\"clearWorkspaceData()\">Clear my workspace data</button><button class=\"btn secondary\" onclick=\"showLanding()\">Back to landing / Switch workspace</button></div></div>`;}
 function clearWorkspaceData(){if(!currentUser)return;const confirmed=confirm("Clear this workspace data? This only affects the active workspace.");if(!confirmed)return;localStorage.removeItem(getInvoiceStorageKey());localStorage.removeItem(getIncomeStorageKey());localStorage.removeItem(getVendorCategoryStorageKey());localStorage.removeItem(getSettingsStorageKey());localStorage.removeItem(getHasDataKey());invoices=[];incomeEntries=[];jobEntries=[];localStorage.removeItem(getJobsStorageKey());refreshAllViews();setLoadingState("Workspace data cleared.");}
 function renderQuickHelpButtons(){const host=document.getElementById("quickHelpButtons");if(!host)return;host.innerHTML=QUICK_HELP_ITEMS.map(item=>`<button type="button" class="quick-help-btn" onclick="askQuickHelp('${item.replace(/'/g,"\\'")}')">${item}</button>`).join("");}
 function addAssistantMessage(role, text){const row=document.createElement("div");row.className=`chat-msg ${role}`;row.textContent=text;const chat=document.getElementById("assistantChatLog");chat.appendChild(row);chat.scrollTop=chat.scrollHeight;}
