@@ -1,9 +1,12 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>DocSnap Dashboard</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Revnio | AI Financial Operations Platform</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='6' y1='4' x2='58' y2='58' gradientUnits='userSpaceOnUse'%3E%3Cstop offset='0' stop-color='%233B82F6'/%3E%3Cstop offset='0.5' stop-color='%236366F1'/%3E%3Cstop offset='1' stop-color='%238B5CF6'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cpath fill='url(%23g)' d='M12 8h19c12 0 21 8 21 19 0 8-4 14-10 18l10 19H40L32 48H24v16H12V8zm12 27h8c5 0 8-3 8-8s-3-8-8-8h-8v16z'/%3E%3C/svg%3E" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
+  <script src="./api-config.js"></script>
   <style>
     :root {
       --bg: #f4f6fb;
@@ -15,6 +18,34 @@
       --success: #0f766e;
       --danger: #dc2626;
       --info: #2563eb;
+    @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap");
+
+    :root {
+      --bg: #0B1220;
+      --sidebar: #0F172A;
+      --surface: #111827;
+      --surface-soft: #182235;
+      --text: #f8fafc;
+      --muted: #94a3b8;
+      --border: #1F2937;
+      --primary: #3B82F6;
+      --primary-2: #6366F1;
+      --primary-3: #8B5CF6;
+      --danger-soft: #fca5a5;
+      --danger-muted: #f87171;
+      --gradient: linear-gradient(135deg, var(--primary) 0%, var(--primary-2) 52%, var(--primary-3) 100%);
+      --space-1: 8px;
+      --space-2: 12px;
+      --space-3: 16px;
+      --space-4: 24px;
+      --space-5: 32px;
+      --radius: 16px;
+      --card-padding: 20px;
+      --shadow: 0 14px 36px rgba(2, 6, 23, 0.38);
+      --title-size: 22px;
+      --section-size: 18px;
+      --body-size: 14px;
+      --label-size: 12px;
     }
 
     * { box-sizing: border-box; }
@@ -88,7 +119,157 @@
       color: #fff;
       border: none;
       padding: 11px 16px;
+      margin: 0;
+      font-family: "Inter", "Segoe UI", Arial, sans-serif;
+      background: radial-gradient(circle at top right, rgba(99, 102, 241, 0.16) 0%, rgba(11, 18, 32, 0) 40%), var(--bg);
+      color: var(--text);
+      letter-spacing: 0.01em;
+      font-size: var(--body-size);
+      line-height: 1.5;
+    }
+
+    .hidden { display: none !important; }
+
+    .btn {
+      border: 1px solid transparent;
+      border-radius: 11px;
+      padding: 10px 16px;
+      color: #fff;
+      background: var(--gradient);
+      cursor: pointer;
+      font-weight: 600;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.25s ease, box-shadow 0.25s ease, filter 0.25s ease, border-color 0.2s ease;
+    }
+    .btn:hover { transform: translateY(-1px); filter: brightness(1.08); box-shadow: 0 14px 24px rgba(99, 102, 241, 0.3); }
+    .btn.secondary { background: #1f2a3f; border-color: #303f57; }
+
+    .btn.ghost-danger {
+      background: rgba(239, 68, 68, 0.04);
+      border: 1px solid rgba(248, 113, 113, 0.45);
+      color: var(--danger-soft);
+      box-shadow: none;
+    }
+    .btn.ghost-danger:hover {
+      background: rgba(239, 68, 68, 0.16);
+      border-color: rgba(248, 113, 113, 0.72);
+      color: #fecaca;
+      filter: none;
+      transform: none;
+    }
+
+    #landingPage {
+      min-height: 100vh;
+      padding: var(--space-5);
+    }
+
+    .landing-shell {
+      max-width: 1120px;
+      margin: 0 auto;
+      display: grid;
+      gap: var(--space-4);
+      padding-top: 6px;
+    }
+
+    .landing-nav,
+    .topbar, .card, .box,
+    .hero,
+    .feature-card,
+    .preview,
+    .footer { background: linear-gradient(180deg, rgba(17, 24, 39, 0.96) 0%, rgba(17, 24, 39, 0.82) 100%); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); }
+
+    .landing-nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: var(--space-3) var(--card-padding);
+      position: sticky;
+      top: 10px;
+      z-index: 5;
+      backdrop-filter: blur(14px);
+    }
+
+    .brand { display: inline-flex; align-items: center; gap: 10px; font-size: 22px; font-weight: 700; margin-bottom: 6px; color: var(--text); }
+    .brand-logo {
+      width: 30px;
+      height: 30px;
+      display: block;
+      flex-shrink: 0;
+      filter: drop-shadow(0 8px 20px rgba(99, 102, 241, 0.36));
+    }
+    .brand-wordmark { line-height: 1; letter-spacing: -0.02em; }
+    .brand-subtitle { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .09em; margin-bottom: 22px; }
+
+    
+    .action-menu-wrap { display: inline-flex; }
+    .menu-trigger { width: 34px; height: 34px; border-radius: 10px; border: 1px solid #334155; background: rgba(15, 23, 42, 0.75); color: #cbd5e1; cursor: pointer; display:flex; align-items:center; justify-content:center; }
+    .menu-trigger:hover { border-color: #4f46e5; color: #e2e8f0; }
+    .menu-dots { font-size: 18px; line-height: 1; transform: translateY(-1px); }
+    .menu-dropdown { position: fixed; min-width: 132px; background: #111827; border: 1px solid #374151; border-radius: 10px; padding: 6px; box-shadow: 0 20px 36px rgba(2,6,23,.55); z-index: 9999; }
+    .menu-item { width: 100%; border: 0; background: transparent; border-radius: 8px; padding: 8px 10px; text-align: left; color: #cbd5e1; cursor: pointer; display:flex; gap:8px; align-items:center; }
+    .menu-item:hover { background: rgba(59, 130, 246, 0.16); color: #bfdbfe; }
+    .menu-item.danger { color: #fca5a5; }
+    .menu-item.danger:hover { background: rgba(239, 68, 68, 0.12); color: #fecaca; }
+    .action-ico { width: 14px; height: 14px; opacity: .8; }
+    .trash-ico { width: 14px; height: 14px; opacity: .75; }
+    .edit-modal-overlay { position: fixed; inset: 0; background: rgba(2, 6, 23, 0.74); display: flex; align-items: center; justify-content: center; z-index: 10000; padding: 16px; }
+    .edit-modal { width: min(640px, 100%); max-height: 90vh; overflow-y: auto; border-radius: var(--radius); border: 1px solid #334155; background: #0f172a; padding: var(--card-padding); box-shadow: var(--shadow); }
+    .edit-modal h3 { margin: 0 0 14px; }
+    .edit-modal-error { color: #fca5a5; font-size: 13px; margin-top: 10px; }
+    .toast { position: fixed; bottom: 22px; left: 50%; transform: translateX(-50%); background: #0f172a; color: #e2e8f0; border: 1px solid #334155; border-radius: 12px; padding: 10px 14px; z-index: 10001; font-weight: 600; display: inline-flex; align-items: center; box-shadow: 0 14px 36px rgba(2, 6, 23, 0.45); }
+
+    .hero { padding: calc(var(--space-5) + 8px) var(--space-5) var(--space-5); position: relative; overflow: hidden; scroll-margin-top: 110px; }
+    .hero::before, .hero::after { content:""; position:absolute; border-radius:999px; filter: blur(70px); z-index:0; }
+    .hero::before { width: 280px; height: 280px; right: -80px; top: -40px; background: rgba(99,102,241,.22);}
+    .hero::after { width: 220px; height: 220px; left: -60px; bottom: -80px; background: rgba(59,130,246,.18);}
+    .hero-grid { display:grid; grid-template-columns: 1.1fr .9fr; gap: 28px; align-items: center; position:relative; z-index:1;}
+    .hero-badge { display:inline-flex; align-items:center; gap:8px; padding:8px 12px; border-radius:999px; border:1px solid rgba(99,102,241,.42); background: rgba(59,130,246,.13); color:#dbeafe; font-weight:600; font-size: 12px; text-transform: uppercase; letter-spacing: .06em; }
+    .ai-gradient { background: linear-gradient(120deg,#60a5fa,#818cf8,#a78bfa); -webkit-background-clip:text; background-clip:text; color: transparent; }
+    .trust-points { margin-top: 18px; display:grid; gap:8px; color:#c7d2fe; font-size:14px; }
+    .trust-points span::before { content:"✓"; margin-right:8px; color:#93c5fd; }
+    .hero-preview { border:1px solid #334155; border-radius:16px; background: linear-gradient(180deg, rgba(30,41,59,.82), rgba(15,23,42,.86)); padding:18px; }
+
+    .hero h1 { margin: 0; font-size: clamp(var(--title-size), 4vw, 44px); letter-spacing: -0.03em; }
+    .hero p { color: var(--muted); font-size: var(--body-size); line-height: 1.7; margin: 16px 0 0; max-width: 760px; }
+    .hero-actions { margin-top: 28px; display: flex; gap: 12px; flex-wrap: wrap; }
+
+    .features { display: grid; gap: var(--space-3); grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    .feature-card { padding: var(--card-padding); }
+    .feature-card h3 { margin: 0; font-size: var(--section-size); }
+    .feature-card p { margin: var(--space-2) 0 0; color: var(--muted); font-size: var(--body-size); line-height: 1.6; }
+
+    .preview { padding: var(--card-padding); }
+    .preview h2 { margin-top: 0; font-size: var(--section-size); }
+    .preview-window { border: 1px solid var(--border); border-radius: 12px; padding: 18px; background: rgba(15, 23, 42, 0.64); }
+    .preview-window p { color: var(--muted); margin-bottom: 16px; }
+
+    .footer { padding: var(--card-padding); color: var(--muted); font-size: 14px; display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+
+    .shell { min-height: 100vh; display: grid; grid-template-columns: 248px 1fr; overflow-x: hidden; position: relative; }
+    .sidebar { background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(12px); border-right: 1px solid var(--border); padding: 28px 18px; position: sticky; top: 0; height: 100vh; transition: left 0.3s ease; z-index: 80; }
+
+    .nav-item { width: 100%; border: 1px solid transparent; background: transparent; color: #c6d2e4; text-align: left; padding: 12px 14px; border-radius: 12px; margin-bottom: 8px; cursor: pointer; font-size: 14px; font-weight: 500; transition: 0.25s ease; }
+    .nav-item.active { background: rgba(99, 102, 241, 0.16); border-color: rgba(139, 92, 246, 0.42); box-shadow: inset 0 0 0 1px rgba(59, 130, 246, 0.24), 0 0 30px rgba(99, 102, 241, 0.2); color: #eef2ff; }
+    .nav-item:hover { background: rgba(148, 163, 184, 0.12); color: #e2e8f0; }
+
+    .main { padding: var(--space-5); min-width: 0; overflow-x: hidden; }
+    .topbar { padding: var(--card-padding); display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 22px; }
+    .topbar h1 { margin: 0; font-size: var(--title-size); font-weight: 700; letter-spacing: -0.02em; }
+    .topbar p { margin: 5px 0 0; color: var(--muted); font-size: 14px; }
+    .language-select { border: 1px solid #334155; background: rgba(15, 23, 42, 0.75); color: #e2e8f0; border-radius: 10px; padding: 8px 10px; font-size: 13px; }
+    .landing-nav-actions { display: flex; align-items: center; gap: 12px; }
+    .mobile-menu-btn {
+      display: none;
+      width: 40px;
+      height: 40px;
       border-radius: 10px;
+      border: 1px solid #334155;
+      background: rgba(15, 23, 42, 0.75);
+      color: #e2e8f0;
+      font-size: 20px;
       cursor: pointer;
       font-size: 14px;
     }
@@ -161,10 +342,260 @@
     @media (max-width: 800px) {
       .cards { grid-template-columns: 1fr; }
       .topbar { flex-direction: column; align-items: flex-start; }
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .sidebar-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(2, 6, 23, 0.65);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+      z-index: 70;
+    }
+    .sidebar-overlay.active { opacity: 1; pointer-events: auto; }
+
+
+    .top-dashboard { display:grid; grid-template-columns: 1fr; gap: var(--space-3); margin-bottom: var(--space-4); }
+    .cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-3); margin-bottom: 0; }
+    .card { padding: var(--card-padding); border-radius: var(--radius); box-shadow: var(--shadow); }
+    .card h3 { margin: 0; font-size: var(--label-size); text-transform: uppercase; color: #9fb1ca; letter-spacing: .1em; font-weight: 600; }
+    .card p { margin: 10px 0 0; font-size: 31px; font-weight: 800; letter-spacing: -0.02em; }
+    .financial-summary-card {
+      position: relative;
+      margin-bottom: 16px;
+      border-radius: 16px;
+      padding: 1px;
+      background: linear-gradient(120deg, rgba(59, 130, 246, 0.55), rgba(99, 102, 241, 0.45), rgba(139, 92, 246, 0.58));
+      box-shadow: 0 0 0 1px rgba(99, 102, 241, 0.18), 0 0 28px rgba(99, 102, 241, 0.16);
+    }
+    .financial-summary-inner {
+      border-radius: 15px;
+      padding: 18px;
+      background: linear-gradient(180deg, rgba(17, 24, 39, 0.98) 0%, rgba(17, 24, 39, 0.88) 100%);
+    }
+    .financial-summary-title { margin: 0; font-size: 12px; text-transform: uppercase; color: #bfdbfe; letter-spacing: .1em; font-weight: 700; }
+    .financial-summary-message { margin: 10px 0 8px; font-size: 14px; line-height: 1.45; color: #eef2ff; font-weight: 600; display: grid; gap: 2px; }
+    .financial-summary-meta { margin: 0; color: #a5b4fc; font-size: 13px; }
+    .financial-summary-line { display:block; }
+    .financial-summary-card.compact { margin-bottom: 0; }
+    
+    .financial-summary-action { margin-top: 10px; }
+
+    .tabs { display: flex; gap: var(--space-2); margin-bottom: var(--space-3); }
+    .tab-btn { border: 1px solid var(--border); border-radius: 999px; padding: 8px 14px; background: var(--surface); color: var(--muted); cursor: pointer; font-weight: 600; transition: 0.2s ease; }
+    .tab-btn.active { background: rgba(59, 130, 246, 0.18); color: #dbeafe; border-color: rgba(99, 102, 241, 0.4); }
+
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    .layout { display: grid; gap: var(--space-3); grid-template-columns: 1.2fr 1fr; }
+    .stack { display: grid; gap: var(--space-3); }
+    .box { padding: var(--card-padding); border-radius: var(--radius); box-shadow: var(--shadow); }
+    .box h2 { margin-top: 0; font-size: var(--section-size); letter-spacing: -0.01em; }
+    .box p, .state { color: var(--muted); }
+
+    .upload-zone {
+      border: 1px dashed #3b4e6a;
+      background: rgba(15, 23, 42, 0.5);
+      border-radius: 12px;
+      padding: 18px;
+      margin-top: 14px;
+    }
+
+    .upload-zone h3 { margin: 0 0 8px; font-size: 14px; text-transform: uppercase; letter-spacing: .05em; color: #bfdbfe; }
+    .upload-zone.dragover { border-color: #6366f1; background: rgba(67, 56, 202, 0.18); }
+    .file-input-hidden { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+    .upload-input-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-top: 10px; }
+    .upload-file-label { min-height: 42px; }
+    .file-name-display {
+      flex: 1;
+      min-height: 42px;
+      border: 1px solid #334155;
+      border-radius: 11px;
+      padding: 11px 12px;
+      background: rgba(15, 23, 42, 0.75);
+      color: #cbd5e1;
+      font-size: 13px;
+    }
+    .overview-main-grid { display: grid; gap: var(--space-3); grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .overview-bottom-stack { display: grid; gap: var(--space-3); margin-top: var(--space-3); }
+
+    .row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+    input, textarea { width: 100%; border: 1px solid #334155; border-radius: 10px; padding: 14px 12px; font-size: 14px; background: #0f172a; color: #e2e8f0; margin-top: 6px; }
+    input:focus, textarea:focus { outline: none; border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.18); }
+    label { font-size: var(--label-size); color: #b7c4d8; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; }
+
+    .actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
+    .state { margin-top: 10px; border: 1px dashed #334155; border-radius: 12px; padding: 14px; background: var(--surface-soft); }
+    .loading { margin-top: 12px; color: #93c5fd; font-weight: 600; }
+    .insights-list { margin: 8px 0 0; padding-left: 18px; }
+    select { width: 100%; border: 1px solid #334155; border-radius: 10px; padding: 12px; font-size: 14px; background: #0f172a; color: #e2e8f0; margin-top: 6px; min-height: 44px; appearance: none; background-image: linear-gradient(45deg,transparent 50%,#93c5fd 50%),linear-gradient(135deg,#93c5fd 50%,transparent 50%); background-position: calc(100% - 18px) calc(50% - 3px), calc(100% - 12px) calc(50% - 3px); background-size: 6px 6px, 6px 6px; background-repeat: no-repeat; }
+    select:hover { border-color: #475569; }
+    select:focus { outline:none; border-color:#6366f1; box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.18);}
+    .trust-badge { display:inline-flex; align-items:center; gap:6px; font-size:11px; padding:4px 8px; border-radius:999px; border:1px solid #334155; color:#bfdbfe; background:rgba(59,130,246,.08); margin-top:8px;}
+    .trust-badge.warn { color:#fcd34d; border-color: rgba(245,158,11,.5); background:rgba(245,158,11,.12);}
+    .insight-grid { display:grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap:12px; }
+    .insight-card { border:1px solid #334155; border-radius:12px; padding:14px; background: rgba(15,23,42,.55); }
+    .insight-card h4 { margin:0 0 6px; font-size:14px; }
+    .insight-num { color:#bfdbfe; font-weight:700; margin-top:8px; }
+
+    .state, .box { overflow: visible; }
+    table { width: 100%; border-collapse: collapse; margin-top: var(--space-2); font-size: var(--body-size); background: rgba(15, 23, 42, 0.38); border-radius: 12px; overflow: hidden; min-width: 640px; }
+    .table-scroll { overflow-x: auto; width: 100%; -webkit-overflow-scrolling: touch; }
+    #history, #incomeHistory { padding-bottom: 96px; }
+    th, td { padding: var(--space-2) var(--space-1); border-bottom: 1px solid #2c3a4f; text-align: left; }
+    th { color: #9fb1ca; font-size: 11px; text-transform: uppercase; letter-spacing: .06em; }
+    .delete-btn { border-radius: 8px; padding: 7px 11px; cursor: pointer; }
+
+    .chart-wrapper { height: 320px; margin-top: 14px; position: relative; border-radius: 14px; overflow: hidden; }
+    .chart-wrapper::before { content:""; position:absolute; inset: 12% 10%; background: radial-gradient(circle, rgba(99,102,241,.28) 0%, rgba(59,130,246,.15) 38%, rgba(15,23,42,0) 72%); filter: blur(28px); pointer-events:none; z-index:0; }
+    .chart-wrapper canvas { position: relative; z-index: 1; }
+    .chart-caption { margin: 10px 0 0; color: var(--muted); font-size: 13px; }
+    .chart-title-row { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+    .chart-badge { border: 1px solid #334155; border-radius: 999px; padding: 3px 10px; color: #bfdbfe; font-size: 11px; text-transform: uppercase; letter-spacing: .08em; }
+    .analytics-summary-cards { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: var(--space-3); margin-bottom: var(--space-3); }
+    .mini-metric h4 { margin: 0; font-size: 12px; color: #9fb1ca; text-transform: uppercase; letter-spacing: .1em; }
+    .mini-metric p { margin: 8px 0 0; font-size: 24px; font-weight: 700; }
+
+    .help-fab {
+      position: fixed;
+      right: 24px;
+      bottom: 24px;
+      z-index: 50;
+      border: 0;
+      border-radius: 999px;
+      padding: 12px 16px;
+      background: var(--gradient);
+      color: #fff;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 18px 35px rgba(76, 81, 191, 0.38);
+      cursor: pointer;
+    }
+    .help-fab:hover { filter: brightness(1.08); transform: translateY(-1px); }
+    .help-fab-icon { font-size: 16px; }
+
+    .assistant-panel {
+      position: fixed;
+      right: 24px;
+      bottom: 88px;
+      width: 360px;
+      max-width: calc(100vw - 24px);
+      max-height: 70vh;
+      z-index: 60;
+      border: 1px solid #334155;
+      border-radius: 16px;
+      background: linear-gradient(180deg, rgba(17, 24, 39, 0.98) 0%, rgba(15, 23, 42, 0.98) 100%);
+      box-shadow: 0 30px 70px rgba(2, 6, 23, 0.6);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .assistant-head { padding: 14px 16px; border-bottom: 1px solid #334155; display: flex; justify-content: space-between; align-items: flex-start; }
+    .assistant-head h3 { margin: 0; font-size: 16px; }
+    .assistant-head p { margin: 5px 0 0; color: var(--muted); font-size: 12px; }
+    .assistant-close { border: 1px solid #374151; background: #111827; color: #cbd5e1; border-radius: 10px; padding: 6px 10px; cursor: pointer; }
+    .assistant-close:hover { border-color: #6366f1; color: #e2e8f0; }
+    .assistant-body { padding: 14px 16px; overflow-y: auto; flex: 1; }
+    .quick-help { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+    .quick-help-btn { border: 1px solid #334155; background: rgba(59, 130, 246, 0.08); color: #dbeafe; border-radius: 999px; padding: 6px 10px; font-size: 12px; cursor: pointer; }
+    .quick-help-btn:hover { border-color: #6366f1; background: rgba(99, 102, 241, 0.16); }
+    .chat-log { display: grid; gap: 10px; }
+    .chat-msg { padding: 10px 12px; border-radius: 12px; font-size: 13px; line-height: 1.5; }
+    .chat-msg.user { background: rgba(59, 130, 246, 0.2); margin-left: 32px; }
+    .chat-msg.assistant { background: rgba(30, 41, 59, 0.8); border: 1px solid #334155; margin-right: 32px; }
+    .assistant-foot { border-top: 1px solid #334155; padding: 12px 16px; display: grid; gap: 8px; }
+    .assistant-input-row { display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: center; }
+    .assistant-send { border: 0; background: var(--gradient); color: white; border-radius: 10px; padding: 10px 14px; font-weight: 600; cursor: pointer; }
+    .assistant-send:hover { filter: brightness(1.08); }
+    .bug-form { margin-top: 12px; border: 1px solid #334155; border-radius: 12px; padding: 12px; background: rgba(15, 23, 42, 0.7); display: grid; gap: 10px; }
+    .bug-form label { font-size: 11px; }
+    .bug-form select, .bug-form textarea, .bug-form input { margin-top: 5px; }
+
+    .mobile-table-cards { display: none; }
+    .mobile-row-card { border: 1px solid #334155; border-radius: 12px; background: rgba(15, 23, 42, 0.72); padding: 12px; margin-top: 10px; }
+    .mobile-row-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 12px; margin-top: 8px; }
+    .mobile-row-item label { display:block; font-size: 10px; color:#94a3b8; letter-spacing:.07em; text-transform:uppercase; margin-bottom: 4px; }
+    .mobile-row-item div { font-size: 14px; color: #e2e8f0; word-break: break-word; }
+    .mobile-row-head { display:flex; justify-content: space-between; align-items: center; gap: 10px; }
+    .mobile-row-title { font-weight: 700; font-size: 15px; margin:0; }
+    .mobile-row-menu { flex-shrink:0; }
+
+
+
+    .details-modal-overlay { position: fixed; inset: 0; background: rgba(2, 6, 23, 0.74); display: flex; align-items: center; justify-content: center; z-index: 10000; padding: 16px; }
+    .details-modal { width: min(860px, 100%); max-height: 92vh; overflow-y: auto; border-radius: var(--radius); border: 1px solid #334155; background: #0f172a; padding: var(--card-padding); box-shadow: var(--shadow); }
+    .details-head { display:flex; justify-content: space-between; gap: 12px; align-items: center; margin-bottom: 12px; }
+    .details-grid { display:grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 10px 14px; }
+    .detail-field { background: rgba(15,23,42,.45); border: 1px solid #334155; border-radius: 10px; padding: 10px; }
+    .detail-field label { display:block; margin-bottom: 5px; font-size: 10px; }
+    .line-items-head { margin-top: 16px; display:flex; justify-content: space-between; align-items: center; gap: 8px; }
+    .line-items-table { width: 100%; min-width: 0; margin-top: 8px; }
+    .line-items-table input { margin-top: 0; padding: 10px; }
+    .line-item-empty { margin-top: 10px; border: 1px dashed #334155; border-radius: 10px; padding: 12px; color: #b7c4d8; }
+    .line-item-empty .hint { margin-top: 8px; font-size: 13px; color: #93c5fd; }
+    .soft-warning { margin-top: 10px; border: 1px solid rgba(245, 158, 11, 0.6); background: rgba(245, 158, 11, 0.12); color: #fcd34d; border-radius: 10px; padding: 10px; font-size: 13px; }
+
+    @media (max-width: 1024px) {
+      #landingPage, .main { padding: 20px; }
+      .landing-nav { padding: 14px 16px; }
+      .shell { grid-template-columns: 220px 1fr; }
+      .top-dashboard { grid-template-columns: 1fr; }
+      .cards { grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); }
+      .features { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .layout, .overview-main-grid, .analytics-summary-cards { grid-template-columns: 1fr; }
+      .chart-wrapper { height: 280px; }
+    }
+    @media (max-width: 768px) {
+      body { overflow-x: hidden; }
+      .shell { grid-template-columns: 1fr; }
+      .sidebar { position: fixed; left: -280px; top: 0; width: min(280px, 84vw); height: 100vh; z-index: 90; }
+      .sidebar.mobile-open { left: 0; }
+      .mobile-menu-btn { display: inline-flex; min-height: 44px; min-width: 44px; }
+      .main { padding: 14px; }
+      .topbar { padding: 16px; margin-bottom: 14px; align-items: center; }
+      .topbar h1 { font-size: 22px; }
+      .topbar p { font-size: 13px; }
+      .hero { padding: 26px 16px; }
+      .hero-grid { grid-template-columns: 1fr; gap: 16px; }
+      .hero-actions { display:grid; grid-template-columns: 1fr; }
+      .features { grid-template-columns: 1fr; }
+      .preview, .feature-card, .box, .card { padding: 14px; }
+      .cards { grid-template-columns: repeat(3, minmax(0,1fr)); gap: 10px; margin-bottom: 14px; }
+      .card p { font-size: 25px; }
+      .tabs { flex-wrap: wrap; gap: 8px; }
+      .row { grid-template-columns: 1fr; }
+      .actions .btn, .btn, .tab-btn, .assistant-send, .assistant-close, .nav-item, .menu-item { min-height: 44px; }
+      .footer { padding: 14px; }
+      .assistant-panel { inset: 12px; width: auto; max-height: calc(100vh - 24px); bottom: auto; right: auto; left: auto; }
+      .assistant-body { overflow-y: auto; }
+      .help-fab { right: 12px; bottom: 12px; padding: 10px 12px; font-size: 13px; }
+      .help-fab-icon { font-size: 14px; }
+      .edit-modal { max-height: calc(100vh - 30px); padding: 14px; }
+      .details-modal { width: calc(100vw - 16px); max-height: calc(100vh - 20px); padding: 14px; }
+      .details-grid { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 640px) {
+      #landingPage { padding: 12px; }
+      .landing-shell { gap: 12px; }
+      .landing-nav { position: sticky; top: 8px; }
+      .brand { font-size: 20px; max-width: 100%; }
+      .cards { grid-template-columns: 1fr; }
+      .topbar { flex-wrap: wrap; }
+      .topbar > div { width: 100%; }
+      .table-scroll { display: none; }
+      .mobile-table-cards { display: grid; gap: 10px; }
+      .assistant-panel { inset: 12px; max-height: calc(100vh - 24px); }
+      .chat-msg.user, .chat-msg.assistant { margin-left: 0; margin-right: 0; }
+      .assistant-input-row { grid-template-columns: 1fr; }
+      .help-fab { right: 10px; bottom: 10px; }
     }
   </style>
 </head>
-
 <body>
   <div class="app">
     <div class="topbar">
@@ -187,7 +618,248 @@
       <div class="card">
         <h3>Average Invoice</h3>
         <p id="averageInvoice">$0.00</p>
+  <section id="landingPage">
+    <div class="landing-shell">
+      <header class="landing-nav">
+        <div class="brand"><svg class="brand-logo" viewBox="0 0 32 32" aria-hidden="true"><defs><linearGradient id="logo-grad-landing" x1="6" y1="4" x2="26" y2="28" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#3B82F6" /><stop offset="0.52" stop-color="#6366F1" /><stop offset="1" stop-color="#8B5CF6" /></linearGradient></defs><path fill="url(#logo-grad-landing)" d="M4 4h11.5c6.4 0 11.6 4.9 11.6 11.1 0 3.5-1.7 6.6-4.5 8.6L28 31h-7l-4.3-5.9H12V31H4V4Zm8 13.8h3.8c2.4 0 4-1.6 4-3.8s-1.6-3.8-4-3.8H12v7.6Z"/></svg><span class="brand-wordmark">Revnio</span></div>
+        <div class="landing-nav-actions">
+          <select id="landingLanguageSelect" class="language-select" onchange="handleLanguageChange(this.value)"></select>
+          <button id="viewDashboardBtn" class="btn secondary" data-i18n="view_dashboard" onclick="showDashboard()">View Dashboard</button>
+          <button id="tryDemoBtn1" class="btn secondary" onclick="startDemo()">Try demo</button>
+        </div>
+      </header>
+
+      <section class="hero">
+        <div class="hero-grid">
+          <div>
+            <div id="heroBadge" class="hero-badge">AI-powered financial operations</div>
+            <h1 id="heroHeadline">Stop wasting hours on invoices. Let <span class="ai-gradient">AI organize your finances in seconds.</span></h1>
+            <p id="heroSubheadline">Revnio helps small business owners upload invoices, track income and expenses, and understand cash flow without spreadsheets.</p>
+            <div class="hero-actions">
+              <button id="startFreeBtn2" class="btn" onclick="startFree()">Start free</button>
+              <button id="tryDemoBtn2" class="btn secondary" onclick="startDemo()">Try demo</button>
+            </div>
+            <div id="trustPoints" class="trust-points"><span>AI invoice extraction</span><span>Cash flow visibility</span><span>Built for small businesses</span></div>
+          </div>
+          <div class="hero-preview">
+            <h3 id="heroPreviewTitle" style="margin:0 0 12px;">Live Dashboard Preview</h3>
+            <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;">
+              <div class="state" style="margin:0;"><strong id="heroPreviewIncomeLabel" style="display:block;color:#bfdbfe;">Income</strong><span style="font-size:20px;color:#fff;">$24.8k</span></div>
+              <div class="state" style="margin:0;"><strong id="heroPreviewProfitLabel" style="display:block;color:#bfdbfe;">Profit</strong><span style="font-size:20px;color:#fff;">$9.6k</span></div>
+            </div>
+            <div style="margin-top:12px;height:110px;border:1px solid #334155;border-radius:12px;padding:10px;background:rgba(15,23,42,.7);">
+              <svg viewBox="0 0 280 90" width="100%" height="100%"><polyline points="0,68 35,62 65,64 100,48 135,51 170,36 205,39 240,28 280,22" fill="none" stroke="url(#logo-grad-landing)" stroke-width="4" stroke-linecap="round"/></svg>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="features">
+        <article class="feature-card"><h3 id="featureProblemTitle">Problem</h3><p id="featureProblemDesc">Messy receipts, no clear cash flow visibility, tax-time stress, and manual spreadsheets slow down small teams.</p></article>
+        <article class="feature-card"><h3 id="featureHowTitle">How it works</h3><p id="featureHowDesc">Upload invoice → AI extracts details → your dashboard updates instantly with totals, categories, and trends.</p></article>
+        <article class="feature-card"><h3 id="featureBenefitsTitle">Benefits</h3><p id="featureBenefitsDesc">Save hours each week, reduce manual errors, and see your real profit clearly before tough decisions.</p></article>
+        <article class="feature-card"><h3 id="featureActionTitle">Built for action</h3><p id="featureActionDesc">Track income, monitor expenses, and export your financial data when needed.</p></article>
+      </section>
+
+      <section class="preview">
+        <h2 id="productPreviewTitle">Product Preview</h2>
+        <div class="preview-window">
+          <p id="productPreviewText">Explore the Revnio Hub to manage invoices, track income, and export your financial data whenever needed.</p>
+          <button id="startFreeBtn3" class="btn" onclick="startFree()">Start free</button>
+          <button id="tryDemoBtn3" class="btn secondary" onclick="startDemo()">Try demo</button>
+        </div>
+      </section>
+
+      <footer class="footer">
+        <span class="brand" style="font-size:16px; margin:0;"><svg class="brand-logo" viewBox="0 0 32 32" aria-hidden="true"><defs><linearGradient id="logo-grad-topbar" x1="6" y1="4" x2="26" y2="28" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#3B82F6" /><stop offset="0.52" stop-color="#6366F1" /><stop offset="1" stop-color="#8B5CF6" /></linearGradient></defs><path fill="url(#logo-grad-topbar)" d="M4 4h11.5c6.4 0 11.6 4.9 11.6 11.1 0 3.5-1.7 6.6-4.5 8.6L28 31h-7l-4.3-5.9H12V31H4V4Zm8 13.8h3.8c2.4 0 4-1.6 4-3.8s-1.6-3.8-4-3.8H12v7.6Z"/></svg><span class="brand-wordmark">Revnio</span></span>
+        <span id="footerTagline">AI-powered financial operations platform for modern small businesses.</span>
+      </footer>
+
+      <div id="emailCaptureModal" class="edit-modal-overlay hidden">
+        <form class="edit-modal" onsubmit="submitEmailCapture(event)">
+          <h3>Start Free</h3><p>Create or open your workspace.</p>
+          <label>Email<input id="captureEmail" type="email" required /></label>
+          <label>Business Name<input id="captureBusinessName" type="text" required /></label>
+          <div class="actions"><button class="btn" type="submit">Continue</button><button class="btn secondary" type="button" onclick="closeEmailCapture()">Cancel</button></div>
+        </form>
       </div>
+    </div>
+  </section>
+
+  <div class="shell hidden" id="dashboardPage">
+    <div id="sidebarOverlay" class="sidebar-overlay" onclick="closeSidebar()"></div>
+    <aside id="dashboardSidebar" class="sidebar">
+      <div class="brand"><svg class="brand-logo" viewBox="0 0 32 32" aria-hidden="true"><defs><linearGradient id="logo-grad-sidebar" x1="6" y1="4" x2="26" y2="28" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#3B82F6" /><stop offset="0.52" stop-color="#6366F1" /><stop offset="1" stop-color="#8B5CF6" /></linearGradient></defs><path fill="url(#logo-grad-sidebar)" d="M4 4h11.5c6.4 0 11.6 4.9 11.6 11.1 0 3.5-1.7 6.6-4.5 8.6L28 31h-7l-4.3-5.9H12V31H4V4Zm8 13.8h3.8c2.4 0 4-1.6 4-3.8s-1.6-3.8-4-3.8H12v7.6Z"/></svg><span class="brand-wordmark">Revnio</span></div>
+      <div class="brand-subtitle">Financial Operations</div>
+      <button class="nav-item" data-i18n="back_to_landing" onclick="showLanding()">← Back to Landing</button>
+      <button class="nav-item active" data-i18n="overview" onclick="showTab('overview', this)">Overview</button>
+      <button class="nav-item" data-i18n="operations" onclick="showTab('operations', this)">Operations</button>
+      <button class="nav-item" data-i18n="analytics" onclick="showTab('analytics', this)">Analytics</button>
+      <button class="nav-item" data-i18n="insights" onclick="showTab('insights', this)">Insights</button>
+      <button class="nav-item" data-i18n="jobs" onclick="showTab('jobs', this)">Jobs</button>
+      <button class="nav-item" onclick="showTab('profile', this)">Profile</button>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <button id="mobileMenuBtn" class="mobile-menu-btn" type="button" aria-label="Open sidebar" onclick="toggleSidebar()">☰</button>
+        <div>
+          <h1 id="dashboardTitle">Revnio Hub</h1>
+          <p id="dashboardSubtitle">Track invoices, cash flow, and profitability from one premium operations workspace.</p><p id="workspaceName" style="margin-top:4px;font-size:12px;color:#a5b4fc;">No workspace selected</p>
+        </div>
+        <div style="display:flex; gap:10px; align-items:center;">
+          <select id="dashboardLanguageSelect" class="language-select" onchange="handleLanguageChange(this.value)"></select>
+          <button class="btn secondary" data-i18n="export_csv" onclick="exportCSV()">Export CSV</button>
+        </div>
+      </header>
+
+      <section class="top-dashboard">
+        <section class="cards">
+          <article class="card"><h3 data-i18n="total_income">Total Income</h3><p id="totalIncome">$0.00</p></article>
+          <article class="card"><h3 data-i18n="total_expenses">Total Expenses</h3><p id="totalExpenses">$0.00</p></article>
+          <article class="card"><h3 data-i18n="profit">Profit</h3><p id="profit">$0.00</p></article>
+        </section>
+
+
+
+      <div class="tabs">
+        <button id="tab-overview" class="tab-btn active" data-i18n="overview" onclick="activateTab('overview')">Overview</button>
+        <button id="tab-operations" class="tab-btn" data-i18n="operations" onclick="activateTab('operations')">Operations</button>
+        <button id="tab-analytics" class="tab-btn" data-i18n="analytics" onclick="activateTab('analytics')">Analytics</button>
+        <button id="tab-insights" class="tab-btn" data-i18n="insights" onclick="activateTab('insights')">Insights</button>
+        <button id="tab-jobs" class="tab-btn" data-i18n="jobs" onclick="activateTab('jobs')">Jobs</button>
+        <button id="tab-profile" class="tab-btn" onclick="activateTab('profile')">Profile</button>
+      </div>
+
+      <section id="overview" class="tab-content active">
+        <div class="overview-main-grid">
+          <div class="box">
+            <h2 data-i18n="upload_invoice">Upload Invoice</h2>
+            <p>Upload JPG, PNG, or screenshot invoices. Revnio will extract billing details automatically.</p>
+            <div id="uploadZone" class="upload-zone">
+              <h3>Upload Invoice File</h3>
+              <p style="margin:0 0 10px;">Drop your invoice image here or choose a file to extract key billing fields.</p>
+              <input type="file" id="fileInput" class="file-input-hidden" accept="image/*" />
+              <div class="upload-input-row">
+                <label for="fileInput" class="btn secondary upload-file-label">Choose invoice file</label>
+                <div id="selectedFileName" class="file-name-display">No file selected</div>
+              </div>
+            </div>
+            <div class="actions">
+              <button id="extractInvoiceBtn" class="btn" onclick="uploadFile()">Extract Invoice Data</button>
+              <button id="manualInvoiceBtn" class="btn secondary hidden" type="button" onclick="openManualInvoiceEntryModal()">Add invoice manually</button>
+              <button class="btn ghost-danger" onclick="clearDashboard()">Clear Local Income</button>
+            </div>
+            <div id="loading" class="loading"></div>
+            <div id="uploadUrlDebug" class="state" style="margin-top:8px; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace; display:none;">Upload URL: not initialized</div>
+            <details id="extractionDebugBox" style="margin-top:12px;display:none;border:1px solid rgba(148,163,184,.35);border-radius:10px;padding:10px;background:rgba(15,23,42,.3);">
+              <summary style="cursor:pointer;font-weight:600;">Extraction Debug</summary>
+              <div style="margin-top:10px;display:grid;gap:10px;">
+                <div><strong>Raw Response JSON</strong><pre id="debugRawResponse" style="white-space:pre-wrap;word-break:break-word;max-height:220px;overflow:auto;margin-top:6px;">-</pre></div>
+                <div><strong>Normalized Invoice</strong><pre id="debugNormalizedInvoice" style="white-space:pre-wrap;word-break:break-word;max-height:220px;overflow:auto;margin-top:6px;">-</pre></div>
+                <div><strong>Validation Errors</strong><pre id="debugValidationErrors" style="white-space:pre-wrap;word-break:break-word;max-height:220px;overflow:auto;margin-top:6px;">-</pre></div>
+              </div>
+            </details>
+          </div>
+          <section class="financial-summary-card compact">
+            <div class="financial-summary-inner">
+              <h2 class="financial-summary-title" id="financialSummaryTitle">AI Financial Summary</h2><div id="aiSuggestedBadge" class="trust-badge">AI suggested, editable</div>
+              <p id="financialSummaryMessage" class="financial-summary-message">Add invoices and income entries to generate your summary.</p>
+              <p id="financialSummaryMeta" class="financial-summary-meta">Tracking starts as soon as financial records are available.</p>
+              <div class="financial-summary-action">
+                <button id="viewMoreInsightsBtn" class="btn secondary" onclick="showInsightsPage()">View more insights</button>
+              </div>
+            </div>
+          </section>
+        </div>
+        <div class="overview-bottom-stack">
+            <div class="box">
+              <h2 id="latestInvoiceTitle">Latest Invoice</h2>
+              <div id="latestInvoice" class="state">No invoice uploaded yet.</div>
+            </div>
+
+            <div class="box">
+              <h2 data-i18n="income_tracker">Income Tracker</h2>
+              <form id="incomeForm" onsubmit="saveIncome(event)">
+                <div class="row">
+                  <label>Income Source
+                    <input type="text" id="incomeSource" placeholder="Client, product, service" required />
+                  </label>
+                  <label>Date
+                    <input type="date" id="incomeDate" required />
+                  </label>
+                </div>
+                <div class="row">
+                  <label>Amount
+                    <input type="number" id="incomeAmount" step="0.01" min="0" placeholder="0.00" required />
+                  </label>
+                  <label>Notes
+                    <input type="text" id="incomeNotes" placeholder="Optional notes" />
+                  </label>
+                </div>
+                <div class="actions"><button class="btn" data-i18n="add_income" type="submit">Add Income</button></div>
+              </form>
+              <div id="incomeHistory" class="state">You haven’t added income yet. Add your first payment to start tracking profitability.</div>
+            </div>
+        </div>
+      </section>
+
+      <section id="operations" class="tab-content"><div class="box"><h2 data-i18n="invoice_history">Invoice History</h2><div id="history" class="state">Your uploaded invoices will appear here.</div></div></section>
+      <section id="analytics" class="tab-content">
+        <div class="analytics-summary-cards">
+          <article class="card mini-metric"><h4>Total Expense Records</h4><p id="analyticsTotalInvoices">0</p></article>
+          <article class="card mini-metric"><h4>Avg Monthly Spend</h4><p id="analyticsAvgMonthly">$0.00</p></article>
+          <article class="card mini-metric"><h4>Top Category Spend</h4><p id="analyticsTopCategory">$0.00</p></article>
+        </div>
+        <div class="layout">
+          <div class="box">
+            <div class="chart-title-row"><h2>Spending by Category</h2><span class="chart-badge">Last 30 days</span></div>
+            <p class="chart-caption">Understand where your total expenses are concentrated so you can optimize category budgets.</p>
+            <div class="chart-wrapper"><canvas id="categoryChart"></canvas></div>
+          </div>
+          <div class="box">
+            <div class="chart-title-row"><h2>Monthly Spending Trend</h2><span class="chart-badge">Monthly trend</span></div>
+            <p class="chart-caption">Track month-by-month expense momentum to spot spending spikes before they hurt profit.</p>
+            <div class="chart-wrapper"><canvas id="monthlyChart"></canvas></div>
+          </div>
+        </div>
+      </section>
+      
+      <section id="jobs" class="tab-content">
+        <div class="layout">
+          <div class="box">
+            <h2 data-i18n="jobs">Jobs</h2>
+            <form id="jobForm" onsubmit="saveJobEntry(event)">
+              <div class="row"><label data-i18n="date_label">Date<input type="date" id="jobDate" required /></label><label data-i18n="client_job_name">Client / Job name<input type="text" id="jobClient" required /></label></div>
+              <div class="row"><label data-i18n="location">Location<input type="text" id="jobLocation" /></label><label data-i18n="amount_earned">Amount earned<input type="number" id="jobAmount" min="0" step="0.01" required /></label></div>
+              <div class="row"><label data-i18n="start_time">Start time<input type="time" id="jobStart" required /></label><label data-i18n="end_time">End time<input type="time" id="jobEnd" required /></label></div>
+              <div class="row"><label data-i18n="paid_status">Paid status<select id="jobStatus"><option value="Paid">Paid</option><option value="Unpaid">Unpaid</option></select></label><label data-i18n="notes">Notes<input type="text" id="jobNotes" /></label></div>
+              <div class="row"><label>Hours Worked<input type="text" id="jobDurationDisplay" readonly /></label><label>Hourly Rate<input type="text" id="jobHourlyDisplay" readonly /></label></div>
+              <div class="actions"><button class="btn" type="submit" data-i18n="add_job">Add Job</button></div>
+            </form>
+          </div>
+          <div class="box">
+            <h2 data-i18n="daily_summary">Daily Summary</h2>
+            <div id="jobsDailySummary" class="state">Track your first job to start calculating hours and earnings.</div>
+          </div>
+        </div>
+        <div class="box" style="margin-top:16px;">
+          <h2 data-i18n="jobs_entries">Job Entries</h2>
+          <div id="jobsHistory" class="state">Track your first job to start calculating hours and earnings.</div>
+        </div>
+      </section>
+      <section id="insights" class="tab-content"><div class="box"><h2 data-i18n="insights">Insights</h2><div id="insightsContent" class="state">Add income and upload invoices to generate your financial summary.</div></div></section>
+      <section id="profile" class="tab-content"><div class="box"><h2>Profile</h2><div id="profileContent" class="state">Select or create a workspace to view profile details.</div></div></section>
+    </main>
+  </div>
+  <button id="helpFab" class="help-fab hidden" type="button" onclick="toggleAssistantPanel()"><span class="help-fab-icon">✨</span><span id="helpFabText">Help</span></button>
+  <aside id="assistantPanel" class="assistant-panel hidden" aria-label="Revnio Assistant">
+    <div class="assistant-head">
+      <div>
+        <h3>Revnio Assistant</h3>
+        <p>Ask about invoices, uploads, income tracking, or bugs.</p>
+      </div>
+      <button type="button" class="assistant-close" onclick="closeAssistantPanel()">Close</button>
     </div>
 
     <div class="layout">
@@ -229,21 +901,18 @@
           <h2>Monthly Spending Trend</h2>
           <div class="chart-wrapper"><canvas id="monthlyChart"></canvas></div>
         </div>
-      </div>
+    <div class="assistant-body">
+      <div class="quick-help" id="quickHelpButtons"></div>
+      <div id="assistantChatLog" class="chat-log"></div>
     </div>
-  </div>
-
-  <script>
-    const API_BASE = "https://docsnap-api-production-0100.up.railway.app";
-
-    let invoices = [];
-    let categoryChartInstance = null;
-    let monthlyChartInstance = null;
-
-    function formatMoney(value) {
-      const number = Number(value) || 0;
-      return "$" + number.toFixed(2);
-    }
+    <div class="assistant-foot">
+      <div class="assistant-input-row">
+        <input id="assistantInput" type="text" placeholder="Type your question..." />
+        <button class="assistant-send" type="button" onclick="sendAssistantMessage()">Send</button>
+      </div>
+      <div id="assistantBugFormHost"></div>
+    </div>
+  </aside>
 
     function toCSVCell(value) {
       const plain = String(value ?? "").replace(/"/g, '""');
@@ -532,5 +1201,458 @@
 
     loadDashboard();
   </script>
+
+<div id="onboardingModal" class="edit-modal-overlay hidden">
+  <div class="edit-modal">
+    <h3 id="onboardingTitle">Welcome to Revnio</h3>
+    <p id="onboardingStep1">Step 1: Upload your first invoice</p>
+    <p id="onboardingStep2">Step 2: Add your income</p>
+    <p id="onboardingStep3">Step 3: Review your AI Financial Summary</p>
+    <p id="onboardingStep4">Step 4: Check Invoice Details and edit if needed</p>
+    <div class="actions"><button class="btn" onclick="completeOnboarding()">Start tutorial</button><button class="btn secondary" onclick="skipOnboarding()">Skip for now</button></div>
+  </div>
+</div>
+
+<script>
+const isGitHubPages = window.location.hostname.endsWith("github.io");
+const API_BASE_URL = window.API_CONFIG?.API_BASE_URL || "https://docsnap-api-production-0100.up.railway.app";
+const API_BASE = API_BASE_URL.replace(/\/$/, "");
+const IS_PRODUCTION = window.location.hostname !== "localhost" && window.location.hostname !== "127.0.0.1";
+const UPLOAD_ENDPOINT = "/upload";
+const FEEDBACK_ENDPOINT = "/feedback";
+const BUG_REPORT_ENDPOINT = "/bug-report";
+const REQUEST_TIMEOUT_MS = 30000;
+const DEBUG_MODE = false;
+const DEMO_INVOICE_KEY = "revnio_demo_invoices";
+const DEMO_INCOME_KEY = "revnio_demo_income";
+const DEMO_JOBS_KEY = "revnio_demo_jobs";
+if (isGitHubPages && API_BASE.includes("localhost")) {
+  console.error("Invalid API_BASE for GitHub Pages deployment:", API_BASE);
+}
+const LANGUAGE_KEY = "revnio_language";
+const BUG_REPORTS_KEY = "revnio_bug_reports";
+const VENDOR_CATEGORY_KEY = "revnio_vendor_categories";
+const USERS_KEY = "revnio_users";
+const CURRENT_USER_KEY = "revnio_current_user";
+const ALLOWED_CATEGORIES = ["Rent","Utilities","Supplies","Food & Beverage","Marketing","Professional Services","Payroll","Transportation","Software","Other"];
+const DEMO_USER = { id: "demo", email: "demo@revnio.local", businessName: "Demo Workspace", createdAt: "2026-01-01T00:00:00.000Z", isDemo: true };
+const QUICK_HELP_ITEMS = ["How do I upload an invoice?","Why is invoice deletion not working?","How do I track income?","Report a bug"];
+const LANGUAGE_OPTIONS = [
+  { code: "en", label: "English" },
+  { code: "fr", label: "Français" },
+  { code: "pt", label: "Português (Brasil)" },
+  { code: "es", label: "Español" }
+];
+const translations = {
+  en: {view_dashboard:"View dashboard",export_csv:"Export CSV",back_to_landing:"← Back to Landing",overview:"Overview",operations:"Operations",analytics:"Analytics",insights:"Insights",upload_invoice:"Upload Invoice",total_income:"Total Income",total_expenses:"Total Expenses",profit:"Profit",invoice_history:"Invoice History",income_tracker:"Income Tracker",add_income:"Add Income",dashboard_title:"Revnio Hub",jobs:"Jobs",daily_summary:"Daily Summary",jobs_entries:"Job Entries",add_job:"Add Job",client_job_name:"Client / Job name",location:"Location",start_time:"Start time",end_time:"End time",amount_earned:"Amount earned",paid_status:"Paid status",notes:"Notes",date_label:"Date"},
+  fr: {view_dashboard:"Voir le tableau de bord",export_csv:"Exporter CSV",back_to_landing:"← Retour à l'accueil",overview:"Vue d'ensemble",operations:"Opérations",analytics:"Analytique",insights:"Insights",upload_invoice:"Téléverser une facture",total_income:"Revenus totaux",total_expenses:"Dépenses totales",profit:"Profit",invoice_history:"Historique des factures",income_tracker:"Suivi des revenus",add_income:"Ajouter un revenu",dashboard_title:"Revnio Hub",jobs:"Jobs",daily_summary:"Daily Summary",jobs_entries:"Job Entries",add_job:"Add Job",client_job_name:"Client / Job name",location:"Location",start_time:"Start time",end_time:"End time",amount_earned:"Amount earned",paid_status:"Paid status",notes:"Notes",date_label:"Date"},
+  pt: {view_dashboard:"Ver painel",export_csv:"Exportar CSV",back_to_landing:"← Voltar ao início",overview:"Visão geral",operations:"Operações",analytics:"Análises",insights:"Insights",upload_invoice:"Enviar nota fiscal",total_income:"Receita",total_expenses:"Despesas",profit:"Lucro",invoice_history:"Histórico de notas",income_tracker:"Controle de receitas",add_income:"Adicionar receita",dashboard_title:"Revnio Hub",jobs:"Jobs",daily_summary:"Daily Summary",jobs_entries:"Job Entries",add_job:"Add Job",client_job_name:"Client / Job name",location:"Location",start_time:"Start time",end_time:"End time",amount_earned:"Amount earned",paid_status:"Paid status",notes:"Notes",date_label:"Date"},
+  es: {view_dashboard:"Ver panel",export_csv:"Exportar CSV",back_to_landing:"← Volver al inicio",overview:"Resumen",operations:"Operaciones",analytics:"Analítica",insights:"Insights",upload_invoice:"Subir factura",total_income:"Ingresos totales",total_expenses:"Gastos totales",profit:"Ganancia",invoice_history:"Historial de facturas",income_tracker:"Seguimiento de ingresos",add_income:"Agregar ingreso",dashboard_title:"Revnio Hub",jobs:"Jobs",daily_summary:"Daily Summary",jobs_entries:"Job Entries",add_job:"Add Job",client_job_name:"Client / Job name",location:"Location",start_time:"Start time",end_time:"End time",amount_earned:"Amount earned",paid_status:"Paid status",notes:"Notes",date_label:"Date"}
+};
+Object.assign(translations.en,{
+  jobs:"Jobs",daily_summary:"Daily summary",jobs_entries:"Job entries",add_job:"Add Job",
+  no_workspace_selected:"No workspace selected",loading_dashboard:"Loading dashboard data...",select_workspace_continue:"Select a workspace to continue.",
+  add_income_profit_hint:"Add income to see your profit.",no_file_selected:"No file selected",upload_first_invoice_details:"Upload your first invoice to see details here.",
+  no_invoices_tracking:"No invoices yet. Upload your first invoice to start tracking expenses.",no_invoice_export:"No invoice data to export yet.",
+  choose_invoice_first:"Please choose an invoice image first.",processing_invoice:"Processing invoice...",invoice_uploaded_saved:"Invoice uploaded and saved.",
+  manual_invoice_saved:"Manual invoice saved.",clear_income_confirm:"Clear all locally saved income entries?",category_updated:"Category updated.",
+  assistant_welcome:"Hi! I'm your Revnio Assistant. Ask a question or tap a quick help option.",assistant_default_reply:"I can help with uploads, invoice deletion, income tracking, and bug reporting. Try a quick help button above.",hours_worked:"Hours Worked",hourly_rate:"Hourly Rate",add_to_income_tracker:"Add to Income Tracker",empty_jobs:"Track your first job to start calculating hours and earnings."
+});
+Object.assign(translations.fr,{
+  jobs:"Travaux",daily_summary:"Résumé quotidien",jobs_entries:"Entrées de travail",add_job:"Ajouter un travail",hours_worked:"Heures travaillées",hourly_rate:"Taux horaire",add_to_income_tracker:"Ajouter au suivi des revenus",empty_jobs:"Enregistrez votre premier travail pour commencer à calculer les heures et les revenus.",
+  no_workspace_selected:"Aucun espace sélectionné",loading_dashboard:"Chargement du tableau de bord...",select_workspace_continue:"Sélectionnez un espace pour continuer.",
+  add_income_profit_hint:"Ajoutez un revenu pour voir votre profit.",no_file_selected:"Aucun fichier sélectionné",upload_first_invoice_details:"Téléversez votre première facture pour voir les détails.",
+  no_invoices_tracking:"Aucune facture. Téléversez votre première facture pour commencer.",no_invoice_export:"Aucune donnée de facture à exporter.",
+  choose_invoice_first:"Choisissez d’abord une image de facture.",processing_invoice:"Traitement de la facture...",invoice_uploaded_saved:"Facture téléversée et enregistrée.",
+  manual_invoice_saved:"Facture manuelle enregistrée.",clear_income_confirm:"Supprimer tous les revenus locaux enregistrés ?",category_updated:"Catégorie mise à jour.",
+  assistant_welcome:"Bonjour, je suis votre assistant Revnio. Posez une question ou utilisez l’aide rapide.",assistant_default_reply:"Je peux aider sur le téléversement, la suppression de facture, le suivi des revenus et les bugs."
+});
+Object.assign(translations.pt,{
+  jobs:"Trabalhos",daily_summary:"Resumo diário",jobs_entries:"Registros",add_job:"Adicionar trabalho",hours_worked:"Horas trabalhadas",hourly_rate:"Taxa por hora",add_to_income_tracker:"Adicionar ao controle de receitas",empty_jobs:"Registre seu primeiro trabalho para começar a calcular horas e ganhos.",
+  no_workspace_selected:"Nenhum workspace selecionado",loading_dashboard:"Carregando painel...",select_workspace_continue:"Selecione um workspace para continuar.",
+  add_income_profit_hint:"Adicione receita para ver seu lucro.",no_file_selected:"Nenhum arquivo selecionado",upload_first_invoice_details:"Envie sua primeira nota para ver os detalhes.",
+  no_invoices_tracking:"Ainda sem notas. Envie a primeira para começar.",no_invoice_export:"Nenhum dado de nota para exportar.",
+  choose_invoice_first:"Escolha primeiro uma imagem da nota.",processing_invoice:"Processando nota...",invoice_uploaded_saved:"Nota enviada e salva.",
+  manual_invoice_saved:"Nota manual salva.",clear_income_confirm:"Limpar todas as receitas locais salvas?",category_updated:"Categoria atualizada.",
+  assistant_welcome:"Olá! Sou o Assistente Revnio. Faça uma pergunta ou use a ajuda rápida.",assistant_default_reply:"Posso ajudar com upload, exclusão de notas, receitas e bugs."
+});
+Object.assign(translations.es,{
+  jobs:"Trabajos",daily_summary:"Resumen diario",jobs_entries:"Registros de trabajo",add_job:"Agregar trabajo",hours_worked:"Horas trabajadas",hourly_rate:"Tarifa por hora",add_to_income_tracker:"Agregar al registro de ingresos",empty_jobs:"Registra tu primer trabajo para comenzar a calcular horas y ganancias.",
+  no_workspace_selected:"Ningún espacio seleccionado",loading_dashboard:"Cargando panel...",select_workspace_continue:"Selecciona un espacio para continuar.",
+  add_income_profit_hint:"Agrega ingresos para ver tu ganancia.",no_file_selected:"Ningún archivo seleccionado",upload_first_invoice_details:"Sube tu primera factura para ver detalles.",
+  no_invoices_tracking:"Sin facturas aún. Sube la primera para empezar.",no_invoice_export:"No hay datos de facturas para exportar.",
+  choose_invoice_first:"Primero elige una imagen de factura.",processing_invoice:"Procesando factura...",invoice_uploaded_saved:"Factura subida y guardada.",
+  manual_invoice_saved:"Factura manual guardada.",clear_income_confirm:"¿Borrar todos los ingresos locales guardados?",category_updated:"Categoría actualizada.",
+  assistant_welcome:"Hola, soy tu Asistente Revnio. Haz una pregunta o usa ayuda rápida.",assistant_default_reply:"Puedo ayudar con cargas, eliminación de facturas, ingresos y errores."
+});
+let currentLanguage = "en";
+const localAssistantHandlers = {
+  "how do i upload an invoice?": "Go to the Overview tab, use Upload Invoice, choose an image file, then click Extract Invoice Data. Revnio processes it and adds it to Invoice History.",
+  "why is invoice deletion not working?": "Open the 3-dot menu in Invoice History and choose Delete. If it doesn't disappear right away, refresh the dashboard. If the API is unavailable, Revnio still removes it locally.",
+  "how do i track income?": "Use the Income Tracker form in Overview. Add source, date, amount, and optional notes, then click Add Income. Entries update totals and profit cards instantly.",
+  "report a bug": "Please describe what happened and what you clicked. You can submit the bug form below and it will be saved locally."
+};
+let invoices = [], incomeEntries = [], jobEntries = [], categoryChartInstance = null, monthlyChartInstance = null, openActionMenu = null;
+let activeToastState = null;
+let lastDeletedInvoice = null;
+let lastDeletedIncome = null;
+let activeEditState = null;
+let activeDetailsState = null;
+let assistantPanelOpen = false;
+let sidebarOpen = false;
+let currentUser = null;
+let lastUserAction = "App loaded";
+
+function trackLastAction(action){ lastUserAction = action; }
+document.addEventListener("click",event=>{
+  const target = event.target;
+  if(!(target instanceof HTMLElement)) return;
+  const marker = target.getAttribute("data-track-action") || target.id || target.textContent?.trim()?.slice(0,80);
+  if(marker) trackLastAction(`click:${marker}`);
+});
+
+window.addEventListener("error", event => {
+  const message = event?.error?.message || event?.message || "Unknown frontend error";
+  autoReportFrontendError(message);
+});
+window.addEventListener("unhandledrejection", event => {
+  const reason = event?.reason?.message || String(event?.reason || "Unhandled promise rejection");
+  autoReportFrontendError(reason);
+});
+
+async function autoReportFrontendError(errorMessage){
+  const payload = buildBugReportPayload({
+    issueType: "Frontend Runtime Error",
+    description: errorMessage,
+    email: currentUser?.email || "unknown@revnio.local"
+  });
+  try{
+    await fetchWithTimeout(`${API_BASE}${BUG_REPORT_ENDPOINT}`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});
+  }catch(_e){}
+}
+
+function buildBugReportPayload({issueType, description, email}){
+  return {
+    user_id: currentUser?.isDemo ? null : currentUser?.id || null,
+    email: email || currentUser?.email || "unknown@revnio.local",
+    workspace_id: currentUser?.id || "guest",
+    page: window.location.pathname || "/",
+    error_message: `[${issueType}] ${description}`,
+    browser: navigator.userAgent,
+    timestamp: new Date().toISOString(),
+    last_action: lastUserAction
+  };
+}
+
+function getUsers(){ return JSON.parse(localStorage.getItem(USERS_KEY)||"[]"); }
+function saveUsers(users){ localStorage.setItem(USERS_KEY, JSON.stringify(users)); }
+function getCurrentUser(){ return currentUser; }
+function setCurrentUser(user){ currentUser=user; localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(user)); updateWorkspaceLabel(); }
+function getStorageKey(type){ const user=getCurrentUser(); const id=user?.id||"guest"; return `revnio_${id}_${type}`; }
+function getInvoiceStorageKey(){ return currentUser?.isDemo ? DEMO_INVOICE_KEY : getStorageKey("invoices"); }
+function getIncomeStorageKey(){ return currentUser?.isDemo ? DEMO_INCOME_KEY : getStorageKey("income"); }
+function getJobsStorageKey(){ return currentUser?.isDemo ? DEMO_JOBS_KEY : getStorageKey("jobs"); }
+function getVendorCategoryStorageKey(){ return getStorageKey("vendor_categories"); }
+function getSettingsStorageKey(){ return getStorageKey("settings"); }
+function getBugReportsKey(){ return getStorageKey("bug_reports"); }
+function getHasDataKey(){ return getStorageKey("has_user_data"); }
+function updateWorkspaceLabel(){ const node=document.getElementById("workspaceName"); if(node) node.textContent = currentUser ? `${currentUser.businessName}` : t("no_workspace_selected"); }
+function getOnboardingKey(){return getStorageKey("onboarding_completed");}
+function isOnboardingCompleted(){return localStorage.getItem(getOnboardingKey())==="true";}
+function completeOnboarding(){localStorage.setItem(getOnboardingKey(),"true");document.getElementById("onboardingModal").classList.add("hidden");}
+function skipOnboarding(){completeOnboarding();}
+function maybeShowOnboarding(){if(currentUser?.isDemo) return; if(!isOnboardingCompleted()&&invoices.length===0&&incomeEntries.length===0){document.getElementById("onboardingModal").classList.remove("hidden");}}
+async function openUserWorkspace(user){ if(!user) return; setCurrentUser(user); showDashboard(); await loadDashboard(); }
+function startFree(){ const modal=document.getElementById("emailCaptureModal"); if(modal) modal.classList.remove("hidden"); }
+function closeEmailCapture(){ const modal=document.getElementById("emailCaptureModal"); if(modal) modal.classList.add("hidden"); }
+async function submitEmailCapture(event){ event.preventDefault(); const email=document.getElementById("captureEmail").value.trim().toLowerCase(); const businessName=document.getElementById("captureBusinessName").value.trim(); if(!email||!businessName) return; setLoadingState("Loading your workspace..."); let user=null; try{ const response=await fetchWithTimeout(`${API_BASE}/users/find-or-create`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({email,business_name:businessName,language:currentLanguage})}); if(response.ok){ const dbUser=await response.json(); user={id:dbUser.id,email:dbUser.email,businessName:dbUser.business_name,createdAt:dbUser.created_at}; } }catch(_e){} if(!user){ const users=getUsers(); user=users.find(u=>u.email===email); if(!user){ user={ id:`u_${Date.now()}`, email, businessName, createdAt:new Date().toISOString() }; users.unshift(user); saveUsers(users); } } await openUserWorkspace(user); closeEmailCapture(); setLoadingState(""); }
+function getCuratedDemoInvoices(){ return [normalizeInvoiceFinancials({id:"demo_invoice_001",client_name:"Blue Harbor Studio",vendor:"Blue Harbor Studio",vendor_name:"Blue Harbor Studio",invoice_date:"2026-04-15",category:"Professional Services",total_amount:1250,taxAmount:100,status:"Paid",notes:"Brand strategy workshop and monthly advisory.",lineItems:[{description:"Strategy workshop",quantity:1,unitPrice:800,totalPrice:800},{description:"Monthly advisory retainer",quantity:1,unitPrice:350,totalPrice:350}],created_at:"2026-04-15T10:00:00.000Z",uploaded_at:"2026-04-15T10:00:00.000Z"})]; }
+function getCuratedDemoIncome(){ return [{id:"demo_income_001",source:"Website Design Project",date:"2026-04-18",amount:4200,notes:"Client payment received via bank transfer."}]; }
+function resetDemoWorkspaceData(){ localStorage.setItem(DEMO_INVOICE_KEY,JSON.stringify(getCuratedDemoInvoices())); localStorage.setItem(DEMO_INCOME_KEY,JSON.stringify(getCuratedDemoIncome())); }
+function startDemo(){ resetDemoWorkspaceData(); openUserWorkspace(DEMO_USER); }
+function restoreCurrentUser(){ const raw=localStorage.getItem(CURRENT_USER_KEY); if(!raw) return; try{ const parsed=JSON.parse(raw); if(parsed?.id) currentUser=parsed; }catch{} }
+function isMobileView(){return window.innerWidth<=768;}
+function t(key, params = {}) {
+  const localized = (translations[currentLanguage] && translations[currentLanguage][key]) || translations.en[key] || key;
+  return String(localized).replace(/\{(\w+)\}/g, (_, token) => (params[token] ?? `{${token}}`));
+}
+function populateLanguageSelectors(){
+  const options = LANGUAGE_OPTIONS.map(opt=>`<option value="${opt.code}">${opt.label}</option>`).join("");
+  ["landingLanguageSelect","dashboardLanguageSelect"].forEach(id=>{
+    const el = document.getElementById(id);
+    if(!el) return;
+    el.innerHTML = options;
+    el.value = currentLanguage;
+  });
+}
+function applyTranslations(){
+  document.querySelectorAll("[data-i18n]").forEach(el=>{
+    const key = el.getAttribute("data-i18n");
+    el.textContent = t(key);
+  });
+  document.querySelectorAll("[data-i18n-html]").forEach(el=>{
+    const key = el.getAttribute("data-i18n-html");
+    el.innerHTML = t(key);
+  });
+  document.querySelectorAll("[data-i18n-placeholder]").forEach(el=>{
+    const key = el.getAttribute("data-i18n-placeholder");
+    el.setAttribute("placeholder", t(key));
+  });
+  document.querySelectorAll("[data-i18n-aria-label]").forEach(el=>{
+    const key = el.getAttribute("data-i18n-aria-label");
+    el.setAttribute("aria-label", t(key));
+  });
+}
+function persistLanguagePreference(language){
+  localStorage.setItem(LANGUAGE_KEY, language);
+  if (currentUser?.id) {
+    const settingsKey = getSettingsStorageKey();
+    const settings = JSON.parse(localStorage.getItem(settingsKey) || "{}");
+    settings.language = language;
+    localStorage.setItem(settingsKey, JSON.stringify(settings));
+  }
+}
+function handleLanguageChange(language){
+  currentLanguage = translations[language] ? language : "en";
+  persistLanguagePreference(currentLanguage);
+  populateLanguageSelectors();
+  applyTranslations();
+  updateStaticUIText();
+  refreshAllViews();
+  renderQuickHelpButtons();
+}
+function initializeLanguage(){
+  const saved = localStorage.getItem(LANGUAGE_KEY);
+  currentLanguage = translations[saved] ? saved : "en";
+  populateLanguageSelectors();
+  applyTranslations();
+  updateStaticUIText();
+}
+function toggleSidebar(){if(!isMobileView()) return; sidebarOpen=!sidebarOpen; syncSidebarState();}
+function closeSidebar(){sidebarOpen=false; syncSidebarState();}
+function syncSidebarState(){const sidebar=document.getElementById("dashboardSidebar"),overlay=document.getElementById("sidebarOverlay");if(!sidebar||!overlay)return;sidebar.classList.toggle("mobile-open",sidebarOpen&&isMobileView());overlay.classList.toggle("active",sidebarOpen&&isMobileView());document.body.style.overflow=(sidebarOpen&&isMobileView())?"hidden":"";}
+window.addEventListener("resize",()=>{if(!isMobileView()) sidebarOpen=false; syncSidebarState();});
+function showDashboard() {
+  if(!currentUser){
+    startDemo();
+    return;
+  }
+  const landing=document.getElementById('landingPage');
+  const dashboard=document.getElementById('dashboardPage');
+  if(landing) landing.classList.add('hidden');
+  if(dashboard) dashboard.classList.remove('hidden');
+  const helpFab=document.getElementById("helpFab");
+  if(helpFab) helpFab.classList.remove("hidden");
+  closeSidebar();
+}
+
+function showLanding() {
+  const landing=document.getElementById('landingPage');
+  const dashboard=document.getElementById('dashboardPage');
+  if(dashboard) dashboard.classList.add('hidden');
+  if(landing) landing.classList.remove('hidden');
+  const helpFab=document.getElementById("helpFab");
+  if(helpFab) helpFab.classList.add("hidden");
+  closeAssistantPanel();
+  closeSidebar();
+}
+function normalizeVendorName(vendorName){return String(vendorName||"").toLowerCase().replace(/[^a-z0-9\s]/g," ").replace(/\b(inc|ltd|llc|corp|corporation)\b/g," ").replace(/\s+/g," ").trim();}
+function loadVendorCategoryMemory(){return JSON.parse(localStorage.getItem(getVendorCategoryStorageKey())||"{}");}
+function persistVendorCategoryMemory(memory){localStorage.setItem(getVendorCategoryStorageKey(),JSON.stringify(memory));}
+function matchAllowedCategory(rawCategory){const value=String(rawCategory||"").trim();if(!value)return "Other";const exact=ALLOWED_CATEGORIES.find(cat=>cat.toLowerCase()===value.toLowerCase());if(exact)return exact;const v=value.toLowerCase();if(/food|cafe|restaurant|coffee|beverage|meal/.test(v))return "Food & Beverage";if(/market|advert|promo|brand/.test(v))return "Marketing";if(/consult|legal|account|service|agency/.test(v))return "Professional Services";if(/utilit|electric|water|internet|phone/.test(v))return "Utilities";if(/rent|lease/.test(v))return "Rent";if(/suppl|office|material/.test(v))return "Supplies";if(/payroll|salary|wage|benefit/.test(v))return "Payroll";if(/transport|travel|fuel|uber|lyft|shipping/.test(v))return "Transportation";if(/software|saas|subscription|cloud|license/.test(v))return "Software";return "Other";}
+function applyCategoryNormalizationAndMemory(){const memory=loadVendorCategoryMemory();invoices=invoices.map(invoice=>{const vendor=invoice.client_name||invoice.vendor_name||"";const normalizedVendor=normalizeVendorName(vendor);let category=matchAllowedCategory(invoice.category);if(normalizedVendor&&memory[normalizedVendor]){category=matchAllowedCategory(memory[normalizedVendor]);}else if(normalizedVendor){memory[normalizedVendor]=category;}return {...invoice,category};});persistVendorCategoryMemory(memory);}
+function updateVendorCategoryForInvoice(invoice){const normalizedVendor=normalizeVendorName(invoice?.client_name||invoice?.vendor_name||"");if(!normalizedVendor)return;const memory=loadVendorCategoryMemory();memory[normalizedVendor]=matchAllowedCategory(invoice.category);persistVendorCategoryMemory(memory);}
+function updateInvoiceCategory(id,newCategory){const targetId=String(id),sanitized=matchAllowedCategory(newCategory);let changed=false;invoices=invoices.map((invoice,index)=>{if(getInvoiceIdentifier(invoice,index)!==targetId)return invoice;changed=true;const updatedInvoice={...invoice,category:sanitized};updateVendorCategoryForInvoice(updatedInvoice);return updatedInvoice;});if(!changed)return;markUserHasData();persistInvoices();refreshAllViews();setLoadingState(t("category_updated"));}
+function formatMoney(value){return "$" + (Number(value) || 0).toFixed(2);} function toCSVCell(value){return `"${String(value ?? "").replace(/"/g,'""')}"`;} function setLoadingState(m){document.getElementById("loading").textContent=m||"";}
+function setExtractButtonLoading(isLoading){const extractBtn=document.getElementById("extractInvoiceBtn");if(!extractBtn)return;extractBtn.disabled=Boolean(isLoading);extractBtn.style.opacity=isLoading?"0.65":"1";extractBtn.style.cursor=isLoading?"not-allowed":"pointer";}
+async function fetchWithTimeout(url,options={},timeoutMs=REQUEST_TIMEOUT_MS){const controller=new AbortController();const timeoutId=setTimeout(()=>controller.abort(),timeoutMs);try{return await fetch(url,{...options,signal:controller.signal});}finally{clearTimeout(timeoutId);}}
+function activateTab(tabId){document.querySelectorAll(".tab-content").forEach(el=>el.classList.remove("active"));document.querySelectorAll(".tab-btn").forEach(el=>el.classList.remove("active"));document.getElementById(tabId).classList.add("active");document.getElementById(`tab-${tabId}`).classList.add("active");}
+function showTab(tabId,btn){activateTab(tabId);document.querySelectorAll(".nav-item").forEach(el=>el.classList.remove("active"));btn.classList.add("active");if(isMobileView())closeSidebar();}
+function showInsightsPage(){activateTab("insights");const insightsBtn=[...document.querySelectorAll(".nav-item")].find(btn=>btn.textContent.trim()==="Insights");document.querySelectorAll(".nav-item").forEach(el=>el.classList.remove("active"));if(insightsBtn)insightsBtn.classList.add("active");}
+async function loadIncomeEntries(){if(currentUser?.isDemo){incomeEntries=JSON.parse(localStorage.getItem(getIncomeStorageKey())||"[]");renderIncomeHistory();return;}try{const response=await fetchWithTimeout(`${API_BASE}/users/${encodeURIComponent(currentUser.id)}/income`);if(response.ok){const data=await response.json();incomeEntries=data.map(item=>({id:item.id,source:item.source,date:item.date,amount:Number(item.amount)||0,notes:item.notes||""}));localStorage.setItem(getIncomeStorageKey(),JSON.stringify(incomeEntries));}else{incomeEntries=JSON.parse(localStorage.getItem(getIncomeStorageKey())||"[]");}}catch(_e){incomeEntries=JSON.parse(localStorage.getItem(getIncomeStorageKey())||"[]");}renderIncomeHistory();}
+async function persistIncomeEntries(){localStorage.setItem(getIncomeStorageKey(),JSON.stringify(incomeEntries)); if(currentUser?.isDemo||!currentUser?.id) return; for(const entry of incomeEntries){ if(String(entry.id).startsWith("tmp_")){ try{const response=await fetchWithTimeout(`${API_BASE}/users/${encodeURIComponent(currentUser.id)}/income`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({source:entry.source,amount:Number(entry.amount)||0,date:entry.date,notes:entry.notes||""})}); if(response.ok){const saved=await response.json(); entry.id=saved.id;}}catch(_e){} } }}
+async function saveIncome(event){event.preventDefault();const source=document.getElementById("incomeSource").value.trim(),date=document.getElementById("incomeDate").value,amount=Number(document.getElementById("incomeAmount").value||0),notes=document.getElementById("incomeNotes").value.trim();incomeEntries.unshift({id:`tmp_${Date.now()}`,source,date,amount,notes});await persistIncomeEntries();refreshAllViews();document.getElementById("incomeForm").reset();}
+function markUserHasData(){localStorage.setItem(getHasDataKey(),"true");}
+function hasUserData(){return localStorage.getItem(getHasDataKey())==="true";}
+async function deleteIncome(id){const targetId=String(id);const target=incomeEntries.find(item=>String(item.id)===targetId);if(!target)return;lastDeletedIncome={entry:target,timeoutAt:Date.now()+8000};incomeEntries=incomeEntries.filter(item=>String(item.id)!==targetId);if(!currentUser?.isDemo&&currentUser?.id){try{await fetchWithTimeout(`${API_BASE}/users/${encodeURIComponent(currentUser.id)}/income/${encodeURIComponent(targetId)}`,{method:"DELETE"});}catch(_e){}}persistIncomeEntries();markUserHasData();refreshAllViews();showUndoToast("Income deleted.",()=>{if(!lastDeletedIncome||String(lastDeletedIncome.entry.id)!==targetId)return;incomeEntries.unshift(lastDeletedIncome.entry);persistIncomeEntries();refreshAllViews();lastDeletedIncome=null;});}
+function renderIncomeHistory(){const box=document.getElementById("incomeHistory");if(!incomeEntries.length){box.className="state";box.innerHTML=t("add_income_profit_hint");return;}box.className="";const rows=incomeEntries.map(item=>`<tr><td>${item.source}</td><td>${item.date||"-"}</td><td>${formatMoney(item.amount)}</td><td>${item.notes||"-"}</td><td>${renderActionMenu("income",item.id)}</td></tr>`).join("");const cards=incomeEntries.map(item=>`<article class="mobile-row-card"><div class="mobile-row-head"><h4 class="mobile-row-title">${item.source}</h4><div class="mobile-row-menu">${renderActionMenu("income",item.id)}</div></div><div class="mobile-row-grid"><div class="mobile-row-item"><label>Amount</label><div>${formatMoney(item.amount)}</div></div><div class="mobile-row-item"><label>Date</label><div>${item.date||"-"}</div></div><div class="mobile-row-item"><label>Category/Type</label><div>${item.category||item.type||"-"}</div></div><div class="mobile-row-item"><label>Notes</label><div>${item.notes||"-"}</div></div></div></article>`).join("");box.innerHTML=`<div class="table-scroll"><table><tr><th>Source</th><th>Date</th><th>Amount</th><th>Notes</th><th>Actions</th></tr>${rows}</table></div><div class="mobile-table-cards">${cards}</div>`;}
+function getInvoiceIdentifier(invoice,index){return String(invoice?.id??invoice?._id??invoice?.invoiceId??invoice?.invoice_id??invoice?.uuid??index);}
+function normalizeLineItems(rawItems){if(!Array.isArray(rawItems)) return [];return rawItems.map(item=>{const quantityRaw=item?.quantity??item?.qty;const quantity=quantityRaw===""||quantityRaw==null?null:Number(quantityRaw);const unitPriceRaw=item?.unitPrice??item?.unit_price??item?.price;const unitPrice=unitPriceRaw===""||unitPriceRaw==null?null:Number(unitPriceRaw);const totalRaw=item?.totalPrice??item?.total_price??item?.amount??item?.line_total??item?.total;const totalPrice=Number(totalRaw);return {description:String(item?.description||item?.name||item?.item||item?.service||item?.product||""),quantity:Number.isFinite(quantity)?quantity:null,unitPrice:Number.isFinite(unitPrice)?unitPrice:null,totalPrice:Number.isFinite(totalPrice)?totalPrice:0};}).filter(item=>item.description||item.totalPrice!==0||item.quantity!==null||item.unitPrice!==null);}
+async function persistInvoices(){localStorage.setItem(getInvoiceStorageKey(),JSON.stringify(invoices)); if(currentUser?.isDemo||!currentUser?.id) return; for(const invoice of invoices){ if(String(invoice.id).startsWith("manual_")||String(invoice.id).startsWith("tmp_")){ try{const response=await fetchWithTimeout(`${API_BASE}/users/${encodeURIComponent(currentUser.id)}/invoices`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({vendor:invoice.vendor||invoice.client_name||"Unknown",date:invoice.invoice_date,total_amount:Number(invoice.total_amount)||0,tax_amount:Number(invoice.taxAmount)||0,category:invoice.category||"Other",status:invoice.status||"Unpaid",notes:invoice.notes||"",line_items:Array.isArray(invoice.lineItems)?invoice.lineItems:[]})});if(response.ok){const saved=await response.json();invoice.id=saved.id;}}catch(_e){} } }}
+async function loadDashboard(){setLoadingState("Loading your workspace...");if(!currentUser) return setLoadingState(t("select_workspace_continue"));if(currentUser?.isDemo){invoices=JSON.parse(localStorage.getItem(getInvoiceStorageKey())||"[]").map(inv=>normalizeInvoiceFinancials(inv));await loadIncomeEntries();
+  loadJobEntries();}else{try{const response=await fetchWithTimeout(`${API_BASE}/users/${encodeURIComponent(currentUser.id)}/invoices`);if(response.ok){const data=await response.json();invoices=data.map(inv=>normalizeInvoiceFinancials({id:inv.id,client_name:inv.vendor,vendor_name:inv.vendor,vendor:inv.vendor,invoice_date:inv.date,total_amount:Number(inv.total_amount)||0,taxAmount:Number(inv.tax_amount)||0,status:inv.status||"Unpaid",category:inv.category||"Other",notes:inv.notes||"",lineItems:Array.isArray(inv.line_items)?inv.line_items:[]}));localStorage.setItem(getInvoiceStorageKey(),JSON.stringify(invoices));}else{invoices=JSON.parse(localStorage.getItem(getInvoiceStorageKey())||"[]").map(inv=>normalizeInvoiceFinancials(inv));}}catch(_e){invoices=JSON.parse(localStorage.getItem(getInvoiceStorageKey())||"[]").map(inv=>normalizeInvoiceFinancials(inv));} await loadIncomeEntries();
+  loadJobEntries();}applyCategoryNormalizationAndMemory();refreshAllViews();maybeShowOnboarding();renderProfileTab();setLoadingState("");}
+function updateDashboard(){const totalExpenses=invoices.reduce((sum,invoice)=>sum+(Number(invoice.total_amount)||0),0),totalIncome=incomeEntries.reduce((sum,item)=>sum+(Number(item.amount)||0),0),profit=totalIncome-totalExpenses;document.getElementById("totalIncome").textContent=formatMoney(totalIncome);document.getElementById("totalExpenses").textContent=formatMoney(totalExpenses);document.getElementById("profit").textContent=formatMoney(profit);}
+function parseEntryDate(value){const date=value?new Date(value):null;return date&&!Number.isNaN(date.getTime())?date:null;}
+function calculateExpenseTrend(invoiceList){if(invoiceList.length<2)return null;const sorted=[...invoiceList].sort((a,b)=>{const aDate=parseEntryDate(a.invoice_date||a.created_at),bDate=parseEntryDate(b.invoice_date||b.created_at);return (aDate?aDate.getTime():0)-(bDate?bDate.getTime():0);});const midpoint=Math.floor(sorted.length/2);if(midpoint===0||midpoint===sorted.length)return null;const older=sorted.slice(0,midpoint),recent=sorted.slice(midpoint);const olderTotal=older.reduce((sum,invoice)=>sum+(Number(invoice.total_amount)||0),0),recentTotal=recent.reduce((sum,invoice)=>sum+(Number(invoice.total_amount)||0),0),olderAverage=olderTotal/older.length,recentAverage=recentTotal/recent.length;if(olderAverage<=0&&recentAverage<=0)return null;if(olderAverage===0)return{direction:"up",change:100};const change=((recentAverage-olderAverage)/olderAverage)*100;if(change>7)return{direction:"up",change};if(change<-7)return{direction:"down",change:Math.abs(change)};return{direction:"flat",change:Math.abs(change)};}
+function updateFinancialSummary(){const messageNode=document.getElementById("financialSummaryMessage"),metaNode=document.getElementById("financialSummaryMeta");if(!messageNode||!metaNode)return;const totalIncome=incomeEntries.reduce((s,i)=>s+(Number(i.amount)||0),0),totalExpenses=invoices.reduce((s,i)=>s+(Number(i.total_amount)||0),0),profit=totalIncome-totalExpenses,categories={};invoices.forEach(i=>{const c=i.category||"Other";categories[c]=(categories[c]||0)+(Number(i.total_amount)||0);});const top=Object.entries(categories).sort((a,b)=>b[1]-a[1])[0]||["Other",0];const unpaidCount=invoices.filter(i=>normalizeInvoiceStatus(i.status)!=="Paid").length;if(!invoices.length&&!incomeEntries.length){messageNode.innerHTML=`<span class="financial-summary-line">Profit: $0.00</span><span class="financial-summary-line">Top spend: N/A</span><span class="financial-summary-line">Unpaid: 0 invoices</span>`;metaNode.textContent="Action: Upload your first invoice to unlock live insights.";return;}messageNode.innerHTML=`<span class="financial-summary-line">Profit: ${formatMoney(profit)}</span><span class="financial-summary-line">Top spend: ${top[0]} (${formatMoney(top[1])})</span><span class="financial-summary-line">Unpaid: ${unpaidCount} invoice${unpaidCount===1?"":"s"}</span>`;metaNode.textContent=profit<0?"Action: Pause non-essential spend until margin recovers.":"Action: Review high-cost categories before your next major purchase.";}
+function renderLatestInvoice(){const box=document.getElementById("latestInvoice");if(!invoices.length){box.className="state";box.innerHTML=t("upload_first_invoice_details");return;}const invoice=invoices[0];const lineItems=normalizeLineItems(invoice.lineItems);const previewItems=lineItems.slice(0,3);const previewRows=previewItems.length?`<div style="margin-top:10px;"><strong>Items</strong><ul class="insights-list" style="margin-top:6px;">${previewItems.map(item=>`<li>${item.description||"Unnamed item"}${item.quantity!=null?` × ${item.quantity}`:""} — <strong>${formatMoney(item.totalPrice)}</strong></li>`).join("")}</ul>${lineItems.length>3?`<div style="color:var(--muted);font-size:12px;">+${lineItems.length-3} more items (open View Details)</div>`:""}</div>`:`<div class="line-item-empty" style="margin-top:10px;">No itemized details were found. You can add items manually or re-upload a clearer image.</div>`;box.className="";box.innerHTML=`<p><strong>Client:</strong> ${invoice.client_name||invoice.vendor_name||"Unknown"}</p><p><strong>Date:</strong> ${invoice.invoice_date||"Unknown"}</p><p><strong>Category:</strong> ${invoice.category||"Other"}</p><div class="trust-badge">Category auto-detected</div>${previewRows}<p style="margin-top:10px;"><strong>Total:</strong> ${formatMoney(invoice.total_amount)}</p>`;}
+function renderHistory(){const box=document.getElementById("history");if(!invoices.length){box.className="state";box.innerHTML=t("no_invoices_tracking");return;}box.className="";const rows=invoices.map((invoice,index)=>{const invoiceId=getInvoiceIdentifier(invoice,index),selected=matchAllowedCategory(invoice.category),options=ALLOWED_CATEGORIES.map(cat=>`<option value="${cat}" ${selected===cat?"selected":""}>${cat}</option>`).join("");return `<tr><td>${invoice.client_name||"Unknown"}</td><td>${invoice.invoice_date||"Unknown"}</td><td><select onchange="updateInvoiceCategory('${invoiceId}',this.value)">${options}</select></td><td>${formatMoney(invoice.total_amount)}</td><td>${invoice.created_at?new Date(invoice.created_at).toLocaleDateString():""}</td><td>${renderActionMenu("invoice",invoiceId)}</td></tr>`;}).join("");const cards=invoices.map((invoice,index)=>{const invoiceId=getInvoiceIdentifier(invoice,index);return `<article class="mobile-row-card"><div class="mobile-row-head"><h4 class="mobile-row-title">${invoice.client_name||"Unknown"}</h4><div class="mobile-row-menu">${renderActionMenu("invoice",invoiceId)}</div></div><div class="mobile-row-grid"><div class="mobile-row-item"><label>Amount</label><div>${formatMoney(invoice.total_amount)}</div></div><div class="mobile-row-item"><label>Category</label><div>${matchAllowedCategory(invoice.category)}</div></div><div class="mobile-row-item"><label>Date</label><div>${invoice.invoice_date||"Unknown"}</div></div><div class="mobile-row-item"><label>Status</label><div>${invoice.status||"-"}</div></div></div></article>`;}).join("");box.innerHTML=`<div class="table-scroll"><table><tr><th>Client</th><th>Date</th><th>Category</th><th>Total</th><th>Uploaded</th><th>Actions</th></tr>${rows}</table></div><div class="mobile-table-cards">${cards}</div>`;}
+async function deleteInvoice(id){if(!confirm("Are you sure you want to delete this invoice?"))return;setLoadingState("Deleting invoice...");const targetId=String(id);const invoiceToDelete=invoices.find((inv,index)=>getInvoiceIdentifier(inv,index)===targetId);if(!invoiceToDelete){setLoadingState("Invoice not found.");return;}lastDeletedInvoice={invoice:invoiceToDelete,targetId};invoices=invoices.filter((inv,index)=>getInvoiceIdentifier(inv,index)!==targetId);if(!currentUser?.isDemo&&currentUser?.id){try{await fetchWithTimeout(`${API_BASE}/users/${encodeURIComponent(currentUser.id)}/invoices/${encodeURIComponent(targetId)}`,{method:"DELETE"});}catch(_e){}}markUserHasData();persistInvoices();refreshAllViews();setLoadingState("Invoice deleted successfully.");showUndoToast("Invoice deleted.",()=>{if(!lastDeletedInvoice||lastDeletedInvoice.targetId!==targetId)return;invoices.unshift(lastDeletedInvoice.invoice);persistInvoices();refreshAllViews();lastDeletedInvoice=null;});}
+function buildCategoryChart(invoiceList){const totals={};invoiceList.forEach(inv=>{const c=inv.category||"Other";totals[c]=(totals[c]||0)+(Number(inv.total_amount)||0);});if(categoryChartInstance)categoryChartInstance.destroy();categoryChartInstance=new Chart(document.getElementById("categoryChart"),{type:"doughnut",data:{labels:Object.keys(totals),datasets:[{data:Object.values(totals),backgroundColor:["#2563eb","#16a34a","#9333ea","#f59e0b","#ef4444","#0ea5e9"]}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:"bottom"}}}});} 
+function buildMonthlyChart(invoiceList){const monthlyTotals={};invoiceList.forEach(inv=>{if(!inv.invoice_date)return;const d=new Date(inv.invoice_date);const k=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`;monthlyTotals[k]=(monthlyTotals[k]||0)+(Number(inv.total_amount)||0);});const sorted=Object.keys(monthlyTotals).sort();const labels=sorted.map(month=>{const [year,m]=month.split("-");return new Date(Number(year),Number(m)-1,1).toLocaleDateString(undefined,{month:"short",year:"numeric"});});const dataPoints=sorted.map(k=>monthlyTotals[k]);if(monthlyChartInstance)monthlyChartInstance.destroy();monthlyChartInstance=new Chart(document.getElementById("monthlyChart"),{type:"line",data:{labels,datasets:[{label:"Monthly Spending",data:dataPoints,tension:0.42,fill:true,backgroundColor:"rgba(59,130,246,0.18)",borderColor:"#60a5fa",borderWidth:4,pointRadius:4,pointHoverRadius:6,pointBackgroundColor:"#c7d2fe",pointBorderWidth:2,pointBorderColor:"#1e3a8a"}]},options:{responsive:true,maintainAspectRatio:false,interaction:{mode:"index",intersect:false},scales:{x:{grid:{color:"rgba(148,163,184,0.08)",drawBorder:false},ticks:{color:"#cbd5e1"}},y:{beginAtZero:true,grid:{color:"rgba(148,163,184,0.08)",drawBorder:false},ticks:{callback:value=>"$"+value,color:"#cbd5e1"}}},plugins:{legend:{position:"bottom",labels:{color:"#dbeafe"}},tooltip:{callbacks:{title:items=>`${items[0].label} · Monthly trend`,label:ctx=>{const categoryTotals={};invoiceList.forEach(inv=>{const c=inv.category||"Other";categoryTotals[c]=(categoryTotals[c]||0)+(Number(inv.total_amount)||0);});const topCategory=(Object.entries(categoryTotals).sort((a,b)=>b[1]-a[1])[0]||["Marketing",0])[0];return [` ${formatMoney(ctx.parsed.y)}`,` ${topCategory} spike here`];}}}}}});}
+function updateAnalyticsSummary(invoiceList){const monthlyTotals={};const categoryTotals={};invoiceList.forEach(inv=>{const amount=Number(inv.total_amount)||0;const category=inv.category||"Other";categoryTotals[category]=(categoryTotals[category]||0)+amount;if(inv.invoice_date){const d=new Date(inv.invoice_date);const key=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`;monthlyTotals[key]=(monthlyTotals[key]||0)+amount;}});const totalInvoices=invoiceList.length;const monthsCount=Math.max(Object.keys(monthlyTotals).length,1);const avgMonthly=Object.values(monthlyTotals).reduce((sum,v)=>sum+v,0)/monthsCount;const topCategoryValue=(Object.entries(categoryTotals).sort((a,b)=>b[1]-a[1])[0]||["Other",0])[1];document.getElementById("analyticsTotalInvoices").textContent=String(totalInvoices);document.getElementById("analyticsAvgMonthly").textContent=formatMoney(avgMonthly);document.getElementById("analyticsTopCategory").textContent=formatMoney(topCategoryValue);}
+function buildInsights(invoiceList){const target=document.getElementById("insightsContent");const totalExpenses=invoiceList.reduce((s,i)=>s+(Number(i.total_amount)||0),0),totalIncome=incomeEntries.reduce((s,i)=>s+(Number(i.amount)||0),0),profit=totalIncome-totalExpenses,categories={};invoiceList.forEach(inv=>{const k=inv.category||"Other";categories[k]=(categories[k]||0)+(Number(inv.total_amount)||0);});const topCategory=Object.entries(categories).sort((a,b)=>b[1]-a[1])[0]||["Other",0];const unpaid=invoiceList.filter(i=>normalizeInvoiceStatus(i.status)!=="Paid");const highestInvoice=invoiceList.reduce((max,inv)=>Number(inv.total_amount||0)>Number(max.total_amount||0)?inv:max,invoiceList[0]||{total_amount:0});const averageInvoice=invoiceList.length?totalExpenses/invoiceList.length:0;const unpaidAmount=unpaid.reduce((s,i)=>s+(Number(i.total_amount)||0),0);if(!invoiceList.length){target.className="state";target.textContent="Add income and upload invoices to generate your financial summary.";return;}target.className="";target.innerHTML=`<div class="insight-grid"><article class="insight-card"><h4>Invoices Uploaded</h4><div class="insight-num">${invoiceList.length}</div></article><article class="insight-card"><h4>Average Invoice</h4><div class="insight-num">${formatMoney(averageInvoice)}</div></article><article class="insight-card"><h4>Unpaid Invoice Amount</h4><div class="insight-num">${formatMoney(unpaidAmount)}</div></article><article class="insight-card"><h4>Unpaid Invoice Count</h4><div class="insight-num">${unpaid.length}</div></article><article class="insight-card"><h4>Highest Invoice</h4><div class="insight-num">${formatMoney(highestInvoice.total_amount||0)}</div></article><article class="insight-card"><h4>Top Expense Category</h4><div class="insight-num">${topCategory[0]} • ${formatMoney(topCategory[1])}</div></article><article class="insight-card"><h4>Total Income</h4><div class="insight-num">${formatMoney(totalIncome)}</div></article><article class="insight-card"><h4>Total Expenses</h4><div class="insight-num">${formatMoney(totalExpenses)}</div></article><article class="insight-card"><h4>Profit</h4><div class="insight-num">${formatMoney(profit)}</div></article></div>`;}
+function exportCSV(){if(!invoices.length)return alert(t("no_invoice_export"));const headers=["client_name","invoice_date","category","total_amount","created_at","line_items_json"],rows=invoices.map(inv=>headers.map(key=>key==="line_items_json"?toCSVCell(JSON.stringify(inv.lineItems||[])):toCSVCell(inv[key]))),csv=[headers.join(","),...rows.map(row=>row.join(","))].join("\n"),blob=new Blob([csv],{type:"text/csv;charset=utf-8;"}),url=URL.createObjectURL(blob),link=document.createElement("a");link.href=url;link.download="revnio-invoices.csv";document.body.appendChild(link);link.click();document.body.removeChild(link);URL.revokeObjectURL(url);} 
+const INVOICE_EXTRACTION_SCHEMA={taxAmount:"number",lineItems:[{description:"string",quantity:"number|null",unitPrice:"number|null",totalPrice:"number"}]};
+const INVOICE_EXTRACTION_PROMPT="Extract invoice header details and every visible line item/service into lineItems. Do not invent items. Include taxes, tips, discounts, fees, shipping, or surcharges as separate lineItems when visible. Each line item must include description (string), quantity (number or null; use null when missing, or 1 only when clearly implied), unitPrice (number or null), and totalPrice (number as the line total).";
+function extractInvoiceFromUploadResponse(data){if(!data||typeof data!=="object")return null;const candidates=[data.invoice,data.result,data.extracted,data.extraction,data.data,data.parsed,data.response,data.data?.invoice,data.result?.invoice,data.extractedInvoice,data.extracted_data,data.parsedInvoice,data.response?.invoice,data];for(const candidate of candidates){if(candidate&&typeof candidate==="object")return candidate;}return null;}
+function setExtractionDebug(raw,normalized,validationErrors){const box=document.getElementById("extractionDebugBox"),rawNode=document.getElementById("debugRawResponse"),normalizedNode=document.getElementById("debugNormalizedInvoice"),errorNode=document.getElementById("debugValidationErrors");if(!box||!rawNode||!normalizedNode||!errorNode)return;if(!DEBUG_MODE){box.style.display="none";return;}box.style.display="block";rawNode.textContent=JSON.stringify(raw??null,null,2);normalizedNode.textContent=JSON.stringify(normalized??null,null,2);errorNode.textContent=(validationErrors&&validationErrors.length)?validationErrors.join("\n"):"None";}
+function normalizeExtractedInvoice(data,fileName){if(!data||typeof data!=="object")return{invoice:null,errors:["Extraction payload is empty."]};const source=data.structured_data||data.invoice||data.result||data.extracted||data;const rawLineItems=source.services??source.items??source.lineItems??source.line_items??source.receipt_items??[];const lineItems=normalizeLineItems((Array.isArray(rawLineItems)?rawLineItems:[]).map(item=>({description:item?.description??item?.name??item?.item??"Item",quantity:Number(item?.quantity)||1,unitPrice:Number(item?.unit_price??item?.unitPrice??item?.price)||null,totalPrice:Number(item?.total??item?.totalPrice??item?.amount??item?.line_total)||0})));const vendorRaw=source.client_name??source.vendor??source.vendor_name??source.merchant??"Unknown Vendor";const invoiceDateRaw=source.invoice_date??source.date??source.receipt_date??new Date().toISOString().slice(0,10);const totalCandidate=Number(source.total_amount??source.total??source.amount??source.grand_total);const taxRaw=Number(source.taxAmount??source.tax??source.taxes??source.HST??source.GST??source.VAT??source.hst??source.gst??source.vat??0);const lineItemsSubtotal=calculateLineItemsSubtotal(lineItems);const computedBaseTotal=(Number.isFinite(totalCandidate)&&totalCandidate>0)?totalCandidate:(lineItems.length?lineItemsSubtotal:0);const computedTotal=(Number.isFinite(computedBaseTotal)?computedBaseTotal:0)+(Number.isFinite(taxRaw)?taxRaw:0);const vendorValue=String(vendorRaw||"Unknown Vendor").trim()||"Unknown Vendor";const invoiceDateValue=invoiceDateRaw?String(invoiceDateRaw):new Date().toISOString().slice(0,10);
+const normalized={id:String(source.id??source._id??source.invoiceId??source.invoice_id??data.id??data._id??Date.now()),client_name:vendorValue,vendor:vendorValue,vendor_name:vendorValue,invoice_date:invoiceDateValue,category:matchAllowedCategory(source.category||"Other"),total_amount:Number.isFinite(computedTotal)?computedTotal:0,taxAmount:Number.isFinite(taxRaw)?taxRaw:0,status:normalizeInvoiceStatus(source.status||"Unpaid"),notes:String(source.notes??""),lineItems,uploaded_at:source.uploaded_at||data.uploaded_at||new Date().toISOString(),created_at:source.created_at||data.created_at||new Date().toISOString(),filename:source.filename||data.filename||fileName,file_name:source.file_name||source.filename||data.file_name||data.filename||fileName};
+const errors=[];const hasAmount=Number.isFinite(normalized.total_amount)&&normalized.total_amount>0;const hasItems=Array.isArray(normalized.lineItems)&&normalized.lineItems.length>0;if(!(normalized.client_name&&normalized.client_name.trim()))errors.push("Missing vendor name.");if(!(hasAmount||hasItems))errors.push("Missing total amount and line items.");if(!normalized.invoice_date)errors.push("Missing invoice date.");if(errors.length)return{invoice:null,errors};return{invoice:normalizeInvoiceFinancials(normalized),errors};}
+function updateSelectedFileName(file){const label=document.getElementById("selectedFileName");if(label)label.textContent=file?file.name:t("no_file_selected");}
+function renderUploadUrlDebug(){const uploadUrlDebug=document.getElementById("uploadUrlDebug");if(!uploadUrlDebug)return;if(!DEBUG_MODE||IS_PRODUCTION){uploadUrlDebug.style.display="none";uploadUrlDebug.textContent="";return;}uploadUrlDebug.style.display="block";uploadUrlDebug.textContent=`Upload URL: ${API_BASE}${UPLOAD_ENDPOINT}`;}
+function setupUploadInteractions(){const fileInput=document.getElementById("fileInput"),uploadZone=document.getElementById("uploadZone");if(!fileInput||!uploadZone)return;fileInput.addEventListener("change",()=>updateSelectedFileName(fileInput.files[0]));["dragenter","dragover"].forEach(evt=>uploadZone.addEventListener(evt,event=>{event.preventDefault();uploadZone.classList.add("dragover");}));["dragleave","drop"].forEach(evt=>uploadZone.addEventListener(evt,event=>{event.preventDefault();uploadZone.classList.remove("dragover");}));uploadZone.addEventListener("drop",event=>{if(event.dataTransfer?.files?.length){fileInput.files=event.dataTransfer.files;updateSelectedFileName(event.dataTransfer.files[0]);}});}
+async function uploadFile(){const fileInput=document.getElementById("fileInput"),file=fileInput.files[0];if(!file)return alert(t("choose_invoice_first"));const formData=new FormData();formData.append("file",file);if(currentUser?.id)formData.append("user_id",currentUser.id);const uploadUrl=`${API_BASE}${UPLOAD_ENDPOINT}`;console.log("Upload URL:",uploadUrl);if(DEBUG_MODE&&!IS_PRODUCTION){const uploadUrlDebug=document.getElementById("uploadUrlDebug");if(uploadUrlDebug)uploadUrlDebug.textContent=`Upload URL: ${uploadUrl}`;}toggleManualEntryButton(false);setExtractButtonLoading(true);setLoadingState(t("processing_invoice"));try{const response=await fetchWithTimeout(uploadUrl,{method:"POST",body:formData},REQUEST_TIMEOUT_MS);console.log("Upload response status:",response.status,response.statusText);const rawResponse=await response.text();console.log("Upload response body:",rawResponse);let parsedJson=null;try{parsedJson=rawResponse?JSON.parse(rawResponse):null;}catch(_e){}if(!response.ok){console.error("Upload request failed:",{endpoint:uploadUrl,status:response.status,statusText:response.statusText,rawResponse});const is404=response.status===404;const message=is404?"Upload service not found. Please check the backend endpoint.":"We could not read this invoice. Try a clearer image or enter details manually.";setLoadingState(message);toggleManualEntryButton(true);setExtractionDebug({endpoint:uploadUrl,status:response.status,statusText:response.statusText,rawResponse},null,[message]);return;}const data=parsedJson??{};const extracted=extractInvoiceFromUploadResponse(data)||data;const normalized=normalizeExtractedInvoice(extracted,file.name);if(normalized.errors.length||!normalized.invoice){setLoadingState("We could not read this invoice. Try a clearer image or enter details manually.");toggleManualEntryButton(true);setExtractionDebug({endpoint:uploadUrl,status:response.status,rawResponse:data},normalized.invoice,normalized.errors);return;}const normalizedInvoice=normalizeInvoiceFinancials(normalized.invoice);console.log("RAW AI RESULT:",data);setExtractionDebug({endpoint:uploadUrl,status:response.status,rawResponse:data},normalizedInvoice,[]);invoices.unshift(normalizedInvoice);markUserHasData();await persistInvoices();applyCategoryNormalizationAndMemory();await persistInvoices();refreshAllViews();setLoadingState(t("invoice_uploaded_saved"));fileInput.value="";updateSelectedFileName(null);}catch(error){console.error("Upload fetch error:",error);toggleManualEntryButton(true);if(error?.name==="AbortError"){setLoadingState("Processing in background. Extraction took longer than 30 seconds—please refresh shortly.");}else if(error instanceof TypeError){setLoadingState("Server temporarily unavailable");}else{setLoadingState("We could not read this invoice. Try a clearer image or enter details manually.");}}finally{setExtractButtonLoading(false);}}
+
+function renderActionMenu(type,id){const safeId=String(id).replace(/\\/g,'\\\\').replace(/'/g,"\\'");return `<div class="action-menu-wrap"><button class="menu-trigger" aria-label="More actions" onclick="toggleActionMenu(event,'${type}','${safeId}')"><span class="menu-dots">⋯</span></button></div>`;}
+function renderFloatingActionMenu(){const existing=document.getElementById("floatingActionMenu");if(existing)existing.remove();if(!openActionMenu)return;const menu=document.createElement("div");menu.id="floatingActionMenu";menu.className="menu-dropdown";menu.style.left=`${openActionMenu.left}px`;menu.style.top=`${openActionMenu.top}px`;menu.innerHTML=`${openActionMenu.type==="invoice"?`<button class="menu-item" onclick="handleViewDetailsAction('${openActionMenu.id}')">👁️ View Details</button>`:""}<button class="menu-item" onclick="handleEditAction('${openActionMenu.type}','${openActionMenu.id}')"><svg class="action-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 1 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg>Edit</button><button class="menu-item danger" onclick="handleDeleteAction('${openActionMenu.type}','${openActionMenu.id}')"><svg class="trash-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/></svg>Delete</button>`;menu.addEventListener("click",event=>event.stopPropagation());document.body.appendChild(menu);}
+function toggleActionMenu(event,type,id){event.stopPropagation();const key=`${type}-${id}`;if(openActionMenu&&openActionMenu.key===key){closeActionMenus();return;}const triggerRect=event.currentTarget.getBoundingClientRect();const estimatedMenuHeight=type==="invoice"?132:92;const estimatedMenuWidth=156;const gap=10;const availableBelow=window.innerHeight-triggerRect.bottom;const availableAbove=triggerRect.top;const opensUp=availableBelow<estimatedMenuHeight+gap&&availableAbove>availableBelow;const preferredTop=opensUp?triggerRect.top-estimatedMenuHeight-gap:triggerRect.bottom+gap;const top=Math.max(gap,Math.min(preferredTop,window.innerHeight-estimatedMenuHeight-gap));const preferredLeft=triggerRect.right-estimatedMenuWidth;const left=Math.max(gap,Math.min(preferredLeft,window.innerWidth-estimatedMenuWidth-gap));openActionMenu={key,type,id,top,left,opensUp};renderFloatingActionMenu();const menu=document.getElementById("floatingActionMenu");if(menu){const menuRect=menu.getBoundingClientRect();const adjustedTop=opensUp?Math.max(gap,triggerRect.top-menuRect.height-gap):Math.min(window.innerHeight-menuRect.height-gap,triggerRect.bottom+gap);const adjustedLeft=Math.max(gap,Math.min(triggerRect.right-menuRect.width,window.innerWidth-menuRect.width-gap));menu.style.top=`${adjustedTop}px`;menu.style.left=`${adjustedLeft}px`;menu.style.zIndex="10050";}}
+function closeActionMenus(){if(openActionMenu!==null){openActionMenu=null;const existing=document.getElementById("floatingActionMenu");if(existing)existing.remove();}}
+document.addEventListener("click",closeActionMenus);
+document.addEventListener("click",event=>{if(event.target.classList && event.target.classList.contains("nav-item") && isMobileView()){closeSidebar();}});
+window.addEventListener("resize",closeActionMenus);
+window.addEventListener("scroll",closeActionMenus,true);
+function handleViewDetailsAction(id){closeActionMenus();openInvoiceDetailsModal(id);}
+function handleDeleteAction(type,id){closeActionMenus();if(type==="invoice"){deleteInvoice(id);}else if(type==="job"){deleteJobEntry(id);}else{deleteIncome(id);} }
+function clearToast(){if(activeToastState){clearTimeout(activeToastState.timer);activeToastState.el.remove();activeToastState=null;}}
+function showUndoToast(message,onUndo){clearToast();const toast=document.createElement("div");toast.className="toast";toast.innerHTML=`<span>${message}</span><button class="btn secondary" style="padding:6px 10px;margin-left:10px;" type="button">Undo</button>`;const undoBtn=toast.querySelector("button");undoBtn.addEventListener("click",()=>{onUndo();clearToast();});document.body.appendChild(toast);const timer=setTimeout(()=>clearToast(),8000);activeToastState={el:toast,timer};}
+function showToast(message){clearToast();const toast=document.createElement("div");toast.className="toast";toast.textContent=message;document.body.appendChild(toast);const timer=setTimeout(()=>clearToast(),8000);activeToastState={el:toast,timer};}
+function handleEditAction(type,id){closeActionMenus();if(type==="invoice"){openInvoiceEditModal(id);}else if(type==="job"){editJobEntry(id);}else{openIncomeEditModal(id);}}
+function closeEditModal(){const modal=document.getElementById("editModalOverlay");if(modal)modal.remove();activeEditState=null;}
+function validateEditData(data,type){const errors=[];const name=(data.vendor||data.source||"").trim();if(!name)errors.push(type==="invoice"?"Vendor/Name is required.":"Source/Client is required.");if(!(Number(data.amount)>0))errors.push("Amount must be a positive number.");if(!data.date)errors.push("Date cannot be empty.");if(type==="invoice"&&!ALLOWED_CATEGORIES.includes(data.category))errors.push("Category must be one of the approved categories.");return errors;}
+function openInvoiceEditModal(id){const targetId=String(id);const index=invoices.findIndex((inv,i)=>getInvoiceIdentifier(inv,i)===targetId);if(index<0)return;const inv=invoices[index];activeEditState={type:"invoice",index,id:targetId};renderEditModal("Edit Invoice",`<div class="row"><label>Vendor / Name<input id="editVendor" type="text" value="${(inv.client_name||inv.vendor_name||"").replace(/"/g,"&quot;")}" /></label><label>Amount<input id="editAmount" type="number" step="0.01" min="0" value="${Number(inv.total_amount)||0}" /></label><label>Category<select id="editCategory">${ALLOWED_CATEGORIES.map(cat=>`<option value="${cat}" ${matchAllowedCategory(inv.category)===cat?"selected":""}>${cat}</option>`).join("")}</select></label><label>Date<input id="editDate" type="date" value="${inv.invoice_date||""}" /></label><label>Status<select id="editStatus">${["Paid","Unpaid","Overdue"].map(status=>`<option value="${status}" ${normalizeInvoiceStatus(inv.status)===status?"selected":""}>${status}</option>`).join("")}</select></label><label>Notes<textarea id="editNotes" rows="3" placeholder="Optional">${inv.notes||inv.memo||""}</textarea></label></div>`);}
+function openIncomeEditModal(id){const entry=incomeEntries.find(item=>String(item.id)===String(id));if(!entry)return;activeEditState={type:"income",id:String(id)};renderEditModal("Edit Income",`<div class="row"><label>Source / Client<input id="editSource" type="text" value="${(entry.source||"").replace(/"/g,"&quot;")}" /></label><label>Amount<input id="editAmount" type="number" step="0.01" min="0" value="${Number(entry.amount)||0}" /></label><label>Category / Type<input id="editIncomeCategory" type="text" value="${(entry.category||entry.type||"").replace(/"/g,"&quot;")}" placeholder="Optional" /></label><label>Date<input id="editDate" type="date" value="${entry.date||""}" /></label><label>Notes<textarea id="editNotes" rows="3" placeholder="Optional">${entry.notes||""}</textarea></label></div>`);}
+function renderEditModal(title,fieldsHtml){const existing=document.getElementById("editModalOverlay");if(existing)existing.remove();const overlay=document.createElement("div");overlay.id="editModalOverlay";overlay.className="edit-modal-overlay";overlay.innerHTML=`<div class="edit-modal" role="dialog" aria-modal="true"><h3>${title}</h3>${fieldsHtml}<div id="editModalError" class="edit-modal-error"></div><div class="actions"><button class="btn" onclick="saveEditChanges()">Save</button><button class="btn secondary" onclick="closeEditModal()">Cancel</button></div></div>`;overlay.addEventListener("click",e=>{if(e.target===overlay)closeEditModal();});document.body.appendChild(overlay);}
+function saveEditChanges(){if(!activeEditState)return;const err=document.getElementById("editModalError");if(activeEditState.type==="invoice"){const vendor=document.getElementById("editVendor").value.trim(),amount=Number(document.getElementById("editAmount").value||0),category=document.getElementById("editCategory").value,date=document.getElementById("editDate").value,status=normalizeInvoiceStatus(document.getElementById("editStatus").value),notes=document.getElementById("editNotes").value.trim();const errors=validateEditData({vendor,amount,category,date},"invoice");if(errors.length){err.textContent=errors.join(" ");return;}invoices=invoices.map((inv,index)=>{if(index!==activeEditState.index)return inv;const updated=normalizeInvoiceFinancials({...inv,client_name:vendor,vendor_name:vendor,total_amount:amount,category,invoice_date:date,status,notes});updateVendorCategoryForInvoice(updated);return updated;});markUserHasData();persistInvoices();refreshAllViews();closeEditModal();showToast("Invoice updated successfully.");return;}const source=document.getElementById("editSource").value.trim(),amount=Number(document.getElementById("editAmount").value||0),date=document.getElementById("editDate").value,notes=document.getElementById("editNotes").value.trim(),category=document.getElementById("editIncomeCategory").value.trim();const errors=validateEditData({source,amount,date},"income");if(errors.length){err.textContent=errors.join(" ");return;}incomeEntries=incomeEntries.map(item=>String(item.id)===activeEditState.id?{...item,source,amount,date,notes,category}:item);persistIncomeEntries();refreshAllViews();closeEditModal();showToast("Income updated successfully.");}
+
+function calculateLineItemsSubtotal(lineItems){return (lineItems||[]).reduce((sum,item)=>sum+(Number(item.totalPrice)||0),0);}
+function normalizeInvoiceStatus(value){const normalized=String(value||"").trim().toLowerCase();if(normalized==="paid")return "Paid";if(normalized==="overdue")return "Overdue";return "Unpaid";}
+function extractTaxAmount(invoice){const direct=Number(invoice?.taxAmount??invoice?.tax_amount??invoice?.tax??invoice?.taxes??invoice?.vat??invoice?.gst??invoice?.hst);if(Number.isFinite(direct))return direct;return 0;}
+function buildInvoiceTotals(invoice,lineItems){const subtotal=calculateLineItemsSubtotal(lineItems);const taxAmount=Number(extractTaxAmount(invoice))||0;const total=subtotal+taxAmount;return {subtotal,taxAmount,total};}
+function normalizeInvoiceFinancials(invoice){const normalizedLineItems=normalizeLineItems(invoice.lineItems);const totals=buildInvoiceTotals(invoice,normalizedLineItems);return {...invoice,lineItems:normalizedLineItems,taxAmount:totals.taxAmount,total_amount:totals.total,status:normalizeInvoiceStatus(invoice.status)};}
+function toggleManualEntryButton(show){const btn=document.getElementById("manualInvoiceBtn");if(!btn)return;btn.classList.toggle("hidden",!show);}
+function parseManualLineItems(raw){if(!raw)return [];const lines=String(raw).split("\n").map(line=>line.trim()).filter(Boolean);return normalizeLineItems(lines.map(line=>({description:line,quantity:null,unitPrice:null,totalPrice:0})));}
+function openManualInvoiceEntryModal(){const today=new Date().toISOString().slice(0,10);renderEditModal("Add Invoice Manually",`<div class="row"><label>Vendor<input id="manualVendor" type="text" placeholder="Vendor name" /></label><label>Date<input id="manualDate" type="date" value="${today}" /></label><label>Total<input id="manualTotal" type="number" step="0.01" min="0" /></label><label>Tax<input id="manualTax" type="number" step="0.01" min="0" value="0" /></label><label>Category<select id="manualCategory">${ALLOWED_CATEGORIES.map(cat=>`<option value="${cat}">${cat}</option>`).join("")}</select></label><label>Status<select id="manualStatus">${["Unpaid","Paid","Overdue"].map(status=>`<option value="${status}">${status}</option>`).join("")}</select></label><label>Notes<textarea id="manualNotes" rows="3" placeholder="Optional"></textarea></label><label>Line items (optional, one per line)<textarea id="manualLineItems" rows="4" placeholder="Description only, one per line"></textarea></label></div><div class="actions"><button class="btn" type="button" onclick="saveManualInvoiceEntry()">Save Invoice</button><button class="btn secondary" type="button" onclick="closeEditModal()">Cancel</button></div>`);}
+function saveManualInvoiceEntry(){const err=document.getElementById("editModalError");const vendor=document.getElementById("manualVendor")?.value?.trim()||"";const date=document.getElementById("manualDate")?.value||"";const total=Number(document.getElementById("manualTotal")?.value||0);const tax=Number(document.getElementById("manualTax")?.value||0);const category=matchAllowedCategory(document.getElementById("manualCategory")?.value||"Other");const status=normalizeInvoiceStatus(document.getElementById("manualStatus")?.value||"Unpaid");const notes=document.getElementById("manualNotes")?.value?.trim()||"";const lineItems=parseManualLineItems(document.getElementById("manualLineItems")?.value||"");if(!vendor){err.textContent="Vendor is required.";return;}if(!date){err.textContent="Date is required.";return;}if(!(Number.isFinite(total)&&total>0)){err.textContent="Total must be greater than 0.";return;}const invoice=normalizeInvoiceFinancials({id:`manual_${Date.now()}`,client_name:vendor,vendor_name:vendor,vendor:vendor,invoice_date:date,total_amount:total,taxAmount:Number.isFinite(tax)?tax:0,category,status,notes,lineItems,created_at:new Date().toISOString(),uploaded_at:new Date().toISOString(),manual_entry:true});invoices.unshift(invoice);markUserHasData();persistInvoices();refreshAllViews();setLoadingState(t("manual_invoice_saved"));toggleManualEntryButton(false);closeEditModal();}
+function openInvoiceDetailsModal(id){const targetId=String(id);const index=invoices.findIndex((inv,i)=>getInvoiceIdentifier(inv,i)===targetId);if(index<0)return;const inv=invoices[index];activeDetailsState={id:targetId,index,editing:false,lineItems:normalizeLineItems(inv.lineItems)};renderInvoiceDetailsModal();}
+function closeInvoiceDetailsModal(){const modal=document.getElementById("detailsModalOverlay");if(modal)modal.remove();activeDetailsState=null;}
+function renderLineItemsRows(editing,lineItems){if(!lineItems.length)return `<div class="line-item-empty">No itemized details were found. You can add items manually or re-upload a clearer image.</div>`;if(!editing){const rows=lineItems.map(item=>`<tr><td>${item.description||"-"}</td><td>${item.quantity==null?"-":item.quantity}</td><td>${item.unitPrice==null?"-":formatMoney(item.unitPrice)}</td><td>${formatMoney(item.totalPrice)}</td></tr>`).join("");return `<table class="line-items-table"><tr><th>Description</th><th>Qty</th><th>Unit Price</th><th>Total</th></tr>${rows}</table>`;}const rows=lineItems.map((item,i)=>`<tr><td><input value="${(item.description||"").replace(/"/g,"&quot;")}" onchange="updateLineItemField(${i},'description',this.value)" /></td><td><input type="number" step="0.01" min="0" value="${item.quantity??''}" onchange="updateLineItemField(${i},'quantity',this.value)" /></td><td><input type="number" step="0.01" min="0" value="${item.unitPrice??''}" onchange="updateLineItemField(${i},'unitPrice',this.value)" /></td><td><input type="number" step="0.01" min="0" value="${item.totalPrice}" onchange="updateLineItemField(${i},'totalPrice',this.value)" /></td><td><button class="btn ghost-danger" onclick="removeLineItem(${i})">Remove</button></td></tr>`).join("");return `<table class="line-items-table"><tr><th>Description</th><th>Qty</th><th>Unit Price</th><th>Total</th><th>Action</th></tr>${rows}</table>`;}
+function renderInvoiceDetailsModal(){if(!activeDetailsState)return;const inv=invoices[activeDetailsState.index];const editing=activeDetailsState.editing;const lineItems=activeDetailsState.lineItems;const totals=buildInvoiceTotals(inv,lineItems);const expectedTotal=totals.subtotal+totals.taxAmount;const isVerified=Math.abs((Number(inv.total_amount)||0)-expectedTotal)<0.01;const existing=document.getElementById("detailsModalOverlay");if(existing)existing.remove();const overlay=document.createElement("div");overlay.id="detailsModalOverlay";overlay.className="details-modal-overlay";overlay.innerHTML=`<div class="details-modal" role="dialog" aria-modal="true"><div class="details-head"><h3 style="margin:0;">Invoice Details</h3><button class="btn secondary" onclick="closeInvoiceDetailsModal()">Close</button></div><div class="details-grid"><div class="detail-field"><label>Vendor Name</label><div>${inv.client_name||inv.vendor_name||"Unknown"}</div></div><div class="detail-field"><label>Invoice Date</label><div>${inv.invoice_date||"Unknown"}</div></div><div class="detail-field"><label>Category</label><div>${inv.category||"Other"}</div></div><div class="detail-field"><label>Status</label><select onchange="updateInvoiceStatusFromDetails('${activeDetailsState.id}',this.value)">${["Paid","Unpaid","Overdue"].map(status=>`<option value="${status}" ${normalizeInvoiceStatus(inv.status)===status?"selected":""}>${status}</option>`).join("")}</select></div><div class="detail-field" style="grid-column:1/-1;"><label>Notes</label><textarea rows="3" onblur="saveInvoiceNotesFromDetails('${activeDetailsState.id}',this.value)">${inv.notes||inv.memo||""}</textarea></div></div><div class="line-items-head"><h4 style="margin:0;">Items & Services</h4><div class="actions" style="margin-top:0;">${editing?`<button class="btn" onclick="saveLineItemsChanges()">Save Items</button><button class="btn secondary" onclick="cancelLineItemEditing()">Cancel</button><button class="btn secondary" onclick="addLineItem()">Add Item</button>`:`<button class="btn secondary" onclick="toggleLineItemsEdit()">Edit Items</button>`}</div></div>${renderLineItemsRows(editing,lineItems)}<div class="detail-field" style="margin-top:10px;"><label>Subtotal</label><div>${formatMoney(totals.subtotal)}</div></div><div class="detail-field" style="margin-top:10px;"><label>Tax</label><input type="number" step="0.01" min="0" value="${Number(inv.taxAmount)||0}" onblur="saveInvoiceTaxFromDetails('${activeDetailsState.id}',this.value)" /></div><div class="detail-field" style="margin-top:10px;"><label>Total</label><div>${formatMoney(totals.total)}</div><div class="trust-badge ${isVerified?"":"warn"}">${isVerified?"Totals verified":"Needs review"}</div></div></div>`;overlay.addEventListener("click",e=>{if(e.target===overlay)closeInvoiceDetailsModal();});document.body.appendChild(overlay);}
+function toggleLineItemsEdit(){if(!activeDetailsState)return;activeDetailsState.editing=true;if(!activeDetailsState.lineItems.length)activeDetailsState.lineItems=[{description:"",quantity:1,unitPrice:0,totalPrice:0}];renderInvoiceDetailsModal();}
+function cancelLineItemEditing(){if(!activeDetailsState)return;const inv=invoices[activeDetailsState.index];activeDetailsState.lineItems=normalizeLineItems(inv.lineItems);activeDetailsState.editing=false;renderInvoiceDetailsModal();}
+function addLineItem(){activeDetailsState.lineItems.push({description:"",quantity:1,unitPrice:0,totalPrice:0});renderInvoiceDetailsModal();}
+function removeLineItem(index){activeDetailsState.lineItems.splice(index,1);renderInvoiceDetailsModal();}
+function updateLineItemField(index,field,value){const item=activeDetailsState.lineItems[index];if(!item)return;item[field]=field==='description'?value:(value===''?null:Number(value));if((field==='quantity'||field==='unitPrice')&&item.quantity!=null&&item.unitPrice!=null){item.totalPrice=Number(item.quantity)*Number(item.unitPrice);}renderInvoiceDetailsModal();}
+function saveInvoiceStatusTaxNotes(id,updates){const targetId=String(id);let changed=false;invoices=invoices.map((inv,index)=>{if(getInvoiceIdentifier(inv,index)!==targetId)return inv;changed=true;const merged={...inv,...updates};const totals=buildInvoiceTotals(merged,normalizeLineItems(merged.lineItems));return {...merged,status:normalizeInvoiceStatus(merged.status),taxAmount:Number(merged.taxAmount)||0,total_amount:totals.total};});if(!changed)return;markUserHasData();persistInvoices();refreshAllViews();}
+function updateInvoiceStatusFromDetails(id,status){saveInvoiceStatusTaxNotes(id,{status:normalizeInvoiceStatus(status)});renderInvoiceDetailsModal();}
+function saveInvoiceNotesFromDetails(id,notes){saveInvoiceStatusTaxNotes(id,{notes:String(notes||"").trim()});renderInvoiceDetailsModal();}
+function saveInvoiceTaxFromDetails(id,taxAmount){const parsed=Number(taxAmount);saveInvoiceStatusTaxNotes(id,{taxAmount:Number.isFinite(parsed)?parsed:0});renderInvoiceDetailsModal();}
+function saveLineItemsChanges(){if(!activeDetailsState)return;invoices=invoices.map((inv,index)=>index!==activeDetailsState.index?inv:normalizeInvoiceFinancials({...inv,lineItems:normalizeLineItems(activeDetailsState.lineItems)}));markUserHasData();persistInvoices();refreshAllViews();activeDetailsState.editing=false;activeDetailsState.lineItems=normalizeLineItems(invoices[activeDetailsState.index].lineItems);renderInvoiceDetailsModal();showToast("Line items updated.");}
+
+
+function toMinutes(t){const [h,m]=String(t||"" ).split(":").map(Number);if(!Number.isFinite(h)||!Number.isFinite(m))return null;return h*60+m;}
+function calcJobMetrics(amount,start,end){const startM=toMinutes(start),endM=toMinutes(end);if(startM===null||endM===null||endM<=startM)return {minutes:0,hourlyRate:0};const minutes=endM-startM;return {minutes,hourlyRate:(Number(amount)||0)/(minutes/60)};}
+function loadJobEntries(){jobEntries=JSON.parse(localStorage.getItem(getJobsStorageKey())||"[]");renderJobs();}
+function persistJobEntries(){localStorage.setItem(getJobsStorageKey(),JSON.stringify(jobEntries));}
+function formatDuration(min){const safe=Math.max(0,Number(min)||0);return `${Math.floor(safe/60)}h ${String(safe%60).padStart(2,"0")}min`;}
+function formatJobDate(isoDate){if(!isoDate)return "-";const d=new Date(`${isoDate}T00:00:00`);return d.toLocaleDateString(currentLanguage,{month:"long",day:"numeric",year:"numeric"});}
+function updateJobComputedFields(){const amount=Number(document.getElementById("jobAmount")?.value||0);const start=document.getElementById("jobStart")?.value;const end=document.getElementById("jobEnd")?.value;const m=calcJobMetrics(amount,start,end);document.getElementById("jobDurationDisplay").value=m.minutes?formatDuration(m.minutes):"-";document.getElementById("jobHourlyDisplay").value=m.minutes?`${formatMoney(m.hourlyRate)}/hour`:"-";}
+function saveJobEntry(e){e.preventDefault();const date=document.getElementById("jobDate").value,clientName=document.getElementById("jobClient").value.trim();const location=document.getElementById("jobLocation").value.trim(),amountEarned=Number(document.getElementById("jobAmount").value||0);const startTime=document.getElementById("jobStart").value,endTime=document.getElementById("jobEnd").value,status=document.getElementById("jobStatus").value,notes=document.getElementById("jobNotes").value.trim();const m=calcJobMetrics(amountEarned,startTime,endTime);if(!date||!clientName||m.minutes<=0){showToast("Invalid job entry.");return;}jobEntries.unshift({id:`job_${Date.now()}`,date,clientName,location,startTime,endTime,durationMinutes:m.minutes,amountEarned,hourlyRate:m.hourlyRate,status,notes,createdAt:new Date().toISOString()});persistJobEntries();document.getElementById("jobForm").reset();updateJobComputedFields();renderJobs();}
+function editJobEntry(id){const j=jobEntries.find(x=>x.id===id);if(!j)return;document.getElementById("jobDate").value=j.date;document.getElementById("jobClient").value=j.clientName;document.getElementById("jobLocation").value=j.location||"";document.getElementById("jobAmount").value=j.amountEarned;document.getElementById("jobStart").value=j.startTime;document.getElementById("jobEnd").value=j.endTime;document.getElementById("jobStatus").value=j.status;document.getElementById("jobNotes").value=j.notes||"";jobEntries=jobEntries.filter(x=>x.id!==id);persistJobEntries();updateJobComputedFields();renderJobs();}
+function deleteJobEntry(id){jobEntries=jobEntries.filter(x=>x.id!==id);persistJobEntries();renderJobs();}
+function addDailyJobsToIncome(date){const total=jobEntries.filter(j=>j.date===date).reduce((s,j)=>s+(Number(j.amountEarned)||0),0);if(total<=0)return;const exists=incomeEntries.some(i=>i.date===date&&i.source==="Jobs income"&&Number(i.amount)===total&&String(i.notes||"").includes("Generated from Jobs tab"));if(exists){showToast("Income entry already exists for this day.");return;}incomeEntries.unshift({id:`tmp_${Date.now()}`,source:"Jobs income",date,amount:total,notes:"Generated from Jobs tab"});persistIncomeEntries();refreshAllViews();}
+function renderJobs(){const box=document.getElementById("jobsHistory"),sum=document.getElementById("jobsDailySummary");if(!box||!sum)return;if(!jobEntries.length){box.className="state";sum.className="state";box.innerHTML=`${t("empty_jobs")}<div class="actions" style="margin-top:10px;"><button class="btn" onclick="document.getElementById('jobDate').focus()">${t("add_job")}</button></div>`;sum.textContent=t("empty_jobs");return;}const groups={};jobEntries.forEach(j=>{(groups[j.date]=groups[j.date]||[]).push(j);});const dates=Object.keys(groups).sort((a,b)=>b.localeCompare(a));sum.className="";sum.innerHTML=dates.map(d=>{const items=groups[d],earned=items.reduce((s,j)=>s+j.amountEarned,0),mins=items.reduce((s,j)=>s+j.durationMinutes,0),paid=items.filter(j=>j.status==="Paid").reduce((s,j)=>s+j.amountEarned,0),unpaid=earned-paid,avg=mins?earned/(mins/60):0;return `<div class="card" style="margin-bottom:12px;"><strong>${formatJobDate(d)}</strong><div>${formatMoney(earned)} • ${formatDuration(mins)} • ${formatMoney(avg)}/hour • Paid: ${formatMoney(paid)} • Unpaid: ${formatMoney(unpaid)}</div><div class="actions" style="margin-top:8px;"><button class="btn secondary" onclick="addDailyJobsToIncome('${d}')">${t("add_to_income_tracker")}</button></div></div>`;}).join("");box.className="";box.innerHTML=dates.map(d=>`<div class="card" style="margin-bottom:12px;"><h3 style="margin:0 0 8px;">${formatJobDate(d)}</h3>${groups[d].map(j=>`<article class="mobile-row-card"><div class="mobile-row-head"><h4 class="mobile-row-title">${j.clientName}</h4><div class="mobile-row-menu">${renderActionMenu("job",j.id)}</div></div><div class="mobile-row-grid"><div class="mobile-row-item"><label>Amount</label><div>${formatMoney(j.amountEarned)}</div></div><div class="mobile-row-item"><label>${t("hours_worked")}</label><div>${formatDuration(j.durationMinutes)}</div></div><div class="mobile-row-item"><label>${t("hourly_rate")}</label><div>${formatMoney(j.hourlyRate)}/hour</div></div><div class="mobile-row-item"><label>Status</label><div>${j.status}</div></div></div></article>`).join("")}</div>`).join("");}
+
+function refreshAllViews(){updateDashboard();updateFinancialSummary();renderLatestInvoice();renderHistory();renderIncomeHistory();renderJobs();buildCategoryChart(invoices);buildMonthlyChart(invoices);updateAnalyticsSummary(invoices);buildInsights(invoices);renderProfileTab();}
+function clearDashboard(){if(!confirm(t("clear_income_confirm")))return;incomeEntries=[];persistIncomeEntries();refreshAllViews();}
+function renderProfileTab(){const node=document.getElementById("profileContent");if(!node)return;if(!currentUser){node.className="state";node.textContent="Select or create a workspace to view profile details.";return;}node.className="";const workspaceType=currentUser.isDemo?"Demo":"Personal workspace";node.innerHTML=`<div class=\"profile-grid\"><p><strong>Business name:</strong> ${currentUser.businessName||"—"}</p><p><strong>Email:</strong> ${currentUser.email||"—"}</p><p><strong>Preferred language:</strong> ${currentLanguage.toUpperCase()}</p><p><strong>Current workspace type:</strong> ${workspaceType}</p><div class=\"actions\"><button class=\"btn ghost-danger\" onclick=\"clearWorkspaceData()\">Clear my workspace data</button><button class=\"btn secondary\" onclick=\"showLanding()\">Back to landing / Switch workspace</button></div></div>`;}
+function clearWorkspaceData(){if(!currentUser)return;const confirmed=confirm("Clear this workspace data? This only affects the active workspace.");if(!confirmed)return;localStorage.removeItem(getInvoiceStorageKey());localStorage.removeItem(getIncomeStorageKey());localStorage.removeItem(getVendorCategoryStorageKey());localStorage.removeItem(getSettingsStorageKey());localStorage.removeItem(getHasDataKey());invoices=[];incomeEntries=[];jobEntries=[];localStorage.removeItem(getJobsStorageKey());refreshAllViews();setLoadingState("Workspace data cleared.");}
+function renderQuickHelpButtons(){const host=document.getElementById("quickHelpButtons");if(!host)return;host.innerHTML=QUICK_HELP_ITEMS.map(item=>`<button type="button" class="quick-help-btn" onclick="askQuickHelp('${item.replace(/'/g,"\\'")}')">${item}</button>`).join("");}
+function addAssistantMessage(role, text){const row=document.createElement("div");row.className=`chat-msg ${role}`;row.textContent=text;const chat=document.getElementById("assistantChatLog");chat.appendChild(row);chat.scrollTop=chat.scrollHeight;}
+function getAssistantReply(message){const key=message.trim().toLowerCase();return localAssistantHandlers[key]||t("assistant_default_reply");}
+function askQuickHelp(question){document.getElementById("assistantInput").value=question;sendAssistantMessage();}
+function sendAssistantMessage(){const input=document.getElementById("assistantInput");const message=input.value.trim();if(!message)return;addAssistantMessage("user",message);const reply=getAssistantReply(message);addAssistantMessage("assistant",reply);if(message.trim().toLowerCase()==="report a bug"){renderBugReportForm();}input.value="";}
+function toggleAssistantPanel(){assistantPanelOpen=!assistantPanelOpen;document.getElementById("assistantPanel").classList.toggle("hidden",!assistantPanelOpen);}
+function closeAssistantPanel(){assistantPanelOpen=false;document.getElementById("assistantPanel").classList.add("hidden");}
+async function saveBugReport(event){event.preventDefault();const issueType=document.getElementById("bugIssueType").value,description=document.getElementById("bugDescription").value.trim(),email=(document.getElementById("bugEmail").value.trim()||currentUser?.email||"");if(!description)return;try{const payload=buildBugReportPayload({issueType,description,email});const response=await fetchWithTimeout(`${API_BASE}${BUG_REPORT_ENDPOINT}`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});if(!response.ok)throw new Error("bug report failed");const data=await response.json();addAssistantMessage("assistant",`Thanks, your report was sent to our team.${data.github_issue_url?` GitHub issue: ${data.github_issue_url}`:""}`);}catch(_e){const existing=JSON.parse(localStorage.getItem(getBugReportsKey())||"[]");existing.unshift({id:Date.now(),createdAt:new Date().toISOString(),issueType,description,email,workspaceId:currentUser?.id||"guest",page:window.location.pathname||"/",browser:navigator.userAgent,lastAction:lastUserAction});localStorage.setItem(getBugReportsKey(),JSON.stringify(existing));addAssistantMessage("assistant","We could not reach the server, so your report was saved locally.");}document.getElementById("assistantBugFormHost").innerHTML="";}
+function renderBugReportForm(){const host=document.getElementById("assistantBugFormHost");host.innerHTML=`<form class="bug-form" onsubmit="saveBugReport(event)"><label>Issue Type<select id="bugIssueType"><option value="Invoice Upload">Invoice Upload</option><option value="Invoice Deletion">Invoice Deletion</option><option value="Income Tracker">Income Tracker</option><option value="UI / Layout">UI / Layout</option><option value="Other">Other</option></select></label><label>Description<textarea id="bugDescription" rows="3" placeholder="What happened and what did you click?" required></textarea></label><label>Optional Email<input id="bugEmail" type="email" placeholder="you@company.com" /></label><button class="assistant-send" type="submit">Submit</button></form>`;}
+const assistantInputEl=document.getElementById("assistantInput");
+if(assistantInputEl){assistantInputEl.addEventListener("keydown",event=>{if(event.key==="Enter"){event.preventDefault();sendAssistantMessage();}});}
+
+
+function setupLandingButtonHandlers(){
+  const bindings=[
+    ["startFreeBtn2",startFree],
+    ["startFreeBtn3",startFree],
+    ["tryDemoBtn1",startDemo],
+    ["tryDemoBtn2",startDemo],
+    ["tryDemoBtn3",startDemo],
+    ["viewDashboardBtn",showDashboard]
+  ];
+  bindings.forEach(([id,handler])=>{
+    const el=document.getElementById(id);
+    if(!el) return;
+    el.onclick=handler;
+  });
+}
+
+function updateStaticUIText(){
+  const copy={
+    en:{hero_badge:"Built for small business financial operations",hero_headline:'Stop losing hours organizing receipts manually.',hero_sub:"Upload a receipt or invoice and Revnio turns it into organized financial data you can use right away.",start_free:"Start free",try_demo:"Try demo",view_dashboard:"View dashboard",trust:"<span>Upload a file and extract key data instantly</span><span>See income, expenses, profit, and cash flow without spreadsheets</span><span>Built for contractors and small teams that need clear numbers fast</span>",feature_problem_title:"Problem",feature_problem_desc:"You’re buried in receipts, invoice PDFs, and spreadsheet cleanup when you should be running the business.",feature_how_title:"How it works",feature_how_desc:"Upload a receipt or invoice, Revnio extracts the details, and your dashboard updates automatically.",feature_benefits_title:"Benefits",feature_benefits_desc:"Save hours each week, reduce manual errors, and get reliable numbers before payroll, taxes, and purchases.",feature_action_title:"Built for action",feature_action_desc:"Use one workspace to track cash flow, monitor margins, and export clean records whenever you need them.",preview_title:"Product Preview",preview_text:"See exactly how your business is performing in seconds. No spreadsheets. No manual cleanup.",footer:"Revnio helps small businesses stay organized, accurate, and ready for smarter financial decisions.",dashboard_sub:"Track invoices, cash flow, and profitability from one premium operations workspace.",latest:"Latest Invoice",help:"Help",hero_preview_title:"Live Dashboard Preview",hero_preview_income:"Income",hero_preview_profit:"Profit"},
+    pt:{hero_badge:"Feito para operações financeiras de pequenos negócios",hero_headline:'Pare de perder horas organizando notas fiscais manualmente.',hero_sub:"Envie uma nota fiscal ou recibo e a Revnio transforma tudo em dados financeiros organizados.",start_free:"Começar grátis",try_demo:"Testar demonstração",view_dashboard:"Ver painel",trust:"<span>Envie um arquivo e extraia os dados principais em segundos</span><span>Veja receitas, despesas, lucro e fluxo de caixa sem depender de planilhas</span><span>Feito para autônomos e pequenas equipes que precisam de números claros</span>",feature_problem_title:"Problema",feature_problem_desc:"Recibos, notas e planilhas manuais tomam tempo e deixam o fluxo de caixa sem clareza.",feature_how_title:"Como funciona",feature_how_desc:"Envie uma nota fiscal ou recibo, a Revnio extrai os dados e o painel atualiza automaticamente.",feature_benefits_title:"Benefícios",feature_benefits_desc:"Economize horas por semana, reduza erros manuais e tome decisões com números confiáveis.",feature_action_title:"Feito para ação",feature_action_desc:"Acompanhe fluxo de caixa, margens e exporte dados financeiros limpos sempre que precisar.",preview_title:"Prévia do produto",preview_text:"Veja em segundos como o seu negócio está performando. Sem planilhas. Sem organização manual.",footer:"A Revnio ajuda pequenos negócios a manter o financeiro organizado, confiável e pronto para decidir melhor.",dashboard_sub:"Acompanhe notas, fluxo de caixa e lucro em um espaço premium de operações.",latest:"Última nota",help:"Ajuda",hero_preview_title:"Prévia do painel ao vivo",hero_preview_income:"Receita",hero_preview_profit:"Lucro"},
+    es:{hero_badge:"Hecho para operaciones financieras de pequeños negocios",hero_headline:'Deja de perder horas organizando recibos manualmente.',hero_sub:"Sube una factura o recibo y Revnio lo convierte en datos financieros organizados.",start_free:"Empezar gratis",try_demo:"Probar demostración",view_dashboard:"Ver panel",trust:"<span>Sube un archivo y extrae datos clave al instante</span><span>Ve ingresos, gastos, ganancias y flujo de caja sin hojas de cálculo</span><span>Creado para contratistas y equipos pequeños que necesitan números claros</span>",feature_problem_title:"Problema",feature_problem_desc:"Recibos, facturas y limpieza manual en hojas de cálculo consumen tiempo valioso cada semana.",feature_how_title:"Cómo funciona",feature_how_desc:"Sube una factura o recibo, Revnio extrae los datos y tu panel se actualiza automáticamente.",feature_benefits_title:"Beneficios",feature_benefits_desc:"Ahorra horas, reduce errores manuales y toma decisiones con datos financieros confiables.",feature_action_title:"Hecho para actuar",feature_action_desc:"Controla el flujo de caja, vigila márgenes y exporta datos limpios cuando los necesites.",preview_title:"Vista previa del producto",preview_text:"Ve en segundos cómo está funcionando tu negocio. Sin hojas de cálculo. Sin organización manual.",footer:"Revnio ayuda a pequeños negocios a mantener sus finanzas organizadas y listas para mejores decisiones.",dashboard_sub:"Controla facturas, flujo de caja y rentabilidad desde un espacio premium de operaciones.",latest:"Última factura",help:"Ayuda",hero_preview_title:"Vista previa del panel en vivo",hero_preview_income:"Ingresos",hero_preview_profit:"Ganancia"},
+    fr:{hero_badge:"Conçu pour les opérations financières des petites entreprises",hero_headline:'Arrêtez de perdre des heures à organiser vos reçus manuellement.',hero_sub:"Téléversez une facture ou un reçu et Revnio le transforme en données financières organisées.",start_free:"Commencer gratuitement",try_demo:"Essayer la démo",view_dashboard:"Voir le tableau de bord",trust:"<span>Téléversez un document et extrayez les données clés instantanément</span><span>Suivez revenus, dépenses, profit et trésorerie sans tableurs</span><span>Conçu pour les artisans et petites équipes qui ont besoin de chiffres fiables</span>",feature_problem_title:"Problème",feature_problem_desc:"Les reçus dispersés, les factures et les tableurs manuels vous font perdre du temps chaque semaine.",feature_how_title:"Comment ça marche",feature_how_desc:"Téléversez une facture ou un reçu, Revnio extrait les données et votre tableau de bord se met à jour.",feature_benefits_title:"Avantages",feature_benefits_desc:"Gagnez des heures, réduisez les erreurs manuelles et prenez des décisions sur des chiffres fiables.",feature_action_title:"Conçu pour agir",feature_action_desc:"Suivez la trésorerie, contrôlez vos marges et exportez des données propres quand vous en avez besoin.",preview_title:"Aperçu du produit",preview_text:"Voyez en quelques secondes comment votre entreprise se porte. Sans tableurs. Sans saisie manuelle.",footer:"Revnio aide les petites entreprises à garder des finances claires, fiables et prêtes pour l’action.",dashboard_sub:"Suivez factures, trésorerie et rentabilité depuis un espace d’opérations premium.",latest:"Dernière facture",help:"Aide",hero_preview_title:"Aperçu du tableau de bord en direct",hero_preview_income:"Revenus",hero_preview_profit:"Profit"}
+  };
+  const c=copy[currentLanguage]||copy.en;
+  const set=(id,v,html=false)=>{const el=document.getElementById(id);if(el){if(html)el.innerHTML=v;else el.textContent=v;}};
+  set("heroBadge",c.hero_badge);set("heroHeadline",c.hero_headline,true);set("heroSubheadline",c.hero_sub);set("startFreeBtn2",c.start_free);set("startFreeBtn3",c.start_free);set("tryDemoBtn1",c.try_demo);set("tryDemoBtn2",c.try_demo);set("tryDemoBtn3",c.try_demo);set("trustPoints",c.trust,true);set("productPreviewTitle",c.preview_title);set("productPreviewText",c.preview_text);set("footerTagline",c.footer);set("dashboardTitle","Revnio Hub");set("dashboardSubtitle",c.dashboard_sub);set("latestInvoiceTitle",c.latest);set("helpFabText",c.help);set("featureProblemTitle",c.feature_problem_title);set("featureProblemDesc",c.feature_problem_desc);set("featureHowTitle",c.feature_how_title);set("featureHowDesc",c.feature_how_desc);set("featureBenefitsTitle",c.feature_benefits_title);set("featureBenefitsDesc",c.feature_benefits_desc);set("featureActionTitle",c.feature_action_title);set("featureActionDesc",c.feature_action_desc);set("heroPreviewTitle",c.hero_preview_title);set("heroPreviewIncomeLabel",c.hero_preview_income);set("heroPreviewProfitLabel",c.hero_preview_profit);
+}
+
+
+window.showDashboard=showDashboard;
+window.showLanding=showLanding;
+window.startFree=startFree;
+window.startDemo=startDemo;
+window.openUserWorkspace=openUserWorkspace;
+
+
+async function checkBackendHealthOnStartup(){
+  const healthUrl=`${API_BASE}/test`;
+  try{
+    const response=await fetchWithTimeout(healthUrl,{method:"GET"},10000);
+    console.log("Backend health check URL:",healthUrl);
+    console.log("Backend health check status:",response.status,response.statusText);
+    const body=await response.text();
+    console.log("Backend health check body:",body);
+    if(!response.ok){
+      setLoadingState("Server temporarily unavailable");
+    }
+  }catch(error){
+    console.error("Backend health check fetch error:",error);
+    setLoadingState("Server temporarily unavailable");
+  }
+}
+
+function initializeApp(){
+  initializeLanguage();
+  showLanding();
+  restoreCurrentUser();
+  setupLandingButtonHandlers();
+  setupUploadInteractions();
+  renderUploadUrlDebug();
+  const extractionDebugBox=document.getElementById("extractionDebugBox");
+  if(extractionDebugBox) extractionDebugBox.style.display = DEBUG_MODE ? "block" : "none";
+  renderQuickHelpButtons();
+  addAssistantMessage("assistant", t("assistant_welcome"));
+  checkBackendHealthOnStartup();
+  ["jobAmount","jobStart","jobEnd"].forEach(id=>{const el=document.getElementById(id);if(el)el.addEventListener("input",updateJobComputedFields);});
+  updateJobComputedFields();
+}
+  
+initializeApp();
+  
+</script>
 </body>
 </html>
