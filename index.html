@@ -381,6 +381,31 @@
     .jobs-metric-card { border: 1px dashed #334155; border-radius: 10px; background: rgba(15, 23, 42, 0.7); padding: 10px; }
     .jobs-metric-card span { font-size: 10px; color:#94a3b8; text-transform: uppercase; letter-spacing: .08em; display:block; margin-bottom: 6px; }
     .jobs-metric-card strong { font-size: 14px; color: #dbeafe; }
+    .jobs-list { display:grid; gap:10px; }
+    .job-entry-card { border:1px solid #334155; border-radius:12px; background:rgba(15,23,42,.78); padding:12px; display:grid; gap:10px; }
+    .job-entry-top { display:flex; justify-content:space-between; align-items:flex-start; gap:8px; }
+    .job-client { font-weight:700; color:#eef2ff; }
+    .job-meta { color:#a5b4fc; font-size:12px; }
+    .job-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; }
+    .job-item { background:rgba(30,41,59,.6); border:1px solid #334155; border-radius:10px; padding:8px; }
+    .job-item span { display:block; font-size:11px; color:#93c5fd; text-transform:uppercase; letter-spacing:.05em; }
+    .job-item strong { color:#e2e8f0; font-size:13px; }
+    .paid-pill { border-radius:999px; padding:4px 10px; font-size:11px; font-weight:700; border:1px solid #334155; }
+    .paid-pill.paid { color:#86efac; border-color:#166534; background:rgba(22,101,52,.2); }
+    .paid-pill.unpaid { color:#fca5a5; border-color:#7f1d1d; background:rgba(127,29,29,.2); }
+    .summary-list { display:grid; gap:10px; }
+    .summary-row { border:1px solid #334155; border-radius:12px; padding:12px; background:rgba(15,23,42,.74); }
+    .summary-grid { margin-top:8px; display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:8px; }
+    .summary-cell { background:rgba(30,41,59,.55); border:1px solid #334155; border-radius:8px; padding:8px; }
+    .summary-cell span { display:block; color:#93c5fd; font-size:11px; text-transform:uppercase; }
+    .summary-cell strong { color:#e2e8f0; font-size:13px; }
+    input, select, textarea { color:#f8fafc; background:#0f172a; border-color:#334155; }
+    input::placeholder, textarea::placeholder { color:#94a3b8; }
+    input[type="date"], input[type="time"] { color-scheme: dark; }
+    input[type="date"]::-webkit-calendar-picker-indicator, input[type="time"]::-webkit-calendar-picker-indicator { filter: invert(69%) sepia(18%) saturate(1562%) hue-rotate(206deg) brightness(98%) contrast(95%); cursor:pointer; }
+    @media (max-width: 900px){ .job-grid { grid-template-columns:1fr 1fr; } .summary-grid { grid-template-columns:1fr 1fr; } }
+    @media (max-width: 640px){ .job-grid, .summary-grid { grid-template-columns:1fr; } }
+
     .daily-summary-grid { display:grid; gap: 12px; }
     .summary-metrics { display:grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap:8px; margin:10px 0; }
     .summary-metric label { display:block; font-size:10px; color:#94a3b8; letter-spacing:.08em; text-transform:uppercase; }
@@ -667,18 +692,23 @@
       
       <section id="jobs" class="tab-content">
         <div class="box">
-          <p id="jobsDebugMarker" style="margin:0 0 12px;text-align:center;font-weight:800;color:#ef4444;">JOBS DEBUG VERSION 3 ACTIVE</p>
           <h2 data-i18n="jobs">Jobs</h2>
           <form id="jobForm" class="jobs-form" onsubmit="saveJobEntry(event)">
             <div class="row"><label>Date<input type="date" id="jobDate" required /></label><label>Client / Job name<input type="text" id="jobClient" required /></label></div>
             <div class="row"><label>Start time<input type="time" id="jobStart" required /></label><label>End time<input type="time" id="jobEnd" required /></label></div>
             <div class="row"><label>Amount earned<input type="number" id="jobAmount" min="0" step="0.01" required /></label><label>Paid status<select id="jobStatus"><option value="Paid">Paid</option><option value="Unpaid">Unpaid</option></select></label></div>
-            <div class="actions"><button class="btn" type="submit" onclick="saveJobEntry(event)">Add Job</button></div>
+            <div class="row"><label>Location (optional)<input type="text" id="jobLocation" placeholder="Office, remote, client site" /></label><label>Notes (optional)<input type="text" id="jobNotes" placeholder="Shift details, deliverables" /></label></div>
+            <div class="jobs-metrics"><div class="jobs-metric-card"><span>Duration</span><strong id="jobDurationDisplay">-</strong></div><div class="jobs-metric-card"><span>Hourly rate</span><strong id="jobHourlyDisplay">-</strong></div></div>
+            <div class="actions"><button class="btn" type="submit">Add Job</button></div>
           </form>
         </div>
         <div class="box" style="margin-top:16px;">
           <h2>Job list</h2>
           <div id="jobsHistory" class="state">No jobs yet.</div>
+        </div>
+        <div class="box" style="margin-top:16px;">
+          <h2>Daily Summary</h2>
+          <div id="jobsDailySummary" class="state">No daily summary yet.</div>
         </div>
       </section>
       <section id="insights" class="tab-content"><div class="box"><h2 data-i18n="insights">Insights</h2><div id="insightsContent" class="state">Add income and upload invoices to generate your financial summary.</div></div></section>
@@ -1065,12 +1095,59 @@ function persistJobEntries(){localStorage.setItem(getJobsStorageKey(),JSON.strin
 function formatDuration(min){const safe=Math.max(0,Number(min)||0);return `${Math.floor(safe/60)}h ${String(safe%60).padStart(2,"0")}min`;}
 function formatJobDate(isoDate){if(!isoDate)return "-";const d=new Date(`${isoDate}T00:00:00`);return d.toLocaleDateString(currentLanguage,{month:"long",day:"numeric",year:"numeric"});}
 function updateJobComputedFields(){const amount=Number(document.getElementById("jobAmount")?.value||0);const start=document.getElementById("jobStart")?.value;const end=document.getElementById("jobEnd")?.value;const m=calcJobMetrics(amount,start,end);document.getElementById("jobDurationDisplay").textContent=m.minutes?formatDuration(m.minutes):"-";document.getElementById("jobHourlyDisplay").textContent=m.minutes?`${formatMoney(m.hourlyRate)}/hour`:"-";}
-function saveJob(e){console.log("saveJobEntry called");if(e)e.preventDefault();const date=document.getElementById("jobDate").value,clientName=document.getElementById("jobClient").value.trim();const amountEarned=Number(document.getElementById("jobAmount").value||0);const startTime=document.getElementById("jobStart").value,endTime=document.getElementById("jobEnd").value,status=document.getElementById("jobStatus").value;if(!date||!clientName||!startTime||!endTime||!Number.isFinite(amountEarned)||amountEarned<0){showToast("Please fill all required job fields.");return;}jobEntries.unshift({id:`job_${Date.now()}`,date,clientName,startTime,endTime,amountEarned,status,createdAt:new Date().toISOString()});persistJobEntries();document.getElementById("jobForm").reset();renderJobsPage();}
+function saveJob(e){
+  if(e)e.preventDefault();
+  const date=document.getElementById("jobDate").value;
+  const clientName=document.getElementById("jobClient").value.trim();
+  const amountEarned=Number(document.getElementById("jobAmount").value||0);
+  const startTime=document.getElementById("jobStart").value;
+  const endTime=document.getElementById("jobEnd").value;
+  const status=document.getElementById("jobStatus").value;
+  const location=document.getElementById("jobLocation").value.trim();
+  const notes=document.getElementById("jobNotes").value.trim();
+  const metrics=calcJobMetrics(amountEarned,startTime,endTime);
+  if(!date||!clientName||!startTime||!endTime||!Number.isFinite(amountEarned)||amountEarned<0){showToast("Please fill all required job fields.");return;}
+  if(metrics.minutes<=0){showToast("End time must be later than start time.");return;}
+  jobEntries.unshift({id:`job_${Date.now()}`,date,clientName,startTime,endTime,amountEarned,status,location,notes,durationMinutes:metrics.minutes,hourlyRate:metrics.hourlyRate,createdAt:new Date().toISOString()});
+  persistJobEntries();
+  document.getElementById("jobForm").reset();
+  updateJobComputedFields();
+  refreshAllViews();
+}
 function saveJobEntry(e){return saveJob(e);}
 function editJobEntry(id){const j=jobEntries.find(x=>x.id===id);if(!j)return;document.getElementById("jobDate").value=j.date;document.getElementById("jobClient").value=j.clientName;document.getElementById("jobLocation").value=j.location||"";document.getElementById("jobAmount").value=j.amountEarned;document.getElementById("jobStart").value=j.startTime;document.getElementById("jobEnd").value=j.endTime;document.getElementById("jobStatus").value=j.status;document.getElementById("jobNotes").value=j.notes||"";jobEntries=jobEntries.filter(x=>x.id!==id);persistJobEntries();updateJobComputedFields();renderJobsPage();}
 function deleteJobEntry(id){jobEntries=jobEntries.filter(x=>x.id!==id);persistJobEntries();renderJobsPage();}
 function addDailyJobsToIncome(date){const total=jobEntries.filter(j=>j.date===date).reduce((s,j)=>s+(Number(j.amountEarned)||0),0);if(total<=0)return;const exists=incomeEntries.some(i=>i.date===date&&i.source==="Jobs income"&&Number(i.amount)===total&&String(i.notes||"").includes("Generated from Jobs tab"));if(exists){showToast("Income entry already exists for this day.");return;}incomeEntries.unshift({id:`tmp_${Date.now()}`,source:"Jobs income",date,amount:total,notes:"Generated from Jobs tab"});persistIncomeEntries();refreshAllViews();}
-function renderJobsPage(){console.log("renderJobsPage loaded");const box=document.getElementById("jobsHistory");if(!box)return;if(!jobEntries.length){box.className="state";box.textContent="No jobs yet.";return;}box.className="";box.innerHTML=jobEntries.map(j=>`<div class="card" style="margin-bottom:8px;"><strong>${j.date}</strong> · ${j.clientName} · ${j.startTime}-${j.endTime} · ${formatMoney(Number(j.amountEarned)||0)} · ${j.status}</div>`).join("");}
+function renderJobsPage(){
+  const box=document.getElementById("jobsHistory");
+  const summaryBox=document.getElementById("jobsDailySummary");
+  if(!box||!summaryBox)return;
+  if(!jobEntries.length){
+    box.className="state";box.textContent=t("empty_jobs")||"No jobs yet.";
+    summaryBox.className="state";summaryBox.textContent="No daily summary yet.";
+    return;
+  }
+  box.className="jobs-list";
+  box.innerHTML=jobEntries.map(j=>{
+    const duration=j.durationMinutes||calcJobMetrics(j.amountEarned,j.startTime,j.endTime).minutes;
+    const hourly=duration?((Number(j.amountEarned)||0)/(duration/60)):0;
+    const paidClass=(j.status||"").toLowerCase()==="paid"?"paid":"unpaid";
+    return `<article class="job-entry-card"><div class="job-entry-top"><div><div class="job-client">${j.clientName}</div><div class="job-meta">${formatJobDate(j.date)} • ${j.startTime} - ${j.endTime}${j.location?` • ${j.location}`:""}</div></div><div class="action-menu-wrap"><button class="menu-trigger" type="button" onclick="openContextMenu(event,[{label:'Edit',action:'editJobEntry(\'${j.id}\')'},{label:'Delete',danger:true,action:'deleteJobEntry(\'${j.id}\')'}])"><span class="menu-dots">⋯</span></button></div></div><div class="job-grid"><div class="job-item"><span>Duration</span><strong>${formatDuration(duration)}</strong></div><div class="job-item"><span>Amount Earned</span><strong>${formatMoney(Number(j.amountEarned)||0)}</strong></div><div class="job-item"><span>Hourly Rate</span><strong>${formatMoney(hourly)}/hour</strong></div><div class="job-item"><span>Status</span><strong><span class="paid-pill ${paidClass}">${j.status||'Unpaid'}</span></strong></div>${j.notes?`<div class="job-item" style="grid-column:1 / -1;"><span>Notes</span><strong>${j.notes}</strong></div>`:""}</div></article>`;
+  }).join("");
+
+  const grouped=jobEntries.reduce((acc,j)=>{(acc[j.date]??=[]).push(j);return acc;},{});
+  const dates=Object.keys(grouped).sort((a,b)=>b.localeCompare(a));
+  summaryBox.className="summary-list";
+  summaryBox.innerHTML=dates.map(date=>{
+    const entries=grouped[date];
+    const totalEarned=entries.reduce((s,j)=>s+(Number(j.amountEarned)||0),0);
+    const totalMinutes=entries.reduce((s,j)=>s+(j.durationMinutes||calcJobMetrics(j.amountEarned,j.startTime,j.endTime).minutes),0);
+    const paidTotal=entries.filter(j=>(j.status||"").toLowerCase()==="paid").reduce((s,j)=>s+(Number(j.amountEarned)||0),0);
+    const unpaidTotal=totalEarned-paidTotal;
+    const avgRate=totalMinutes?totalEarned/(totalMinutes/60):0;
+    return `<div class="summary-row"><strong>${formatJobDate(date)}</strong><div class="summary-grid"><div class="summary-cell"><span>Total earned</span><strong>${formatMoney(totalEarned)}</strong></div><div class="summary-cell"><span>Total hours</span><strong>${(totalMinutes/60).toFixed(2)}h</strong></div><div class="summary-cell"><span>Avg hourly</span><strong>${formatMoney(avgRate)}/hour</strong></div><div class="summary-cell"><span>Paid total</span><strong>${formatMoney(paidTotal)}</strong></div><div class="summary-cell"><span>Unpaid total</span><strong>${formatMoney(unpaidTotal)}</strong></div></div></div>`;
+  }).join("");
+}
 
 function refreshAllViews(){updateDashboard();updateFinancialSummary();renderLatestInvoice();renderHistory();renderIncomeHistory();renderJobsPage();buildCategoryChart(invoices);buildMonthlyChart(invoices);updateAnalyticsSummary(invoices);buildInsights(invoices);renderProfileTab();}
 function clearDashboard(){if(!confirm(t("clear_income_confirm")))return;incomeEntries=[];persistIncomeEntries();refreshAllViews();}
@@ -1124,6 +1201,9 @@ window.startFree=startFree;
 window.startDemo=startDemo;
 window.openUserWorkspace=openUserWorkspace;
 window.saveJobEntry=saveJobEntry;
+
+["jobAmount","jobStart","jobEnd"].forEach(id=>{const el=document.getElementById(id);if(el){el.addEventListener("input",updateJobComputedFields);el.addEventListener("change",updateJobComputedFields);}});
+updateJobComputedFields();
 
 
 async function checkBackendHealthOnStartup(){
