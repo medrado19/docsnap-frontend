@@ -378,9 +378,11 @@
     .jobs-form { display: grid; gap: 14px; }
     .jobs-form textarea { min-height: 92px; resize: vertical; }
     .jobs-metrics { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 10px; }
-    .jobs-metric-card { border: 1px dashed #334155; border-radius: 10px; background: rgba(15, 23, 42, 0.7); padding: 10px; }
-    .jobs-metric-card span { font-size: 10px; color:#94a3b8; text-transform: uppercase; letter-spacing: .08em; display:block; margin-bottom: 6px; }
-    .jobs-metric-card strong { font-size: 14px; color: #dbeafe; }
+    .jobs-metric-card { border: 1px solid rgba(99,102,241,.38); border-radius: 12px; background: linear-gradient(150deg, rgba(30,41,59,.92), rgba(15,23,42,.86)); padding: 10px 12px; box-shadow: inset 0 1px 0 rgba(191,219,254,.08), 0 0 0 1px rgba(99,102,241,.08), 0 14px 26px rgba(15,23,42,.42); }
+    .jobs-metric-card span { font-size: 10px; color:#94a3b8; text-transform: uppercase; letter-spacing: .08em; display:block; margin-bottom: 4px; }
+    .jobs-metric-card strong { font-size: 20px; color: #eff6ff; font-weight: 700; line-height: 1.2; display:block; }
+    .jobs-metric-helper { margin-top: 6px; font-size: 11px; color: #9aa7bc; letter-spacing: .01em; }
+    .jobs-metric-empty { color: #93c5fd; font-size: 14px; font-weight: 600; }
     .jobs-list { display:grid; gap:10px; }
     .job-entry-card { border:1px solid #334155; border-radius:12px; background:rgba(15,23,42,.78); padding:12px; display:grid; gap:10px; }
     .job-entry-top { display:flex; justify-content:space-between; align-items:flex-start; gap:8px; }
@@ -698,7 +700,7 @@
             <div class="row"><label>Start time<input type="time" id="jobStart" required /></label><label>End time<input type="time" id="jobEnd" required /></label></div>
             <div class="row"><label>Amount earned<input type="number" id="jobAmount" min="0" step="0.01" required /></label><label>Paid status<select id="jobStatus"><option value="Paid">Paid</option><option value="Unpaid">Unpaid</option></select></label></div>
             <div class="row"><label>Location (optional)<input type="text" id="jobLocation" placeholder="Office, remote, client site" /></label><label>Notes (optional)<input type="text" id="jobNotes" placeholder="Shift details, deliverables" /></label></div>
-            <div class="jobs-metrics"><div class="jobs-metric-card"><span>Duration</span><strong id="jobDurationDisplay">-</strong></div><div class="jobs-metric-card"><span>Hourly rate</span><strong id="jobHourlyDisplay">-</strong></div></div>
+            <div class="jobs-metrics"><div class="jobs-metric-card"><span>Duration</span><strong id="jobDurationDisplay" aria-live="polite">Waiting for time + amount</strong><div class="jobs-metric-helper">Auto-calculated duration</div></div><div class="jobs-metric-card"><span>Hourly rate</span><strong id="jobHourlyDisplay" aria-live="polite">Waiting for time + amount</strong><div class="jobs-metric-helper">Auto-calculated hourly rate</div></div></div>
             <div class="actions"><button class="btn" type="submit">Add Job</button></div>
           </form>
         </div>
@@ -1094,7 +1096,7 @@ function loadJobEntries(){jobEntries=JSON.parse(localStorage.getItem(getJobsStor
 function persistJobEntries(){localStorage.setItem(getJobsStorageKey(),JSON.stringify(jobEntries));}
 function formatDuration(min){const safe=Math.max(0,Number(min)||0);return `${Math.floor(safe/60)}h ${String(safe%60).padStart(2,"0")}min`;}
 function formatJobDate(isoDate){if(!isoDate)return "-";const d=new Date(`${isoDate}T00:00:00`);return d.toLocaleDateString(currentLanguage,{month:"long",day:"numeric",year:"numeric"});}
-function updateJobComputedFields(){const amount=Number(document.getElementById("jobAmount")?.value||0);const start=document.getElementById("jobStart")?.value;const end=document.getElementById("jobEnd")?.value;const m=calcJobMetrics(amount,start,end);document.getElementById("jobDurationDisplay").textContent=m.minutes?formatDuration(m.minutes):"-";document.getElementById("jobHourlyDisplay").textContent=m.minutes?`${formatMoney(m.hourlyRate)}/hour`:"-";}
+function updateJobComputedFields(){const amount=Number(document.getElementById("jobAmount")?.value||0);const start=document.getElementById("jobStart")?.value;const end=document.getElementById("jobEnd")?.value;const m=calcJobMetrics(amount,start,end);const waitingText="Waiting for time + amount";const durationNode=document.getElementById("jobDurationDisplay");const hourlyNode=document.getElementById("jobHourlyDisplay");if(!durationNode||!hourlyNode)return;const ready=Boolean(start&&end&&Number.isFinite(amount)&&amount>=0&&m.minutes>0);durationNode.textContent=ready?formatDuration(m.minutes):waitingText;hourlyNode.textContent=ready?`${formatMoney(m.hourlyRate)}/hour`:waitingText;durationNode.classList.toggle("jobs-metric-empty",!ready);hourlyNode.classList.toggle("jobs-metric-empty",!ready);}
 function saveJob(e){
   if(e)e.preventDefault();
   const date=document.getElementById("jobDate").value;
